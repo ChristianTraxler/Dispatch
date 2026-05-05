@@ -1,0 +1,162 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --parchment: #f5f1e8;
+  --parchment-deep: #ede6d6;
+  --parchment-warm: #faf6ec;
+  --ink: #1a1815;
+  --ink-soft: #3d3a35;
+  --ink-mute: #6b665e;
+  --ink-fade: #a8a39a;
+  --rule: #c9c0ab;
+  --rule-soft: #ddd6c2;
+  --signal-red: #c8341a;
+  --signal-red-deep: #9e2614;
+  --signal-green: #2e7d3f;
+  --signal-green-light: #4a9d5c;
+}
+
+html,
+body,
+#root {
+  background: var(--parchment);
+  color: var(--ink);
+  font-family: "Fraunces", Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "liga" 1, "kern" 1;
+  min-height: 100vh;
+}
+
+body {
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(201, 192, 171, 0.08) 0px, transparent 1px),
+    radial-gradient(circle at 88% 72%, rgba(201, 192, 171, 0.06) 0px, transparent 1px);
+  background-size: 7px 7px, 11px 11px;
+}
+
+/* PRESENCE DOT — SONAR PULSE */
+.presence-dot {
+  position: relative;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.presence-dot.online {
+  background: var(--signal-green);
+  box-shadow: 0 0 0 1px rgba(46, 125, 63, 0.15);
+}
+.presence-dot.offline {
+  background: var(--signal-red);
+  box-shadow: 0 0 0 1px rgba(200, 52, 26, 0.18);
+}
+.presence-dot.online.pulse::before,
+.presence-dot.online.pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--signal-green);
+  animation: sonar 2.4s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+  pointer-events: none;
+}
+.presence-dot.online.pulse::after {
+  animation-delay: 1.2s;
+}
+@keyframes sonar {
+  0% { transform: scale(1); opacity: 0.55; }
+  80% { opacity: 0; }
+  100% { transform: scale(3.4); opacity: 0; }
+}
+
+@keyframes sonar-square {
+  0% { transform: scale(1); opacity: 0.7; }
+  80% { opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* RULES */
+.rule-thin { border-bottom: 1px solid var(--rule); }
+.rule-soft { border-bottom: 1px solid var(--rule-soft); }
+.rule-double {
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  border-style: double;
+  border-width: 3px 0;
+}
+
+/* STATUS PILL */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.65rem 0.25rem 0.45rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-left: 3px solid currentColor;
+  background: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+}
+
+/* INPUTS */
+.input-line {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--rule);
+  padding: 0.5rem 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.0625rem;
+  color: var(--ink);
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.input-line:focus { border-bottom-color: var(--signal-red); }
+.input-line::placeholder { color: var(--ink-fade); font-style: italic; }
+
+/* BUTTONS */
+.btn-dispatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.25rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  background: var(--ink);
+  color: var(--parchment-warm);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.btn-dispatch:hover { background: var(--signal-red); }
+.btn-dispatch:disabled { background: var(--ink-fade); cursor: not-allowed; }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px solid var(--rule);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-ghost:hover { color: var(--signal-red); border-color: var(--signal-red); }
