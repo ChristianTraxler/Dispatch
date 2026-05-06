@@ -193,14 +193,26 @@ export function AdminQuickChatLauncher() {
     },
   });
 
-  if (state.kind === "collapsed") {
-    return (
+  const filtered = clients.filter((c) => {
+    if (!filter.trim()) return true;
+    const q = filter.toLowerCase();
+    return c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q);
+  });
+
+  const isCollapsed = state.kind === "collapsed";
+
+  return (
+    <>
       <button
         type="button"
         onClick={openPicker}
         aria-label="Start a quick chat"
         title="Start a quick chat"
-        className="group fixed bottom-6 right-6 z-50 w-[60px] h-[60px] rounded-full bg-ink text-parchment-warm flex items-center justify-center transition-all duration-200 ease-out shadow-[0_10px_28px_-6px_rgba(26,24,21,0.45),_0_2px_6px_-1px_rgba(26,24,21,0.18)] ring-1 ring-inset ring-signal-red/45 hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-8px_rgba(26,24,21,0.55),_0_4px_10px_-2px_rgba(26,24,21,0.22)] active:translate-y-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-2 focus-visible:ring-offset-parchment"
+        className={`group fixed bottom-6 right-6 z-50 w-[60px] h-[60px] rounded-full bg-ink text-parchment-warm flex items-center justify-center origin-bottom-right shadow-[0_10px_28px_-6px_rgba(26,24,21,0.45),_0_2px_6px_-1px_rgba(26,24,21,0.18)] ring-1 ring-inset ring-signal-red/45 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-2 focus-visible:ring-offset-parchment ${
+          isCollapsed
+            ? "opacity-100 scale-100 hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-8px_rgba(26,24,21,0.55),_0_4px_10px_-2px_rgba(26,24,21,0.22)] active:translate-y-0 active:scale-95"
+            : "opacity-0 scale-50 pointer-events-none"
+        }`}
       >
         <svg
           viewBox="0 0 24 24"
@@ -217,17 +229,15 @@ export function AdminQuickChatLauncher() {
           <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
         </svg>
       </button>
-    );
-  }
 
-  const filtered = clients.filter((c) => {
-    if (!filter.trim()) return true;
-    const q = filter.toLowerCase();
-    return c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q);
-  });
-
-  return (
-    <div className="fixed bottom-6 right-6 z-50 w-[360px] max-w-[calc(100vw-2rem)] h-[480px] max-h-[calc(100vh-2rem)] bg-parchment-warm border border-rule shadow-2xl flex flex-col">
+      <div
+        aria-hidden={isCollapsed}
+        className={`fixed bottom-6 right-6 z-50 w-[360px] max-w-[calc(100vw-2rem)] h-[480px] max-h-[calc(100vh-2rem)] bg-parchment-warm border border-rule shadow-2xl flex flex-col origin-bottom-right transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] ${
+          isCollapsed
+            ? "opacity-0 scale-90 translate-y-2 pointer-events-none"
+            : "opacity-100 scale-100 translate-y-0"
+        }`}
+      >
       <div className="flex items-center justify-between px-4 py-3 border-b border-rule bg-ink text-parchment-warm">
         <div className="flex items-center gap-2 min-w-0">
           {state.kind === "open" && (
@@ -407,6 +417,7 @@ export function AdminQuickChatLauncher() {
           </div>
         </>
       )}
-    </div>
+      </div>
+    </>
   );
 }
