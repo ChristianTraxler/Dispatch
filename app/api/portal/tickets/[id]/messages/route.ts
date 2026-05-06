@@ -49,6 +49,15 @@ export async function POST(
     return NextResponse.json({ error: "Ticket not found." }, { status: 404 });
   }
 
+  if (ticket.isInquiry && ticket.inquiryEndedAt) {
+    return NextResponse.json(
+      { error: "This chat has ended. Open the launcher to start a new one." },
+      { status: 409 },
+    );
+  }
+
+  const now = new Date();
+
   const message = await prisma.message.create({
     data: {
       ticketId,
@@ -59,21 +68,29 @@ export async function POST(
     },
   });
 
-  // Notify the admin (debounced per-ticket).
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (adminEmail) {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
-    try {
-      await sendNewMessageToAdminEmail(adminEmail, ticket.id, {
-        ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
-        ticketTitle: ticket.title,
-        ticketUrl: `${appUrl}/admin/ticket/${ticket.id}`,
-        clientName: account.name,
-        siteDisplayName: ticket.site.displayName,
-        messageBody: body ?? "(attachment)",
-      });
-    } catch (err) {
-      console.error("[messages] new-message-to-admin email failed:", err);
+  await prisma.ticket.update({
+    where: { id: ticketId },
+    data: { lastMessageAt: now },
+  });
+
+  // Per-message email — tickets only. Inquiries notify via end-of-chat transcript
+  // and the 1-hour admin-nudge cron; no per-message email noise.
+  if (!ticket.isInquiry) {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (adminEmail) {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+      try {
+        await sendNewMessageToAdminEmail(adminEmail, ticket.id, {
+          ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
+          ticketTitle: ticket.title,
+          ticketUrl: `${appUrl}/admin/ticket/${ticket.id}`,
+          clientName: account.name,
+          siteDisplayName: ticket.site.displayName,
+          messageBody: body ?? "(attachment)",
+        });
+      } catch (err) {
+        console.error("[messages] new-message-to-admin email failed:", err);
+      }
     }
   }
 

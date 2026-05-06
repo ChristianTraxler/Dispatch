@@ -60,6 +60,15 @@ export async function POST(
     return NextResponse.json({ error: "Ticket not found." }, { status: 404 });
   }
 
+  if (ticket.isInquiry && ticket.inquiryEndedAt) {
+    return NextResponse.json(
+      { error: "This chat has ended." },
+      { status: 409 },
+    );
+  }
+
+  const now = new Date();
+
   const message = await prisma.message.create({
     data: {
       ticketId,
@@ -70,18 +79,30 @@ export async function POST(
     },
   });
 
-  // Notify the client (debounced per-ticket).
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
-  try {
-    await sendNewMessageToClientEmail(ticket.clientAccount.email, ticket.id, {
-      ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
-      ticketTitle: ticket.title,
-      ticketUrl: `${appUrl}/portal/ticket/${ticket.id}`,
-      siteDisplayName: ticket.site.displayName,
-      messageBody: body ?? "(attachment)",
-    });
-  } catch (err) {
-    console.error("[messages] new-message-to-client email failed:", err);
+  // Admin sending a message clears the waiting-nudge flag — a fresh client
+  // message later can re-trigger a nudge.
+  await prisma.ticket.update({
+    where: { id: ticketId },
+    data: {
+      lastMessageAt: now,
+      adminNudgedAt: null,
+    },
+  });
+
+  // Per-message email — tickets only; inquiries notify via end-of-chat transcript.
+  if (!ticket.isInquiry) {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+    try {
+      await sendNewMessageToClientEmail(ticket.clientAccount.email, ticket.id, {
+        ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
+        ticketTitle: ticket.title,
+        ticketUrl: `${appUrl}/portal/ticket/${ticket.id}`,
+        siteDisplayName: ticket.site.displayName,
+        messageBody: body ?? "(attachment)",
+      });
+    } catch (err) {
+      console.error("[messages] new-message-to-client email failed:", err);
+    }
   }
 
   return NextResponse.json({
