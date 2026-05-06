@@ -34,9 +34,11 @@ export function useTicketsFeed({
   onPromotion?: (event: PromotionEvent) => void;
 }) {
   const onInsertRef = useRef(onInsert);
-  onInsertRef.current = onInsert;
   const onPromotionRef = useRef(onPromotion);
-  onPromotionRef.current = onPromotion;
+  useEffect(() => {
+    onInsertRef.current = onInsert;
+    onPromotionRef.current = onPromotion;
+  });
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();

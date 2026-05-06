@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentAuthUser, getCurrentClientAccount, isAdmin } from "@/lib/auth/client-session";
 import { PortalShellClient } from "../portal-shell-client";
+import { QuickChatLauncher } from "./quick-chat-launcher";
 
 export default async function PortalLayout({
   children,
@@ -24,6 +25,7 @@ export default async function PortalLayout({
       user={{ id: account.id, name: account.name, email: account.email }}
     >
       {children}
+      <QuickChatLauncher />
     </PortalShellClient>
   );
 }
