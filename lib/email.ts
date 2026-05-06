@@ -4,8 +4,12 @@ import { Resend } from "resend";
 import {
   renderInviteEmail,
   renderNewTicketEmail,
+  renderAwaitingConfirmationEmail,
+  renderTicketReopenedEmail,
   type InviteEmailParams,
   type NewTicketEmailParams,
+  type AwaitingConfirmationEmailParams,
+  type TicketReopenedEmailParams,
 } from "@/lib/email-templates";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -35,4 +39,20 @@ export async function sendNewTicketEmail(
     html,
     text,
   });
+}
+
+export async function sendAwaitingConfirmationEmail(
+  to: string,
+  params: AwaitingConfirmationEmailParams,
+) {
+  const { subject, html, text } = renderAwaitingConfirmationEmail(params);
+  return resend.emails.send({ from: FROM, to, subject, html, text });
+}
+
+export async function sendTicketReopenedEmail(
+  to: string,
+  params: TicketReopenedEmailParams,
+) {
+  const { subject, html, text } = renderTicketReopenedEmail(params);
+  return resend.emails.send({ from: FROM, to, subject, html, text });
 }

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
+import { sendTicketReopenedEmail } from "@/lib/email";
+import { ticketNumber } from "@/lib/ticket";
 
 export async function POST(
-  _req: Request,
+  req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const account = await getCurrentClientAccount();
@@ -15,7 +17,7 @@ export async function POST(
 
   const ticket = await prisma.ticket.findFirst({
     where: { id, clientAccountId: account.id },
-    select: { id: true, status: true },
+    include: { site: { select: { displayName: true } } },
   });
   if (!ticket) {
     return NextResponse.json({ error: "Ticket not found." }, { status: 404 });
@@ -34,6 +36,24 @@ export async function POST(
       reopenedAt: new Date(),
     },
   });
+
+  // Notify admin that the client kicked it back. Don't fail the API call if email hiccups.
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (adminEmail) {
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+    try {
+      await sendTicketReopenedEmail(adminEmail, {
+        ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
+        ticketTitle: ticket.title,
+        ticketUrl: `${appUrl}/admin/ticket/${ticket.id}`,
+        clientName: account.name,
+        siteDisplayName: ticket.site.displayName,
+      });
+    } catch (err) {
+      console.error("[reopen] email failed:", err);
+    }
+  }
 
   return NextResponse.json({ ticket: updated });
 }

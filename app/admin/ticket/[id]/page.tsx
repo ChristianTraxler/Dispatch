@@ -1,0 +1,71 @@
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { ticketNumber } from "@/lib/ticket";
+import type { ChatMessage } from "@/components/ChatThread";
+import type { TicketDetail } from "@/components/TicketDetailPage";
+import { AdminTicketDetailClient } from "./admin-ticket-detail-client";
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function AdminTicketDetailPage({ params }: PageProps) {
+  const { id } = await params;
+
+  const ticket = await prisma.ticket.findUnique({
+    where: { id },
+    include: {
+      site: { select: { url: true, displayName: true } },
+      clientAccount: { select: { name: true, email: true } },
+      messages: { orderBy: { createdAt: "asc" } },
+    },
+  });
+
+  if (!ticket) notFound();
+
+  // Stage 3 (Viewed) — auto-set the first time the admin opens the ticket.
+  if (!ticket.firstViewedAt) {
+    await prisma.ticket.update({
+      where: { id: ticket.id },
+      data: { firstViewedAt: new Date() },
+    });
+    ticket.firstViewedAt = new Date();
+  }
+
+  const detail: TicketDetail = {
+    id: ticket.id,
+    ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
+    title: ticket.title,
+    description: ticket.description,
+    category: ticket.category,
+    status: ticket.status,
+    siteUrl: ticket.site.url,
+    siteDisplayName: ticket.site.displayName,
+    clientName: ticket.clientAccount.name,
+    createdAt: ticket.createdAt.toISOString(),
+    receivedAt: ticket.receivedAt?.toISOString() ?? null,
+    firstViewedAt: ticket.firstViewedAt?.toISOString() ?? null,
+    reviewingStartedAt: ticket.reviewingStartedAt?.toISOString() ?? null,
+    fixingStartedAt: ticket.fixingStartedAt?.toISOString() ?? null,
+    fixedAt: ticket.fixedAt?.toISOString() ?? null,
+    confirmedAt: ticket.confirmedAt?.toISOString() ?? null,
+  };
+
+  const messages: ChatMessage[] = ticket.messages.map((m) => ({
+    id: m.id,
+    senderType: m.senderType,
+    senderName: m.senderType === "ADMIN" ? "Christian" : ticket.clientAccount.name,
+    body: m.body,
+    createdAt: m.createdAt.toISOString(),
+    readAt: m.readAt?.toISOString() ?? null,
+  }));
+
+  return (
+    <AdminTicketDetailClient
+      ticket={detail}
+      messages={messages}
+      otherPartyName={ticket.clientAccount.name}
+      otherPartyOnline={false}
+    />
+  );
+}

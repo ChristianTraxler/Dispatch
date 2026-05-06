@@ -32,14 +32,21 @@ export default function AdminDashboardPage() {
           For now
         </p>
         <p className="font-display text-ink-soft">
-          Use the navigation to file{" "}
+          File{" "}
           <a
             href="/admin/invites"
             className="text-signal-red hover:underline underline-offset-4"
           >
             invitations
-          </a>{" "}
-          or browse the client roster.
+          </a>
+          , work the{" "}
+          <a
+            href="/admin/tickets"
+            className="text-signal-red hover:underline underline-offset-4"
+          >
+            ticket queue
+          </a>
+          , or browse the client roster.
         </p>
       </div>
     </div>
