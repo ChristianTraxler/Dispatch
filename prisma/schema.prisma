@@ -17,6 +17,7 @@ model ClientAccount {
   authUserId String   @unique @map("auth_user_id")
   email      String   @unique
   name       String
+  avatarPath String?  @map("avatar_path")
   createdAt  DateTime @default(now()) @map("created_at")
 
   sites   Site[]
