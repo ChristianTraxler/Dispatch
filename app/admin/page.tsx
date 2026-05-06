@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ticketNumber } from "@/lib/ticket";
 import { StatusPill } from "@/components/StatusPill";
 import { LedgerLiveRefresh } from "./ledger-live-refresh";
+import { OnlineClientsPanel } from "./online-clients-panel";
 
 const OPEN_STATUSES = ["NEW", "REVIEWING", "FIXING", "REOPENED"] as const;
 
@@ -125,22 +126,26 @@ export default async function AdminLedgerPage() {
           )}
         </section>
 
-        {/* Quick actions */}
-        <aside>
-          <div className="flex items-center gap-3 mb-4">
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">
-              §
-            </span>
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
-              On Deck
-            </span>
-            <span className="h-px flex-1 bg-rule-soft" />
+        {/* Right column: live presence + quick actions */}
+        <aside className="space-y-8">
+          <OnlineClientsPanel />
+
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">
+                §
+              </span>
+              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                On Deck
+              </span>
+              <span className="h-px flex-1 bg-rule-soft" />
+            </div>
+            <ul className="space-y-2">
+              <QuickAction href="/admin/invites/new" label="Send a new invite →" />
+              <QuickAction href="/admin/tickets" label="Work the ticket queue →" />
+              <QuickAction href="/admin/clients" label="Browse client roster →" />
+            </ul>
           </div>
-          <ul className="space-y-2">
-            <QuickAction href="/admin/invites/new" label="Send a new invite →" />
-            <QuickAction href="/admin/tickets" label="Work the ticket queue →" />
-            <QuickAction href="/admin/clients" label="Browse client roster →" />
-          </ul>
         </aside>
       </div>
     </div>
