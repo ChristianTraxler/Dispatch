@@ -39,13 +39,7 @@ export function OnlineClientsPanel() {
           {list.map((c) => (
             <li key={c.accountId} className="px-4 py-2.5">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="relative shrink-0">
-                  <Avatar src={c.avatarUrl ?? null} name={c.name} size={32} tone="client" />
-                  <span
-                    className="presence-dot online pulse absolute -bottom-0.5 -right-0.5 ring-2 ring-parchment-warm"
-                    aria-hidden="true"
-                  />
-                </div>
+                <Avatar src={c.avatarUrl ?? null} name={c.name} size={32} tone="client" />
                 <div className="min-w-0 flex-1">
                   <p className="font-display text-sm text-ink truncate">{c.name}</p>
                   <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade truncate">

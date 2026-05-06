@@ -172,26 +172,23 @@ function ClientCard({
       <div className="flex flex-col md:flex-row md:items-center gap-4 px-4 md:px-5 py-4">
         {/* Identity */}
         <div className="flex items-start gap-4 flex-1 min-w-0">
-          <div className="relative shrink-0">
-            <Avatar
-              src={client.avatarUrl ?? null}
-              name={client.name}
-              size={48}
-              tone="client"
-            />
-            <span className="absolute -bottom-0.5 -right-0.5 ring-2 ring-parchment-warm rounded-full">
+          <Avatar
+            src={client.avatarUrl ?? null}
+            name={client.name}
+            size={48}
+            tone="client"
+            className="mt-0.5"
+          />
+          <div className="min-w-0">
+            <h2
+              className="flex items-center gap-2.5 font-display text-lg md:text-xl leading-tight"
+              style={{ fontVariationSettings: '"opsz" 144' }}
+            >
+              <span>{client.name}</span>
               <PresenceDot
                 status={client.isOnline ? "online" : "offline"}
                 pulse={client.isOnline}
               />
-            </span>
-          </div>
-          <div className="min-w-0">
-            <h2
-              className="font-display text-lg md:text-xl leading-tight"
-              style={{ fontVariationSettings: '"opsz" 144' }}
-            >
-              {client.name}
             </h2>
             <div className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-mute mt-0.5">
               {client.email}
