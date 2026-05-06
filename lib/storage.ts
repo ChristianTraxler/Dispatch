@@ -15,7 +15,7 @@ export const ALLOWED_MIME_TYPES = new Set([
   "application/x-zip-compressed", // some browsers/OSes report .zip as this
 ]);
 
-export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+export const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 export const MAX_FILES_PER_MESSAGE = 5;
 
 export interface AttachmentRecord {
@@ -115,6 +115,6 @@ export function validateUpload({
     return `Unsupported file type "${contentType}".`;
   }
   if (sizeBytes <= 0) return "File is empty.";
-  if (sizeBytes > MAX_FILE_SIZE) return `File exceeds 10 MB cap.`;
+  if (sizeBytes > MAX_FILE_SIZE) return `File exceeds 25 MB cap.`;
   return null;
 }
