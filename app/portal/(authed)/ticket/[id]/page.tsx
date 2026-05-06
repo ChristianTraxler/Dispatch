@@ -61,6 +61,7 @@ export default async function ClientTicketDetailPage({ params }: PageProps) {
       viewerType="client"
       otherPartyName="Christian"
       otherPartyOnline={false}
+      myName={account.name}
     />
   );
 }

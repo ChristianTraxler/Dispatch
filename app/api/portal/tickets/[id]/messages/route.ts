@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
+import { sendNewMessageToAdminEmail } from "@/lib/email";
+import { ticketNumber } from "@/lib/ticket";
 
 export async function POST(
   req: Request,
@@ -24,10 +26,11 @@ export async function POST(
     return NextResponse.json({ error: "Message body is required." }, { status: 400 });
   }
 
-  // Verify ticket ownership.
   const ticket = await prisma.ticket.findFirst({
     where: { id: ticketId, clientAccountId: account.id },
-    select: { id: true },
+    include: {
+      site: { select: { displayName: true } },
+    },
   });
   if (!ticket) {
     return NextResponse.json({ error: "Ticket not found." }, { status: 404 });
@@ -41,6 +44,24 @@ export async function POST(
       body,
     },
   });
+
+  // Notify the admin (debounced per-ticket).
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (adminEmail) {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+    try {
+      await sendNewMessageToAdminEmail(adminEmail, ticket.id, {
+        ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
+        ticketTitle: ticket.title,
+        ticketUrl: `${appUrl}/admin/ticket/${ticket.id}`,
+        clientName: account.name,
+        siteDisplayName: ticket.site.displayName,
+        messageBody: body,
+      });
+    } catch (err) {
+      console.error("[messages] new-message-to-admin email failed:", err);
+    }
+  }
 
   return NextResponse.json({
     message: {

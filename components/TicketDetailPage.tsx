@@ -25,8 +25,12 @@ export interface TicketDetailPageProps {
   otherPartyName: string;
   /** Whether the other party is currently online */
   otherPartyOnline?: boolean;
+  /** Whether the other party is currently typing in the chat */
+  otherPartyTyping?: boolean;
   /** Send a chat message */
   onSendMessage?: (data: { body: string; attachments: never[] }) => void | Promise<void>;
+  /** Fired when the viewer's typing state changes (forwarded to chat thread) */
+  onTypingChange?: (isTyping: boolean) => void;
   /** Client clicks "Confirm Fixed" — closes the ticket */
   onConfirmFixed?: () => void | Promise<void>;
   /** Client clicks "Issue Persists" — reopens the ticket */
@@ -45,7 +49,9 @@ export function TicketDetailPage({
   viewerType,
   otherPartyName,
   otherPartyOnline = false,
+  otherPartyTyping = false,
   onSendMessage,
+  onTypingChange,
   onConfirmFixed,
   onReopen,
   onStatusChange,
@@ -206,7 +212,9 @@ export function TicketDetailPage({
             viewerType={viewerType}
             otherPartyName={otherPartyName}
             otherPartyOnline={otherPartyOnline}
+            otherPartyTyping={otherPartyTyping}
             onSendMessage={onSendMessage as never}
+            onTypingChange={onTypingChange}
           />
         </section>
       </div>

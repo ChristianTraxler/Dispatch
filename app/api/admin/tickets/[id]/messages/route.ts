@@ -5,6 +5,8 @@ import {
   AuthRequiredError,
   AdminRequiredError,
 } from "@/lib/auth/admin-guard";
+import { sendNewMessageToClientEmail } from "@/lib/email";
+import { ticketNumber } from "@/lib/ticket";
 
 export async function POST(
   req: Request,
@@ -36,7 +38,10 @@ export async function POST(
 
   const ticket = await prisma.ticket.findUnique({
     where: { id: ticketId },
-    select: { id: true },
+    include: {
+      site: { select: { displayName: true } },
+      clientAccount: { select: { email: true } },
+    },
   });
   if (!ticket) {
     return NextResponse.json({ error: "Ticket not found." }, { status: 404 });
@@ -50,6 +55,20 @@ export async function POST(
       body,
     },
   });
+
+  // Notify the client (debounced per-ticket).
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+  try {
+    await sendNewMessageToClientEmail(ticket.clientAccount.email, ticket.id, {
+      ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
+      ticketTitle: ticket.title,
+      ticketUrl: `${appUrl}/portal/ticket/${ticket.id}`,
+      siteDisplayName: ticket.site.displayName,
+      messageBody: body,
+    });
+  } catch (err) {
+    console.error("[messages] new-message-to-client email failed:", err);
+  }
 
   return NextResponse.json({
     message: {

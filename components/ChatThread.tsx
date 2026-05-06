@@ -28,10 +28,14 @@ export interface ChatThreadProps {
   viewerType: ViewerType;
   /** Whether the other party is currently online */
   otherPartyOnline?: boolean;
+  /** Whether the other party is currently typing (live, ephemeral) */
+  otherPartyTyping?: boolean;
   /** Other party's display name (for header) */
   otherPartyName?: string;
   /** Submit handler — replaced with real /api call in production */
   onSendMessage?: (data: { body: string; attachments: ChatAttachment[] }) => void | Promise<void>;
+  /** Fired with true when the viewer starts typing, false ~3s after they stop */
+  onTypingChange?: (isTyping: boolean) => void;
   /** Whether sending is in progress */
   sending?: boolean;
   className?: string;
@@ -60,8 +64,10 @@ export function ChatThread({
   messages,
   viewerType,
   otherPartyOnline = false,
+  otherPartyTyping = false,
   otherPartyName,
   onSendMessage,
+  onTypingChange,
   sending = false,
   className = "",
   style,
@@ -69,17 +75,63 @@ export function ChatThread({
   const [draft, setDraft] = useState("");
   const [pendingAttachments, setPendingAttachments] = useState<ChatAttachment[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const typingActiveRef = useRef(false);
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Auto-scroll to latest message when messages change
+  // Auto-scroll to latest message when messages change OR when the typing
+  // indicator appears, so it stays visible.
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages.length]);
+  }, [messages.length, otherPartyTyping]);
+
+  // If the parent unmounts mid-type, make sure we don't leave a dangling "typing" signal.
+  useEffect(() => {
+    return () => {
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+      if (typingActiveRef.current) {
+        onTypingChange?.(false);
+        typingActiveRef.current = false;
+      }
+    };
+  }, [onTypingChange]);
+
+  function bumpTypingSignal() {
+    if (!onTypingChange) return;
+    if (!typingActiveRef.current) {
+      onTypingChange(true);
+      typingActiveRef.current = true;
+    }
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    typingTimerRef.current = setTimeout(() => {
+      onTypingChange(false);
+      typingActiveRef.current = false;
+    }, 3000);
+  }
+
+  function stopTypingSignalNow() {
+    if (typingTimerRef.current) {
+      clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = null;
+    }
+    if (typingActiveRef.current) {
+      onTypingChange?.(false);
+      typingActiveRef.current = false;
+    }
+  }
+
+  function handleDraftChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const next = e.target.value;
+    setDraft(next);
+    if (next.trim().length > 0) bumpTypingSignal();
+    else stopTypingSignalNow();
+  }
 
   async function handleSend() {
     const trimmed = draft.trim();
     if (!trimmed && pendingAttachments.length === 0) return;
+    stopTypingSignalNow();
     if (!onSendMessage) {
       setDraft("");
       setPendingAttachments([]);
@@ -147,6 +199,37 @@ export function ChatThread({
         {messages.map((m) => (
           <MessageBlock key={m.id} message={m} viewerType={viewerType} />
         ))}
+
+        {otherPartyTyping && (
+          <div
+            className="flex items-center gap-2 font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute italic pt-1"
+            aria-live="polite"
+          >
+            <span className="inline-flex items-end gap-[2px] not-italic" aria-hidden="true">
+              <span
+                className="block w-[3px] h-[3px] rounded-full bg-ink-mute"
+                style={{ animation: "typing-bounce 1.2s ease-in-out infinite" }}
+              />
+              <span
+                className="block w-[3px] h-[3px] rounded-full bg-ink-mute"
+                style={{
+                  animation: "typing-bounce 1.2s ease-in-out infinite",
+                  animationDelay: "0.15s",
+                }}
+              />
+              <span
+                className="block w-[3px] h-[3px] rounded-full bg-ink-mute"
+                style={{
+                  animation: "typing-bounce 1.2s ease-in-out infinite",
+                  animationDelay: "0.3s",
+                }}
+              />
+            </span>
+            <span className="font-display normal-case tracking-normal text-xs text-ink-mute">
+              {otherPartyName ?? "The other party"} is typing…
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Composer */}
@@ -154,7 +237,7 @@ export function ChatThread({
         <div className="px-4 py-3">
           <textarea
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={handleDraftChange}
             onKeyDown={handleKeyDown}
             placeholder="File a reply…"
             rows={2}

@@ -1,12 +1,16 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   TicketDetailPage,
   type TicketDetail,
 } from "@/components/TicketDetailPage";
 import type { ChatMessage, ViewerType } from "@/components/ChatThread";
+import {
+  useTicketChannel,
+  type RawMessageRow,
+} from "@/lib/realtime/use-ticket-channel";
 
 export function TicketDetailClient({
   ticket,
@@ -14,15 +18,71 @@ export function TicketDetailClient({
   viewerType,
   otherPartyName,
   otherPartyOnline,
+  myName,
 }: {
   ticket: TicketDetail;
   messages: ChatMessage[];
   viewerType: ViewerType;
   otherPartyName: string;
   otherPartyOnline: boolean;
+  myName: string;
 }) {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [otherPartyTyping, setOtherPartyTyping] = useState(false);
+
+  const rawToChatMessage = useCallback(
+    (row: RawMessageRow): ChatMessage => ({
+      id: row.id,
+      senderType: row.sender_type,
+      senderName: row.sender_type === "ADMIN" ? otherPartyName : myName,
+      body: row.body,
+      createdAt: row.created_at,
+      readAt: row.read_at,
+    }),
+    [otherPartyName, myName],
+  );
+
+  const handleInsert = useCallback(
+    (row: RawMessageRow) => {
+      const incoming = rawToChatMessage(row);
+      setMessages((prev) =>
+        prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming],
+      );
+      // Other-party message → mark it read on our side immediately
+      if (row.sender_type === "ADMIN") {
+        fetch(`/api/portal/tickets/${ticket.id}/mark-read`, { method: "POST" }).catch(
+          () => {},
+        );
+      }
+    },
+    [rawToChatMessage, ticket.id],
+  );
+
+  const handleUpdate = useCallback(
+    (row: RawMessageRow) => {
+      const incoming = rawToChatMessage(row);
+      setMessages((prev) =>
+        prev.map((m) => (m.id === incoming.id ? { ...m, ...incoming } : m)),
+      );
+    },
+    [rawToChatMessage],
+  );
+
+  const { broadcastTyping } = useTicketChannel({
+    ticketId: ticket.id,
+    viewerSide: "CLIENT",
+    onMessageInsert: handleInsert,
+    onMessageUpdate: handleUpdate,
+    onOtherTyping: setOtherPartyTyping,
+  });
+
+  // Mark unread admin messages as read when the page first renders.
+  useEffect(() => {
+    fetch(`/api/portal/tickets/${ticket.id}/mark-read`, { method: "POST" }).catch(
+      () => {},
+    );
+  }, [ticket.id]);
 
   async function onSendMessage({ body }: { body: string; attachments: never[] }) {
     const res = await fetch(`/api/portal/tickets/${ticket.id}/messages`, {
@@ -36,8 +96,9 @@ export function TicketDetailClient({
       return;
     }
     const result = (await res.json()) as { message: ChatMessage };
-    // Optimistic append until Phase 8 wires Realtime subscription
-    setMessages((prev) => [...prev, result.message]);
+    setMessages((prev) =>
+      prev.some((m) => m.id === result.message.id) ? prev : [...prev, result.message],
+    );
   }
 
   async function onConfirmFixed() {
@@ -75,7 +136,9 @@ export function TicketDetailClient({
       viewerType={viewerType}
       otherPartyName={otherPartyName}
       otherPartyOnline={otherPartyOnline}
+      otherPartyTyping={otherPartyTyping}
       onSendMessage={onSendMessage}
+      onTypingChange={broadcastTyping}
       onConfirmFixed={onConfirmFixed}
       onReopen={onReopen}
       onBack={onBack}

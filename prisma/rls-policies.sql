@@ -105,4 +105,65 @@ CREATE POLICY "client_send_own_messages" ON messages
 --              Anon and authenticated roles see zero rows.
 -- ────────────────────────────────────────────────────────────────────────────
 
--- (No policies. RLS-enabled-without-policies = deny-all to non-service-role.)
+-- (No client policies. RLS-enabled-without-policies = deny-all to non-service-role.)
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- 7. ADMIN READ POLICIES
+--    Service-role bypasses RLS, but the admin browser session uses the anon
+--    key with an authenticated JWT (role:'admin' in app_metadata). For
+--    Realtime postgres_changes subscriptions to deliver events to the admin
+--    browser, the admin's JWT needs SELECT permission on the underlying tables.
+-- ────────────────────────────────────────────────────────────────────────────
+
+DROP POLICY IF EXISTS "admin_reads_all_client_accounts" ON client_accounts;
+DROP POLICY IF EXISTS "admin_reads_all_sites"           ON sites;
+DROP POLICY IF EXISTS "admin_reads_all_tickets"         ON tickets;
+DROP POLICY IF EXISTS "admin_reads_all_messages"        ON messages;
+DROP POLICY IF EXISTS "admin_reads_all_invites"         ON invites;
+
+CREATE POLICY "admin_reads_all_client_accounts" ON client_accounts
+  FOR SELECT USING (
+    coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin'
+  );
+
+CREATE POLICY "admin_reads_all_sites" ON sites
+  FOR SELECT USING (
+    coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin'
+  );
+
+CREATE POLICY "admin_reads_all_tickets" ON tickets
+  FOR SELECT USING (
+    coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin'
+  );
+
+CREATE POLICY "admin_reads_all_messages" ON messages
+  FOR SELECT USING (
+    coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin'
+  );
+
+CREATE POLICY "admin_reads_all_invites" ON invites
+  FOR SELECT USING (
+    coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin'
+  );
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- 8. REALTIME PUBLICATION
+--    Supabase Realtime only emits postgres_changes events for tables added
+--    to the supabase_realtime publication. Add the tables we subscribe to.
+-- ────────────────────────────────────────────────────────────────────────────
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'messages'
+  ) THEN
+    EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE messages';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'tickets'
+  ) THEN
+    EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE tickets';
+  END IF;
+END $$;
