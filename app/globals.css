@@ -86,6 +86,26 @@ body {
   40% { transform: translateY(-3px); opacity: 1; }
 }
 
+/* UNREAD BADGE — periodic attention-grabbing wiggle (~every 4s) */
+@keyframes badge-wiggle {
+  0%, 70%, 100% { transform: rotate(0deg); }
+  74% { transform: rotate(-14deg); }
+  78% { transform: rotate(12deg); }
+  82% { transform: rotate(-9deg); }
+  86% { transform: rotate(6deg); }
+  90% { transform: rotate(-3deg); }
+  94% { transform: rotate(0deg); }
+}
+
+.badge-wiggle {
+  animation: badge-wiggle 4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-wiggle { animation: none; }
+}
+
 /* RULES */
 .rule-thin { border-bottom: 1px solid var(--rule); }
 .rule-soft { border-bottom: 1px solid var(--rule-soft); }
