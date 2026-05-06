@@ -86,20 +86,26 @@ body {
   40% { transform: translateY(-3px); opacity: 1; }
 }
 
-/* UNREAD BADGE — periodic attention-grabbing wiggle (~every 4s) */
+/* UNREAD BADGE — periodic attention-grabbing wiggle every 3s. Combines a
+   rotate sweep with a small scale pulse so the badge clearly "shakes" rather
+   than subtly tilting. */
 @keyframes badge-wiggle {
-  0%, 70%, 100% { transform: rotate(0deg); }
-  74% { transform: rotate(-14deg); }
-  78% { transform: rotate(12deg); }
-  82% { transform: rotate(-9deg); }
-  86% { transform: rotate(6deg); }
-  90% { transform: rotate(-3deg); }
-  94% { transform: rotate(0deg); }
+  0%, 60%, 100% { transform: rotate(0deg) scale(1); }
+  65% { transform: rotate(-22deg) scale(1.12); }
+  70% { transform: rotate(20deg) scale(1.12); }
+  75% { transform: rotate(-16deg) scale(1.08); }
+  80% { transform: rotate(12deg) scale(1.06); }
+  85% { transform: rotate(-7deg) scale(1.03); }
+  90% { transform: rotate(4deg) scale(1.01); }
+  95% { transform: rotate(0deg) scale(1); }
 }
 
 .badge-wiggle {
-  animation: badge-wiggle 4s ease-in-out infinite;
+  animation: badge-wiggle 3s ease-in-out infinite;
   transform-origin: center;
+  /* Force GPU layer + reset any inherited transform vars so the rotation
+     never gets overridden by a parent's transition: transform. */
+  will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
