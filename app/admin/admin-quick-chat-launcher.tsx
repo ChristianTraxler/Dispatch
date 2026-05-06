@@ -6,6 +6,7 @@ import { ChatThread, type ChatMessage, type ChatAttachment } from "@/components/
 import { Avatar } from "@/components/Avatar";
 import { useTicketChannel } from "@/lib/realtime/use-ticket-channel";
 import { useClientsPresence } from "@/lib/realtime/use-presence";
+import { useUnreadCount } from "@/lib/realtime/use-unread-count";
 
 interface ClientRow {
   id: string;
@@ -67,6 +68,10 @@ export function AdminQuickChatLauncher() {
     setFilter("");
   }, []);
 
+  const { count: unreadCount, refresh: refreshUnread } = useUnreadCount(
+    "/api/admin/inquiries/unread",
+  );
+
   const pickClient = useCallback(async (clientId: string) => {
     setState({ kind: "loading", clientId });
     try {
@@ -95,10 +100,14 @@ export function AdminQuickChatLauncher() {
         messages: data.messages,
         ended: false,
       });
+      // Mark all client messages on this inquiry as read; refresh badge.
+      void fetch(`/api/admin/tickets/${data.ticketId}/mark-read`, { method: "POST" })
+        .catch(() => {})
+        .then(() => refreshUnread());
     } catch {
       setState({ kind: "error", message: "Network error." });
     }
-  }, []);
+  }, [refreshUnread]);
 
   const sendMessage = useCallback(
     async (data: { body: string; attachments: ChatAttachment[] }) => {
@@ -213,7 +222,11 @@ export function AdminQuickChatLauncher() {
       <button
         type="button"
         onClick={openPicker}
-        aria-label="Start a quick chat"
+        aria-label={
+          unreadCount > 0
+            ? `Start a quick chat — ${unreadCount} unread`
+            : "Start a quick chat"
+        }
         title="Start a quick chat"
         className={`group fixed bottom-6 right-6 z-50 w-[60px] h-[60px] rounded-full bg-ink text-parchment-warm flex items-center justify-center origin-bottom-right shadow-[0_10px_28px_-6px_rgba(26,24,21,0.45),_0_2px_6px_-1px_rgba(26,24,21,0.18)] ring-1 ring-inset ring-signal-red/45 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-2 focus-visible:ring-offset-parchment ${
           isCollapsed
@@ -235,6 +248,14 @@ export function AdminQuickChatLauncher() {
         >
           <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
         </svg>
+        {isCollapsed && unreadCount > 0 && (
+          <span
+            className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full bg-signal-red text-parchment-warm font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center ring-2 ring-parchment shadow-md"
+            aria-hidden="true"
+          >
+            {unreadCount > 99 ? "99+" : unreadCount}
+          </span>
+        )}
       </button>
 
       <div
