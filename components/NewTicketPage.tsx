@@ -2,6 +2,7 @@
 
 import { useState, type CSSProperties } from "react";
 import { AttachmentDropzone, type UploadedAttachment } from "./AttachmentDropzone";
+import { uploadFile } from "@/lib/upload-client";
 
 export interface NewTicketSite {
   id: string;
@@ -204,17 +205,28 @@ export function NewTicketPage({
           </label>
           <AttachmentDropzone
             attachments={attachments}
-            onFilesAccepted={(files) => {
-              setAttachments((prev) => [
-                ...prev,
-                ...files.map((f) => ({
-                  filename: f.name,
-                  url: "#",
-                  contentType: f.type,
-                  sizeBytes: f.size,
-                  previewUrl: f.type.startsWith("image/") ? URL.createObjectURL(f) : undefined,
-                })),
-              ]);
+            onFilesAccepted={async (files) => {
+              for (const f of files) {
+                try {
+                  const result = await uploadFile("/api/portal/uploads", f);
+                  const previewUrl = f.type.startsWith("image/")
+                    ? URL.createObjectURL(f)
+                    : undefined;
+                  setAttachments((prev) => [
+                    ...prev,
+                    {
+                      filename: result.filename,
+                      url: previewUrl ?? "#",
+                      contentType: result.contentType,
+                      sizeBytes: result.sizeBytes,
+                      previewUrl,
+                      path: result.path,
+                    },
+                  ]);
+                } catch (err) {
+                  alert(err instanceof Error ? err.message : "Upload failed.");
+                }
+              }
             }}
             onRemove={(i) => setAttachments((prev) => prev.filter((_, j) => j !== i))}
           />

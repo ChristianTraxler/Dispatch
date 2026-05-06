@@ -25,9 +25,14 @@ export function NewTicketClient({
         title: data.title,
         description: data.description,
         category: data.category,
-        // Phase 10 wires real attachments through Supabase Storage; for now
-        // strip them so the create succeeds even if the dropzone has files.
-        attachments: [],
+        attachments: data.attachments
+          .filter((a) => a.path)
+          .map((a) => ({
+            filename: a.filename,
+            path: a.path!,
+            contentType: a.contentType,
+            sizeBytes: a.sizeBytes,
+          })),
       }),
     });
     if (!res.ok) {

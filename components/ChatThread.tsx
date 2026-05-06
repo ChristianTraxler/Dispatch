@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import type { CSSProperties } from "react";
+import { uploadFile } from "@/lib/upload-client";
 
 export type SenderType = "CLIENT" | "ADMIN";
 export type ViewerType = "client" | "admin";
@@ -21,6 +22,8 @@ export interface ChatAttachment {
   url: string;
   contentType: string;
   sizeBytes: number;
+  /** Stable storage key — present after upload; sent to the server on POST. */
+  path?: string;
 }
 
 export interface ChatThreadProps {
@@ -74,9 +77,40 @@ export function ChatThread({
 }: ChatThreadProps) {
   const [draft, setDraft] = useState("");
   const [pendingAttachments, setPendingAttachments] = useState<ChatAttachment[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const typingActiveRef = useRef(false);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const uploadEndpoint =
+    viewerType === "admin" ? "/api/admin/uploads" : "/api/portal/uploads";
+
+  async function handleFilesPicked(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setUploadError(null);
+    setUploading(true);
+    try {
+      const uploaded: ChatAttachment[] = [];
+      for (const file of Array.from(files)) {
+        const result = await uploadFile(uploadEndpoint, file);
+        uploaded.push({
+          filename: result.filename,
+          url: URL.createObjectURL(file),
+          contentType: result.contentType,
+          sizeBytes: result.sizeBytes,
+          path: result.path,
+        });
+      }
+      setPendingAttachments((prev) => [...prev, ...uploaded]);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
 
   // Auto-scroll to latest message when messages change OR when the typing
   // indicator appears, so it stays visible.
@@ -271,33 +305,40 @@ export function ChatThread({
           )}
         </div>
 
+        {uploadError && (
+          <div
+            role="alert"
+            className="mx-4 mb-2 border-l-[3px] border-signal-red bg-signal-red/5 px-3 py-2 font-mono text-[0.6rem] uppercase tracking-wider text-signal-redDeep"
+          >
+            {uploadError}
+          </div>
+        )}
+
         <div className="flex items-center justify-between px-4 py-2 rule-thin border-t border-ruleSoft bg-parchment">
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+            className="hidden"
+            onChange={(e) => handleFilesPicked(e.target.files)}
+          />
           <button
             type="button"
             className="btn-ghost"
-            onClick={() => {
-              // demo: add a fake attachment
-              setPendingAttachments((prev) => [
-                ...prev,
-                {
-                  filename: `screenshot-${prev.length + 1}.png`,
-                  url: "#",
-                  contentType: "image/png",
-                  sizeBytes: 0,
-                },
-              ]);
-            }}
+            disabled={uploading}
+            onClick={() => fileInputRef.current?.click()}
           >
-            ↳ Attach
+            {uploading ? "Uploading…" : "↳ Attach"}
           </button>
           <div className="flex items-center gap-3">
             <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade hidden md:inline">
-              ⌘ + Enter to send
+              Enter to send · Shift+Enter newline
             </span>
             <button
               type="button"
               onClick={handleSend}
-              disabled={sending || (!draft.trim() && pendingAttachments.length === 0)}
+              disabled={sending || uploading || (!draft.trim() && pendingAttachments.length === 0)}
               className="btn-dispatch"
             >
               {sending ? "Sending…" : "Send →"}

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { ticketNumber } from "@/lib/ticket";
+import { hydrateAttachments } from "@/lib/storage";
 import type { ChatMessage } from "@/components/ChatThread";
 import type { TicketDetail } from "@/components/TicketDetailPage";
 import { AdminTicketDetailClient } from "./admin-ticket-detail-client";
@@ -51,18 +52,24 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
     confirmedAt: ticket.confirmedAt?.toISOString() ?? null,
   };
 
-  const messages: ChatMessage[] = ticket.messages.map((m) => ({
-    id: m.id,
-    senderType: m.senderType,
-    senderName: m.senderType === "ADMIN" ? "Christian" : ticket.clientAccount.name,
-    body: m.body,
-    createdAt: m.createdAt.toISOString(),
-    readAt: m.readAt?.toISOString() ?? null,
-  }));
+  const messages: ChatMessage[] = await Promise.all(
+    ticket.messages.map(async (m) => ({
+      id: m.id,
+      senderType: m.senderType,
+      senderName: m.senderType === "ADMIN" ? "Christian" : ticket.clientAccount.name,
+      body: m.body,
+      createdAt: m.createdAt.toISOString(),
+      readAt: m.readAt?.toISOString() ?? null,
+      attachments: await hydrateAttachments(m.attachments),
+    })),
+  );
+
+  const ticketAttachments = await hydrateAttachments(ticket.attachments);
 
   return (
     <AdminTicketDetailClient
       ticket={detail}
+      ticketAttachments={ticketAttachments}
       messages={messages}
       otherPartyName={ticket.clientAccount.name}
     />

@@ -9,6 +9,8 @@ export interface UploadedAttachment {
   sizeBytes: number;
   /** Optional preview URL (for images) */
   previewUrl?: string;
+  /** Stable storage path; present after upload, sent to the server on POST. */
+  path?: string;
 }
 
 export interface AttachmentDropzoneProps {

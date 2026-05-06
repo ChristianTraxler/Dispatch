@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
 import { ticketNumber } from "@/lib/ticket";
+import { hydrateAttachments } from "@/lib/storage";
 import type { ChatMessage } from "@/components/ChatThread";
 import type { TicketDetail } from "@/components/TicketDetailPage";
 import { TicketDetailClient } from "./ticket-detail-client";
@@ -45,18 +46,24 @@ export default async function ClientTicketDetailPage({ params }: PageProps) {
     // reopenedAt isn't part of the timeline component yet — Phase 7 extends it
   };
 
-  const messages: ChatMessage[] = ticket.messages.map((m) => ({
-    id: m.id,
-    senderType: m.senderType,
-    senderName: m.senderType === "CLIENT" ? account.name : "Christian",
-    body: m.body,
-    createdAt: m.createdAt.toISOString(),
-    readAt: m.readAt?.toISOString() ?? null,
-  }));
+  const messages: ChatMessage[] = await Promise.all(
+    ticket.messages.map(async (m) => ({
+      id: m.id,
+      senderType: m.senderType,
+      senderName: m.senderType === "CLIENT" ? account.name : "Christian",
+      body: m.body,
+      createdAt: m.createdAt.toISOString(),
+      readAt: m.readAt?.toISOString() ?? null,
+      attachments: await hydrateAttachments(m.attachments),
+    })),
+  );
+
+  const ticketAttachments = await hydrateAttachments(ticket.attachments);
 
   return (
     <TicketDetailClient
       ticket={detail}
+      ticketAttachments={ticketAttachments}
       messages={messages}
       viewerType="client"
       otherPartyName="Christian"

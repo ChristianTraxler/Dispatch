@@ -3,7 +3,12 @@
 import { type CSSProperties } from "react";
 import { StatusPill, type TicketStatus } from "./StatusPill";
 import { StatusTimeline, type TicketTimestamps } from "./StatusTimeline";
-import { ChatThread, type ChatMessage, type ViewerType } from "./ChatThread";
+import {
+  ChatThread,
+  type ChatAttachment,
+  type ChatMessage,
+  type ViewerType,
+} from "./ChatThread";
 
 export interface TicketDetail extends TicketTimestamps {
   id: string;
@@ -19,6 +24,8 @@ export interface TicketDetail extends TicketTimestamps {
 
 export interface TicketDetailPageProps {
   ticket: TicketDetail;
+  /** Attachments uploaded with the original ticket (already-signed view URLs) */
+  ticketAttachments?: ChatAttachment[];
   messages: ChatMessage[];
   viewerType: ViewerType;
   /** Other party's name (for chat header) */
@@ -45,6 +52,7 @@ export interface TicketDetailPageProps {
 
 export function TicketDetailPage({
   ticket,
+  ticketAttachments = [],
   messages,
   viewerType,
   otherPartyName,
@@ -191,6 +199,21 @@ export function TicketDetailPage({
               {ticket.description}
             </p>
           </div>
+
+          {ticketAttachments.length > 0 && (
+            <div className="mt-5">
+              <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mb-2">
+                Filed with
+              </p>
+              <ul className="space-y-2">
+                {ticketAttachments.map((a, i) => (
+                  <li key={i}>
+                    <AttachmentRow attachment={a} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </aside>
 
         {/* Chat */}
@@ -266,5 +289,44 @@ function AdminStatusChanger({
         ))}
       </div>
     </section>
+  );
+}
+
+/* ============================================
+   ATTACHMENT ROW
+   ============================================
+   Used in the Original Report sidebar — image thumb for image MIME types,
+   filename + download link for PDFs.
+   ============================================ */
+function AttachmentRow({ attachment }: { attachment: ChatAttachment }) {
+  const isImage = attachment.contentType.startsWith("image/");
+  if (isImage) {
+    return (
+      <a
+        href={attachment.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block group"
+      >
+        <img
+          src={attachment.url}
+          alt={attachment.filename}
+          className="block max-w-full h-auto border border-rule group-hover:border-signal-red transition-colors"
+        />
+        <span className="block mt-1 font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade group-hover:text-signal-red transition-colors truncate">
+          {attachment.filename}
+        </span>
+      </a>
+    );
+  }
+  return (
+    <a
+      href={attachment.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-2 px-2 py-1 border border-rule hover:border-signal-red bg-parchment font-mono text-[0.65rem] uppercase tracking-wider text-ink-mute hover:text-signal-red transition-colors"
+    >
+      ↳ {attachment.filename}
+    </a>
   );
 }

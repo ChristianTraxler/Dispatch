@@ -6,7 +6,11 @@ import {
   TicketDetailPage,
   type TicketDetail,
 } from "@/components/TicketDetailPage";
-import type { ChatMessage, ViewerType } from "@/components/ChatThread";
+import type {
+  ChatAttachment,
+  ChatMessage,
+  ViewerType,
+} from "@/components/ChatThread";
 import {
   useTicketChannel,
   type RawMessageRow,
@@ -14,12 +18,14 @@ import {
 
 export function TicketDetailClient({
   ticket,
+  ticketAttachments,
   messages: initialMessages,
   viewerType,
   otherPartyName,
   myName,
 }: {
   ticket: TicketDetail;
+  ticketAttachments: ChatAttachment[];
   messages: ChatMessage[];
   viewerType: ViewerType;
   otherPartyName: string;
@@ -43,6 +49,15 @@ export function TicketDetailClient({
 
   const handleInsert = useCallback(
     (row: RawMessageRow) => {
+      // Messages with attachments need server-side hydration to swap stored
+      // paths for short-lived signed URLs. Refresh the page rather than try
+      // to display raw paths.
+      const hasAttachments =
+        Array.isArray(row.attachments) && (row.attachments as unknown[]).length > 0;
+      if (hasAttachments) {
+        router.refresh();
+        return;
+      }
       const incoming = rawToChatMessage(row);
       setMessages((prev) =>
         prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming],
@@ -54,7 +69,7 @@ export function TicketDetailClient({
         );
       }
     },
-    [rawToChatMessage, ticket.id],
+    [rawToChatMessage, ticket.id, router],
   );
 
   const handleUpdate = useCallback(
@@ -82,11 +97,27 @@ export function TicketDetailClient({
     );
   }, [ticket.id]);
 
-  async function onSendMessage({ body }: { body: string; attachments: never[] }) {
+  async function onSendMessage({
+    body,
+    attachments,
+  }: {
+    body: string;
+    attachments: ChatAttachment[];
+  }) {
     const res = await fetch(`/api/portal/tickets/${ticket.id}/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body }),
+      body: JSON.stringify({
+        body,
+        attachments: attachments
+          .filter((a) => a.path)
+          .map((a) => ({
+            filename: a.filename,
+            path: a.path!,
+            contentType: a.contentType,
+            sizeBytes: a.sizeBytes,
+          })),
+      }),
     });
     if (!res.ok) {
       const err = (await res.json().catch(() => ({}))) as { error?: string };
@@ -130,12 +161,13 @@ export function TicketDetailClient({
   return (
     <TicketDetailPage
       ticket={ticket}
+      ticketAttachments={ticketAttachments}
       messages={messages}
       viewerType={viewerType}
       otherPartyName={otherPartyName}
       otherPartyOnline={otherPartyOnline}
       otherPartyTyping={otherPartyTyping}
-      onSendMessage={onSendMessage}
+      onSendMessage={onSendMessage as never}
       onTypingChange={broadcastTyping}
       onConfirmFixed={onConfirmFixed}
       onReopen={onReopen}

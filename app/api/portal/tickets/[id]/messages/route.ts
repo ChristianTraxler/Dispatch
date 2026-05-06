@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
 import { sendNewMessageToAdminEmail } from "@/lib/email";
 import { ticketNumber } from "@/lib/ticket";
+import { hydrateAttachments } from "@/lib/storage";
 
 export async function POST(
   req: Request,
@@ -14,7 +15,15 @@ export async function POST(
   }
 
   const { id: ticketId } = await context.params;
-  let payload: { body?: string };
+  let payload: {
+    body?: string;
+    attachments?: Array<{
+      filename: string;
+      path: string;
+      contentType: string;
+      sizeBytes: number;
+    }>;
+  };
   try {
     payload = await req.json();
   } catch {
@@ -22,8 +31,12 @@ export async function POST(
   }
 
   const body = payload.body?.trim();
-  if (!body) {
-    return NextResponse.json({ error: "Message body is required." }, { status: 400 });
+  const attachments = Array.isArray(payload.attachments) ? payload.attachments : [];
+  if (!body && attachments.length === 0) {
+    return NextResponse.json(
+      { error: "Message body or at least one attachment is required." },
+      { status: 400 },
+    );
   }
 
   const ticket = await prisma.ticket.findFirst({
@@ -41,7 +54,8 @@ export async function POST(
       ticketId,
       senderType: "CLIENT",
       senderId: account.id,
-      body,
+      body: body ?? "",
+      ...(attachments.length > 0 ? { attachments } : {}),
     },
   });
 
@@ -56,7 +70,7 @@ export async function POST(
         ticketUrl: `${appUrl}/admin/ticket/${ticket.id}`,
         clientName: account.name,
         siteDisplayName: ticket.site.displayName,
-        messageBody: body,
+        messageBody: body ?? "(attachment)",
       });
     } catch (err) {
       console.error("[messages] new-message-to-admin email failed:", err);
@@ -71,6 +85,7 @@ export async function POST(
       body: message.body,
       createdAt: message.createdAt.toISOString(),
       readAt: message.readAt?.toISOString() ?? null,
+      attachments: await hydrateAttachments(message.attachments),
     },
   });
 }

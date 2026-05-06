@@ -6,7 +6,7 @@ import {
   TicketDetailPage,
   type TicketDetail,
 } from "@/components/TicketDetailPage";
-import type { ChatMessage } from "@/components/ChatThread";
+import type { ChatAttachment, ChatMessage } from "@/components/ChatThread";
 import type { TicketStatus } from "@/components/StatusPill";
 import {
   useTicketChannel,
@@ -15,10 +15,12 @@ import {
 
 export function AdminTicketDetailClient({
   ticket,
+  ticketAttachments,
   messages: initialMessages,
   otherPartyName,
 }: {
   ticket: TicketDetail;
+  ticketAttachments: ChatAttachment[];
   messages: ChatMessage[];
   otherPartyName: string;
 }) {
@@ -40,6 +42,13 @@ export function AdminTicketDetailClient({
 
   const handleInsert = useCallback(
     (row: RawMessageRow) => {
+      // Refresh on attachment messages — paths need server-side hydration.
+      const hasAttachments =
+        Array.isArray(row.attachments) && (row.attachments as unknown[]).length > 0;
+      if (hasAttachments) {
+        router.refresh();
+        return;
+      }
       const incoming = rawToChatMessage(row);
       setMessages((prev) =>
         prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming],
@@ -50,7 +59,7 @@ export function AdminTicketDetailClient({
         );
       }
     },
-    [rawToChatMessage, ticket.id],
+    [rawToChatMessage, ticket.id, router],
   );
 
   const handleUpdate = useCallback(
@@ -77,11 +86,27 @@ export function AdminTicketDetailClient({
     );
   }, [ticket.id]);
 
-  async function onSendMessage({ body }: { body: string; attachments: never[] }) {
+  async function onSendMessage({
+    body,
+    attachments,
+  }: {
+    body: string;
+    attachments: ChatAttachment[];
+  }) {
     const res = await fetch(`/api/admin/tickets/${ticket.id}/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body }),
+      body: JSON.stringify({
+        body,
+        attachments: attachments
+          .filter((a) => a.path)
+          .map((a) => ({
+            filename: a.filename,
+            path: a.path!,
+            contentType: a.contentType,
+            sizeBytes: a.sizeBytes,
+          })),
+      }),
     });
     if (!res.ok) {
       const err = (await res.json().catch(() => ({}))) as { error?: string };
@@ -115,12 +140,13 @@ export function AdminTicketDetailClient({
   return (
     <TicketDetailPage
       ticket={ticket}
+      ticketAttachments={ticketAttachments}
       messages={messages}
       viewerType="admin"
       otherPartyName={otherPartyName}
       otherPartyOnline={otherPartyOnline}
       otherPartyTyping={otherPartyTyping}
-      onSendMessage={onSendMessage}
+      onSendMessage={onSendMessage as never}
       onTypingChange={broadcastTyping}
       onStatusChange={onStatusChange}
       onBack={onBack}
