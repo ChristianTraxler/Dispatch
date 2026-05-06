@@ -11,6 +11,8 @@ export const ALLOWED_MIME_TYPES = new Set([
   "image/webp",
   "image/gif",
   "application/pdf",
+  "application/zip",
+  "application/x-zip-compressed", // some browsers/OSes report .zip as this
 ]);
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB

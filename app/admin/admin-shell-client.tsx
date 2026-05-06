@@ -7,6 +7,7 @@ import {
   useAdminPresenceTracker,
   useClientsPresenceWatcher,
 } from "@/lib/realtime/use-presence";
+import { useTicketsFeed } from "@/lib/realtime/use-tickets-feed";
 
 function deriveActiveNav(
   pathname: string,
@@ -26,6 +27,16 @@ function AdminShellInner({ children }: { children: React.ReactNode }) {
   const onlineClients = useClientsPresenceWatcher({
     onJoin: (c) => pushToast({ kind: "signin", title: c.name, detail: "signed in" }),
     onLeave: (c) => pushToast({ kind: "signout", title: c.name, detail: "signed out" }),
+  });
+
+  // Toast on every new ticket, no matter which admin page is open.
+  useTicketsFeed({
+    onInsert: (row) =>
+      pushToast({
+        kind: "info",
+        title: "New ticket filed",
+        detail: row.title,
+      }),
   });
 
   async function onNavigate(

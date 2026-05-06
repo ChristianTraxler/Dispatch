@@ -30,7 +30,15 @@ export interface AttachmentDropzoneProps {
   style?: CSSProperties;
 }
 
-const DEFAULT_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
+const DEFAULT_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "application/pdf",
+  "application/zip",
+  "application/x-zip-compressed",
+];
 
 function formatSize(bytes: number): string {
   if (bytes === 0) return "—";

@@ -319,7 +319,7 @@ export function ChatThread({
             ref={fileInputRef}
             type="file"
             multiple
-            accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+            accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,application/zip,.zip"
             className="hidden"
             onChange={(e) => handleFilesPicked(e.target.files)}
           />
