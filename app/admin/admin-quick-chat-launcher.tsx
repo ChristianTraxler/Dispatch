@@ -258,6 +258,7 @@ export function AdminQuickChatLauncher() {
       const ticketId = ticketIdRef.current;
       const clientId = state.kind === "open" ? state.clientId : null;
       if (!ticketId || !clientId) return;
+      // Refetch the hydrated message list (handles attachments + senderName).
       void fetch("/api/admin/inquiries", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -272,6 +273,11 @@ export function AdminQuickChatLauncher() {
               : s,
           );
         });
+      // Panel is open on this client's inquiry → mark the new client message
+      // read immediately so they see the read receipt without us closing.
+      void fetch(`/api/admin/tickets/${row.ticket_id}/mark-read`, { method: "POST" })
+        .catch(() => {})
+        .then(() => refreshUnread());
     },
   });
 

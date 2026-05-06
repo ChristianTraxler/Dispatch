@@ -152,6 +152,7 @@ export function QuickChatLauncher({
     viewerSide: "CLIENT",
     onMessageInsert: (row) => {
       if (row.sender_type === "CLIENT") return;
+      // Refetch messages with hydrated attachments + senderName.
       void fetch("/api/portal/inquiries", { method: "POST" })
         .then((r) => (r.ok ? r.json() : null))
         .then((data: { ticketId: string; messages: ChatMessage[] } | null) => {
@@ -162,6 +163,11 @@ export function QuickChatLauncher({
               : s,
           );
         });
+      // The panel is open → mark this admin message as read immediately so
+      // Christian sees the read receipt without us closing & reopening.
+      void fetch(`/api/portal/tickets/${row.ticket_id}/mark-read`, { method: "POST" })
+        .catch(() => {})
+        .then(() => refreshUnread());
     },
     // Pick up readAt updates (and body edits) so read receipts appear live.
     onMessageUpdate: (row) => {
