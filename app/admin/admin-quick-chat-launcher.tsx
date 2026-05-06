@@ -215,8 +215,21 @@ export function AdminQuickChatLauncher() {
   return (
     <div className="fixed bottom-6 right-6 z-50 w-[360px] max-w-[calc(100vw-2rem)] h-[480px] max-h-[calc(100vh-2rem)] bg-parchment-warm border border-rule shadow-2xl flex flex-col">
       <div className="flex items-center justify-between px-4 py-3 border-b border-rule bg-ink text-parchment-warm">
-        <div className="font-mono text-[0.65rem] uppercase tracking-widest">
-          {state.kind === "open" ? `Quick chat · ${state.clientName}` : "Quick chat"}
+        <div className="flex items-center gap-2 min-w-0">
+          {state.kind === "open" && (
+            <button
+              type="button"
+              onClick={openPicker}
+              className="px-1 py-1 -ml-1 hover:text-signal-red transition-colors shrink-0"
+              aria-label="Back to client list"
+              title="Back to client list"
+            >
+              ←
+            </button>
+          )}
+          <div className="font-mono text-[0.65rem] uppercase tracking-widest truncate">
+            {state.kind === "open" ? `Quick chat · ${state.clientName}` : "Quick chat"}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {state.kind === "open" && (
