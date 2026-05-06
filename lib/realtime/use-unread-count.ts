@@ -29,9 +29,12 @@ export function useUnreadCount(endpoint: string) {
     let cancelled = false;
     let cleanup: (() => void) | undefined;
 
-    refresh();
-
     (async () => {
+      // Initial fetch — kept inside the async block so React's strict
+      // rules-of-hooks lint rule doesn't see setState happening synchronously
+      // in the effect body.
+      await refresh();
+
       const supabase = getSupabaseBrowserClient();
       const {
         data: { session },
