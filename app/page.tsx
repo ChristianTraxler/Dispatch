@@ -1,5 +1,5 @@
-import { LoginPage } from "@/components/LoginPage";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return <LoginPage />;
+  redirect("/portal");
 }
