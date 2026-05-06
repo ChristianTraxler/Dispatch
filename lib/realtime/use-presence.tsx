@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 const ADMIN_CHANNEL = "admin-presence";
@@ -20,7 +27,14 @@ async function withAuthedRealtime() {
   return { supabase, unsub: () => sub.data.subscription.unsubscribe() };
 }
 
-// ─── ADMIN side: track self, watch clients ──────────────────────────────────
+export interface OnlineClient {
+  accountId: string;
+  name: string;
+  email: string;
+  joinedAt: number;
+}
+
+// ─── ADMIN side: presence tracker (no context needed — fires once) ─────────
 
 /** Mounts the admin's "I am here" track on the admin-presence channel. */
 export function useAdminPresenceTracker(adminLabel: string) {
@@ -55,34 +69,25 @@ export function useAdminPresenceTracker(adminLabel: string) {
   }, [adminLabel]);
 }
 
-export interface OnlineClient {
-  accountId: string;
-  name: string;
-  email: string;
-  joinedAt: number;
+// ─── ADMIN side: client-presence watcher (provider + context) ──────────────
+//
+// Critical: there can only be ONE active subscription per channel name in
+// the Supabase Realtime client. Multiple components calling .channel() with
+// the same name return the same instance, and adding callbacks to an
+// already-subscribed channel throws "cannot add 'presence' callbacks ...
+// after 'subscribe()'". So we subscribe once in a provider and fan out the
+// state via React context.
+
+interface ClientsPresenceContextValue {
+  online: Map<string, OnlineClient>;
 }
 
-/**
- * Subscribe to clients-presence as a read-only watcher. Returns the live set
- * of online clients keyed by accountId, plus join/leave callbacks suitable
- * for firing toast notifications.
- */
-export function useClientsPresenceWatcher({
-  onJoin,
-  onLeave,
-}: {
-  onJoin?: (client: OnlineClient) => void;
-  onLeave?: (client: OnlineClient) => void;
-} = {}) {
-  const [online, setOnline] = useState<Map<string, OnlineClient>>(new Map());
-  const onJoinRef = useRef(onJoin);
-  const onLeaveRef = useRef(onLeave);
-  onJoinRef.current = onJoin;
-  onLeaveRef.current = onLeave;
+const ClientsPresenceContext = createContext<ClientsPresenceContextValue>({
+  online: new Map(),
+});
 
-  // Initial-sync flag — we don't want to fire "joined" toasts for clients
-  // that were already online when the admin opened the page.
-  const initialSyncDoneRef = useRef(false);
+export function ClientsPresenceProvider({ children }: { children: ReactNode }) {
+  const [online, setOnline] = useState<Map<string, OnlineClient>>(new Map());
 
   useEffect(() => {
     let cancelled = false;
@@ -104,23 +109,10 @@ export function useClientsPresenceWatcher({
           const next = new Map<string, OnlineClient>();
           for (const [, presences] of Object.entries(state)) {
             for (const p of presences as unknown as OnlineClient[]) {
-              if (p.accountId) next.set(p.accountId, p);
+              if (p?.accountId) next.set(p.accountId, p);
             }
           }
           setOnline(next);
-          initialSyncDoneRef.current = true;
-        })
-        .on("presence", { event: "join" }, ({ newPresences }) => {
-          if (!initialSyncDoneRef.current) return;
-          for (const p of newPresences as unknown as OnlineClient[]) {
-            if (p?.accountId) onJoinRef.current?.(p);
-          }
-        })
-        .on("presence", { event: "leave" }, ({ leftPresences }) => {
-          if (!initialSyncDoneRef.current) return;
-          for (const p of leftPresences as unknown as OnlineClient[]) {
-            if (p?.accountId) onLeaveRef.current?.(p);
-          }
         })
         .subscribe();
 
@@ -136,10 +128,52 @@ export function useClientsPresenceWatcher({
     };
   }, []);
 
-  return online;
+  return (
+    <ClientsPresenceContext.Provider value={{ online }}>
+      {children}
+    </ClientsPresenceContext.Provider>
+  );
 }
 
-// ─── CLIENT side: track self, watch admin ──────────────────────────────────
+/** Read the live client-presence state. Requires a ClientsPresenceProvider above. */
+export function useClientsPresence(): Map<string, OnlineClient> {
+  return useContext(ClientsPresenceContext).online;
+}
+
+/**
+ * Fire-on-change helper for AdminShell-level toasts. Compares the previous
+ * online Map to the current one and calls onJoin/onLeave for diffs. Skips
+ * the very first sync so we don't toast for clients already online when
+ * the admin opens a tab.
+ */
+export function useClientsPresenceDiff({
+  onJoin,
+  onLeave,
+}: {
+  onJoin?: (client: OnlineClient) => void;
+  onLeave?: (client: OnlineClient) => void;
+}) {
+  const online = useClientsPresence();
+  const prev = useRef<Map<string, OnlineClient>>(new Map());
+  const initialized = useRef(false);
+
+  useEffect(() => {
+    if (!initialized.current) {
+      prev.current = new Map(online);
+      initialized.current = true;
+      return;
+    }
+    for (const [id, client] of online.entries()) {
+      if (!prev.current.has(id)) onJoin?.(client);
+    }
+    for (const [id, client] of prev.current.entries()) {
+      if (!online.has(id)) onLeave?.(client);
+    }
+    prev.current = new Map(online);
+  }, [online, onJoin, onLeave]);
+}
+
+// ─── CLIENT side: tracker + admin-presence watcher (provider + context) ────
 
 /** Mounts the client's "I am here" track on the clients-presence channel. */
 export function useClientPresenceTracker(client: {
@@ -183,8 +217,11 @@ export function useClientPresenceTracker(client: {
   }, [client.accountId, client.name, client.email]);
 }
 
-/** Returns true while at least one admin browser is on admin-presence. */
-export function useAdminPresenceWatcher() {
+const AdminPresenceContext = createContext<{ adminOnline: boolean }>({
+  adminOnline: false,
+});
+
+export function AdminPresenceProvider({ children }: { children: ReactNode }) {
   const [adminOnline, setAdminOnline] = useState(false);
 
   useEffect(() => {
@@ -203,8 +240,7 @@ export function useAdminPresenceWatcher() {
       channel
         .on("presence", { event: "sync" }, () => {
           const state = channel.presenceState();
-          const adminEntries = state["admin"];
-          setAdminOnline(Boolean(adminEntries && adminEntries.length));
+          setAdminOnline(Boolean(state["admin"]?.length));
         })
         .subscribe();
 
@@ -220,5 +256,13 @@ export function useAdminPresenceWatcher() {
     };
   }, []);
 
-  return adminOnline;
+  return (
+    <AdminPresenceContext.Provider value={{ adminOnline }}>
+      {children}
+    </AdminPresenceContext.Provider>
+  );
+}
+
+export function useAdminPresence(): boolean {
+  return useContext(AdminPresenceContext).adminOnline;
 }

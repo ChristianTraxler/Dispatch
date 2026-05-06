@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useClientsPresenceWatcher } from "@/lib/realtime/use-presence";
+import { useClientsPresence } from "@/lib/realtime/use-presence";
 import { PresenceDot } from "@/components/PresenceDot";
 
 /**
@@ -11,7 +11,7 @@ import { PresenceDot } from "@/components/PresenceDot";
  * count and /admin/clients.
  */
 export function OnlineClientsPanel() {
-  const online = useClientsPresenceWatcher();
+  const online = useClientsPresence();
   const list = [...online.values()].sort((a, b) => a.name.localeCompare(b.name));
 
   return (

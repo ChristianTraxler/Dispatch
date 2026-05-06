@@ -3,7 +3,8 @@
 import { usePathname, useRouter } from "next/navigation";
 import { PortalShell, type PortalUser } from "@/components/PortalShell";
 import {
-  useAdminPresenceWatcher,
+  AdminPresenceProvider,
+  useAdminPresence,
   useClientPresenceTracker,
 } from "@/lib/realtime/use-presence";
 
@@ -13,7 +14,7 @@ function deriveActiveNav(pathname: string): "dashboard" | "sites" | "account" {
   return "dashboard";
 }
 
-export function PortalShellClient({
+function PortalShellInner({
   user,
   children,
 }: {
@@ -28,7 +29,7 @@ export function PortalShellClient({
     name: user.name,
     email: user.email,
   });
-  const adminOnline = useAdminPresenceWatcher();
+  const adminOnline = useAdminPresence();
 
   async function onNavigate(
     target: "dashboard" | "sites" | "account" | "logout" | "new-ticket",
@@ -56,5 +57,19 @@ export function PortalShellClient({
     >
       {children}
     </PortalShell>
+  );
+}
+
+export function PortalShellClient({
+  user,
+  children,
+}: {
+  user: PortalUser;
+  children: React.ReactNode;
+}) {
+  return (
+    <AdminPresenceProvider>
+      <PortalShellInner user={user}>{children}</PortalShellInner>
+    </AdminPresenceProvider>
   );
 }

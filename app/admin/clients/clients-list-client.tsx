@@ -6,11 +6,11 @@ import {
   AdminClientsPage,
   type AdminClient,
 } from "@/components/AdminClientsPage";
-import { useClientsPresenceWatcher } from "@/lib/realtime/use-presence";
+import { useClientsPresence } from "@/lib/realtime/use-presence";
 
 export function ClientsListClient({ initial }: { initial: AdminClient[] }) {
   const router = useRouter();
-  const online = useClientsPresenceWatcher();
+  const online = useClientsPresence();
 
   const clients = useMemo<AdminClient[]>(
     () =>

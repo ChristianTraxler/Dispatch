@@ -4,8 +4,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { AdminShell } from "@/components/AdminShell";
 import { ToastProvider, useToast } from "@/components/Toast";
 import {
+  ClientsPresenceProvider,
   useAdminPresenceTracker,
-  useClientsPresenceWatcher,
+  useClientsPresence,
+  useClientsPresenceDiff,
 } from "@/lib/realtime/use-presence";
 import { useTicketsFeed } from "@/lib/realtime/use-tickets-feed";
 
@@ -22,14 +24,15 @@ function AdminShellInner({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { push: pushToast } = useToast();
 
-  // Announce admin presence + watch for client joins/leaves.
   useAdminPresenceTracker("Christian");
-  const onlineClients = useClientsPresenceWatcher({
+
+  const onlineClients = useClientsPresence();
+
+  useClientsPresenceDiff({
     onJoin: (c) => pushToast({ kind: "signin", title: c.name, detail: "signed in" }),
     onLeave: (c) => pushToast({ kind: "signout", title: c.name, detail: "signed out" }),
   });
 
-  // Toast on every new ticket, no matter which admin page is open.
   useTicketsFeed({
     onInsert: (row) =>
       pushToast({
@@ -70,7 +73,9 @@ export function AdminShellClient({
 }) {
   return (
     <ToastProvider>
-      <AdminShellInner>{children}</AdminShellInner>
+      <ClientsPresenceProvider>
+        <AdminShellInner>{children}</AdminShellInner>
+      </ClientsPresenceProvider>
     </ToastProvider>
   );
 }
