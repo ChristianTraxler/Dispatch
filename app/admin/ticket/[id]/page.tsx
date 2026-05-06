@@ -24,8 +24,12 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
 
   if (!ticket) notFound();
 
+  const isInquiry = ticket.isInquiry;
+  const inquiryEndedAt = ticket.inquiryEndedAt?.toISOString() ?? null;
+
   // Stage 3 (Viewed) — auto-set the first time the admin opens the ticket.
-  if (!ticket.firstViewedAt) {
+  // Inquiries skip the 6-stage flow, so don't touch firstViewedAt for them.
+  if (!isInquiry && !ticket.firstViewedAt) {
     await prisma.ticket.update({
       where: { id: ticket.id },
       data: { firstViewedAt: new Date() },
@@ -72,6 +76,8 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
       ticketAttachments={ticketAttachments}
       messages={messages}
       otherPartyName={ticket.clientAccount.name}
+      isInquiry={isInquiry}
+      inquiryEndedAt={inquiryEndedAt}
     />
   );
 }
