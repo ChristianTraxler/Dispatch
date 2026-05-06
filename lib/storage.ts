@@ -118,3 +118,82 @@ export function validateUpload({
   if (sizeBytes > MAX_FILE_SIZE) return `File exceeds 25 MB cap.`;
   return null;
 }
+
+// ─── avatars ────────────────────────────────────────────────────────────────
+
+export const AVATAR_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+export const AVATAR_MAX_SIZE = 2 * 1024 * 1024; // 2 MB
+
+const AVATAR_EXT_BY_MIME: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+};
+
+export function validateAvatarUpload({
+  contentType,
+  sizeBytes,
+}: {
+  contentType: string;
+  sizeBytes: number;
+}): string | null {
+  if (!AVATAR_MIME_TYPES.has(contentType)) {
+    return "Avatar must be a PNG, JPG, or WebP image.";
+  }
+  if (sizeBytes <= 0) return "File is empty.";
+  if (sizeBytes > AVATAR_MAX_SIZE) return "Avatar must be under 2 MB.";
+  return null;
+}
+
+/** Build the storage path for a fresh avatar upload. */
+export function generateAvatarPath(accountId: string, contentType: string): string {
+  const ext = AVATAR_EXT_BY_MIME[contentType] ?? "bin";
+  const id = crypto.randomBytes(8).toString("hex");
+  return `avatars/${accountId}/${id}.${ext}`;
+}
+
+/** Upload bytes directly to Storage (server-side; bypasses signed URL dance). */
+export async function uploadAvatarBytes(
+  path: string,
+  body: ArrayBuffer | Buffer,
+  contentType: string,
+): Promise<void> {
+  const { error } = await supabaseAdmin()
+    .storage.from(BUCKET)
+    .upload(path, body, { contentType, upsert: false });
+  if (error) throw error;
+}
+
+/** Delete a storage object. Silently ignores missing files. */
+export async function deleteStorageObject(path: string): Promise<void> {
+  await supabaseAdmin().storage.from(BUCKET).remove([path]);
+}
+
+/** One-shot signed URL hydration for an avatar path. */
+export async function hydrateAvatarUrl(
+  path: string | null | undefined,
+): Promise<string | null> {
+  if (!path) return null;
+  return createSignedViewUrl(path, 3600);
+}
+
+/** Hydrate many avatar paths in one batch. Order matches input. */
+export async function hydrateAvatarUrls(
+  paths: Array<string | null | undefined>,
+): Promise<Array<string | null>> {
+  const present: string[] = [];
+  const indexMap: number[] = [];
+  paths.forEach((p, i) => {
+    if (p) {
+      indexMap.push(i);
+      present.push(p);
+    }
+  });
+  const out: Array<string | null> = paths.map(() => null);
+  if (present.length === 0) return out;
+  const urls = await createSignedViewUrls(present, 3600);
+  urls.forEach((url, j) => {
+    out[indexMap[j]] = url;
+  });
+  return out;
+}
