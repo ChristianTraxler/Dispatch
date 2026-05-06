@@ -242,6 +242,17 @@ export function AdminQuickChatLauncher() {
   const { otherPartyOnline: ticketChannelOnline } = useTicketChannel({
     ticketId: activeTicketId,
     viewerSide: "ADMIN",
+    onMessageUpdate: (row) => {
+      setState((s) => {
+        if (s.kind !== "open" || s.ticketId !== row.ticket_id) return s;
+        return {
+          ...s,
+          messages: s.messages.map((m) =>
+            m.id === row.id ? { ...m, readAt: row.read_at, body: row.body } : m,
+          ),
+        };
+      });
+    },
     onMessageInsert: (row) => {
       if (row.sender_type === "ADMIN") return;
       const ticketId = ticketIdRef.current;

@@ -163,6 +163,18 @@ export function QuickChatLauncher({
           );
         });
     },
+    // Pick up readAt updates (and body edits) so read receipts appear live.
+    onMessageUpdate: (row) => {
+      setState((s) => {
+        if (s.kind !== "open" || s.ticketId !== row.ticket_id) return s;
+        return {
+          ...s,
+          messages: s.messages.map((m) =>
+            m.id === row.id ? { ...m, readAt: row.read_at, body: row.body } : m,
+          ),
+        };
+      });
+    },
   });
 
   const isCollapsed = state.kind === "collapsed";
