@@ -156,9 +156,23 @@ export function QuickChatLauncher() {
         type="button"
         onClick={open}
         aria-label="Have a question?"
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-parchment-warm border-2 border-signal-red text-signal-red shadow-lg hover:scale-105 transition-transform flex items-center justify-center"
+        title="Have a question?"
+        className="group fixed bottom-6 right-6 z-50 w-[60px] h-[60px] rounded-full bg-signal-red text-parchment-warm flex items-center justify-center transition-all duration-200 ease-out shadow-[0_10px_28px_-6px_rgba(200,52,26,0.45),_0_2px_6px_-1px_rgba(26,24,21,0.12)] ring-1 ring-inset ring-white/15 hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-8px_rgba(200,52,26,0.55),_0_4px_10px_-2px_rgba(26,24,21,0.16)] active:translate-y-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-2 focus-visible:ring-offset-parchment"
       >
-        <span className="text-2xl">💬</span>
+        <svg
+          viewBox="0 0 24 24"
+          width="24"
+          height="24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          className="transition-transform duration-200 ease-out group-hover:scale-105"
+        >
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+        </svg>
       </button>
     );
   }
