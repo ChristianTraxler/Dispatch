@@ -43,11 +43,14 @@ model Invite {
   id                  String    @id @default(cuid())
   token               String    @unique
   email               String
+  recipientName       String?   @map("recipient_name")
   siteUrl             String    @map("site_url")
   siteDisplayName     String    @map("site_display_name")
+  note                String?
   expiresAt           DateTime  @map("expires_at")
   redeemedAt          DateTime? @map("redeemed_at")
   redeemedByAccountId String?   @map("redeemed_by_account_id")
+  revokedAt           DateTime? @map("revoked_at")
   createdAt           DateTime  @default(now()) @map("created_at")
 
   @@index([email])
