@@ -137,7 +137,7 @@ export default async function AdminLedgerPage() {
             <span className="h-px flex-1 bg-rule-soft" />
           </div>
           <ul className="space-y-2">
-            <QuickAction href="/admin/invites/new" label="File a new invite →" />
+            <QuickAction href="/admin/invites/new" label="Send a new invite →" />
             <QuickAction href="/admin/tickets" label="Work the ticket queue →" />
             <QuickAction href="/admin/clients" label="Browse client roster →" />
           </ul>
