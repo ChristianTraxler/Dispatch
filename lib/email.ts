@@ -16,13 +16,23 @@ import {
   type TicketReopenedEmailParams,
 } from "@/lib/email-templates";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy-instantiate the Resend client so module evaluation doesn't blow up
+// when RESEND_API_KEY isn't set (e.g. Vercel build before env vars land).
+let _resend: Resend | null = null;
+function resend(): Resend {
+  if (!_resend) {
+    const key = process.env.RESEND_API_KEY;
+    if (!key) throw new Error("RESEND_API_KEY is not set.");
+    _resend = new Resend(key);
+  }
+  return _resend;
+}
 
 const FROM = process.env.RESEND_FROM ?? "Dispatch <support@developerofcode.com>";
 
 export async function sendInviteEmail(params: InviteEmailParams) {
   const { subject, html, text } = renderInviteEmail(params);
-  return resend.emails.send({
+  return resend().emails.send({
     from: FROM,
     to: params.email,
     subject,
@@ -36,7 +46,7 @@ export async function sendNewTicketEmail(
   params: NewTicketEmailParams,
 ) {
   const { subject, html, text } = renderNewTicketEmail(params);
-  return resend.emails.send({
+  return resend().emails.send({
     from: FROM,
     to,
     subject,
@@ -50,7 +60,7 @@ export async function sendAwaitingConfirmationEmail(
   params: AwaitingConfirmationEmailParams,
 ) {
   const { subject, html, text } = renderAwaitingConfirmationEmail(params);
-  return resend.emails.send({ from: FROM, to, subject, html, text });
+  return resend().emails.send({ from: FROM, to, subject, html, text });
 }
 
 export async function sendTicketReopenedEmail(
@@ -58,7 +68,7 @@ export async function sendTicketReopenedEmail(
   params: TicketReopenedEmailParams,
 ) {
   const { subject, html, text } = renderTicketReopenedEmail(params);
-  return resend.emails.send({ from: FROM, to, subject, html, text });
+  return resend().emails.send({ from: FROM, to, subject, html, text });
 }
 
 // ─── chat-message notifications ─────────────────────────────────────────────
@@ -85,7 +95,7 @@ export async function sendNewMessageToAdminEmail(
 ) {
   if (!shouldNotify(to, ticketId)) return null;
   const { subject, html, text } = renderNewMessageToAdminEmail(params);
-  return resend.emails.send({ from: FROM, to, subject, html, text });
+  return resend().emails.send({ from: FROM, to, subject, html, text });
 }
 
 export async function sendNewMessageToClientEmail(
@@ -95,5 +105,5 @@ export async function sendNewMessageToClientEmail(
 ) {
   if (!shouldNotify(to, ticketId)) return null;
   const { subject, html, text } = renderNewMessageToClientEmail(params);
-  return resend.emails.send({ from: FROM, to, subject, html, text });
+  return resend().emails.send({ from: FROM, to, subject, html, text });
 }
