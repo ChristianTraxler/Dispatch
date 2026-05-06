@@ -91,8 +91,17 @@ export function ChatThread({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingActiveRef = useRef(false);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auto-focus the composer on mount so the user can start typing immediately
+  // without having to click into the box. Skipped if sending is disabled
+  // (e.g. ended inquiry).
+  useEffect(() => {
+    if (!onSendMessage) return;
+    textareaRef.current?.focus({ preventScroll: true });
+  }, [onSendMessage]);
 
   const uploadEndpoint =
     viewerType === "admin" ? "/api/admin/uploads" : "/api/portal/uploads";
@@ -288,6 +297,7 @@ export function ChatThread({
       <div className="rule-thin border-t">
         <div className="px-4 py-3">
           <textarea
+            ref={textareaRef}
             value={draft}
             onChange={handleDraftChange}
             onKeyDown={handleKeyDown}

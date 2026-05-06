@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { ChatThread, type ChatMessage, type ChatAttachment } from "@/components/ChatThread";
 import { Avatar } from "@/components/Avatar";
 import { useTicketChannel } from "@/lib/realtime/use-ticket-channel";
@@ -52,6 +53,17 @@ export function AdminQuickChatLauncher() {
     if (state.kind === "open") ticketIdRef.current = state.ticketId;
   });
 
+  const refreshClients = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/inquiries/clients", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = (await res.json()) as { clients: ClientRow[] };
+      setClients(data.clients);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const openPicker = useCallback(async () => {
     setMenuOpen(false);
     setState({ kind: "picker" });
@@ -77,6 +89,43 @@ export function AdminQuickChatLauncher() {
   const { count: unreadCount, refresh: refreshUnread } = useUnreadCount(
     "/api/admin/inquiries/unread",
   );
+
+  // While the picker is open, keep the client list fresh in real-time so
+  // newly arrived messages show up (preview + unread badge) without the admin
+  // having to back out and reopen.
+  const pickerOpen = state.kind === "picker";
+  useEffect(() => {
+    if (!pickerOpen) return;
+    const supabase = getSupabaseBrowserClient();
+    let cancelled = false;
+    let cleanup: (() => void) | undefined;
+
+    (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (cancelled) return;
+      if (session) supabase.realtime.setAuth(session.access_token);
+
+      const channel = supabase
+        .channel("admin-picker-refresh")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "messages" },
+          () => {
+            refreshClients();
+          },
+        )
+        .subscribe();
+
+      cleanup = () => supabase.removeChannel(channel);
+    })();
+
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
+  }, [pickerOpen, refreshClients]);
 
   const pickClient = useCallback(async (clientId: string) => {
     setState({ kind: "loading", clientId });
@@ -265,7 +314,7 @@ export function AdminQuickChatLauncher() {
         </svg>
         {isCollapsed && unreadCount > 0 && (
           <span
-            className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full bg-ink text-parchment-warm font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center ring-2 ring-parchment shadow-md"
+            className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full bg-[#FF4500] text-parchment-warm font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center ring-2 ring-parchment shadow-md"
             aria-hidden="true"
           >
             {unreadCount > 99 ? "99+" : unreadCount}
@@ -412,7 +461,7 @@ export function AdminQuickChatLauncher() {
                           </div>
                           {c.unreadCount > 0 ? (
                             <span
-                              className="min-w-[20px] h-[20px] px-1.5 rounded-full bg-signal-red text-parchment-warm font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center shrink-0"
+                              className="min-w-[20px] h-[20px] px-1.5 rounded-full bg-ink text-parchment-warm font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center shrink-0"
                               aria-label={`${c.unreadCount} unread`}
                             >
                               {c.unreadCount > 99 ? "99+" : c.unreadCount}
