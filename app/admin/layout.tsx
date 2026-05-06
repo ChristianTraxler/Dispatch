@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentAuthUser, isAdmin } from "@/lib/auth/client-session";
 import { AdminShellClient } from "./admin-shell-client";
+import { AdminQuickChatLauncher } from "./admin-quick-chat-launcher";
 
 export default async function AdminLayout({
   children,
@@ -11,5 +12,10 @@ export default async function AdminLayout({
   if (!user) redirect("/portal");
   if (!isAdmin(user)) redirect("/portal/dashboard");
 
-  return <AdminShellClient>{children}</AdminShellClient>;
+  return (
+    <AdminShellClient>
+      {children}
+      <AdminQuickChatLauncher />
+    </AdminShellClient>
+  );
 }
