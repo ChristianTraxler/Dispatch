@@ -1,8 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Dispatch — client portal schema
+// See docs/plans/2026-05-04-dispatch-client-portal-design.md (Data model section)
+// Auth identities live in Supabase's auth.users table; ClientAccount.authUserId
+// holds that uuid as a string (Prisma does not model the cross-schema FK).
 
 generator client {
   provider = "prisma-client-js"
@@ -11,4 +10,115 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model ClientAccount {
+  id         String   @id @default(cuid())
+  authUserId String   @unique @map("auth_user_id")
+  email      String   @unique
+  name       String
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  sites   Site[]
+  tickets Ticket[]
+
+  @@map("client_accounts")
+}
+
+model Site {
+  id              String   @id @default(cuid())
+  clientAccountId String   @map("client_account_id")
+  url             String
+  displayName     String   @map("display_name")
+  addedAt         DateTime @default(now()) @map("added_at")
+
+  clientAccount ClientAccount @relation(fields: [clientAccountId], references: [id], onDelete: Cascade)
+  tickets       Ticket[]
+
+  @@unique([clientAccountId, url])
+  @@map("sites")
+}
+
+model Invite {
+  id                  String    @id @default(cuid())
+  token               String    @unique
+  email               String
+  siteUrl             String    @map("site_url")
+  siteDisplayName     String    @map("site_display_name")
+  expiresAt           DateTime  @map("expires_at")
+  redeemedAt          DateTime? @map("redeemed_at")
+  redeemedByAccountId String?   @map("redeemed_by_account_id")
+  createdAt           DateTime  @default(now()) @map("created_at")
+
+  @@index([email])
+  @@index([token])
+  @@map("invites")
+}
+
+model Ticket {
+  id              String         @id @default(cuid())
+  clientAccountId String         @map("client_account_id")
+  siteId          String         @map("site_id")
+  title           String
+  description     String         @db.Text
+  category        TicketCategory
+  status          TicketStatus   @default(NEW)
+  attachments     Json?
+
+  // 6-stage progress timestamps
+  createdAt          DateTime  @default(now()) @map("created_at")
+  receivedAt         DateTime? @map("received_at")
+  firstViewedAt      DateTime? @map("first_viewed_at")
+  reviewingStartedAt DateTime? @map("reviewing_started_at")
+  fixingStartedAt    DateTime? @map("fixing_started_at")
+  fixedAt            DateTime? @map("fixed_at")
+  confirmedAt        DateTime? @map("confirmed_at")
+  reopenedAt         DateTime? @map("reopened_at")
+
+  clientAccount ClientAccount @relation(fields: [clientAccountId], references: [id])
+  site          Site          @relation(fields: [siteId], references: [id])
+  messages      Message[]
+
+  @@index([clientAccountId])
+  @@index([siteId])
+  @@index([status])
+  @@map("tickets")
+}
+
+model Message {
+  id          String     @id @default(cuid())
+  ticketId    String     @map("ticket_id")
+  senderType  SenderType @map("sender_type")
+  senderId    String     @map("sender_id")
+  body        String     @db.Text
+  attachments Json?
+  readAt      DateTime?  @map("read_at")
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+  @@map("messages")
+}
+
+enum SenderType {
+  CLIENT
+  ADMIN
+}
+
+enum TicketStatus {
+  NEW
+  REVIEWING
+  FIXING
+  AWAITING_CONFIRMATION
+  CLOSED
+  REOPENED
+}
+
+enum TicketCategory {
+  BUG
+  CONTENT
+  FEATURE
+  QUESTION
+  URGENT
 }
