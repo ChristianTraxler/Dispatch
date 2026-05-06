@@ -331,7 +331,8 @@ export function AdminQuickChatLauncher() {
         </svg>
         {isCollapsed && unreadCount > 0 && (
           <span
-            className="badge-wiggle absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full bg-[#FF4500] text-parchment-warm font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center ring-2 ring-parchment shadow-md"
+            className="badge-wiggle absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full text-parchment-warm font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center ring-2 ring-parchment shadow-md"
+            style={{ backgroundColor: "#FF4500" }}
             aria-hidden="true"
           >
             {unreadCount > 99 ? "99+" : unreadCount}
@@ -478,7 +479,8 @@ export function AdminQuickChatLauncher() {
                           </div>
                           {c.unreadCount > 0 ? (
                             <span
-                              className="badge-wiggle min-w-[20px] h-[20px] px-1.5 rounded-full bg-[#FF4500] text-parchment-warm font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center shrink-0"
+                              className="badge-wiggle min-w-[20px] h-[20px] px-1.5 rounded-full text-parchment-warm font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center shrink-0"
+                              style={{ backgroundColor: "#FF4500" }}
                               aria-label={`${c.unreadCount} unread`}
                             >
                               {c.unreadCount > 99 ? "99+" : c.unreadCount}
