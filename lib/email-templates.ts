@@ -523,6 +523,166 @@ ${p.reopenReason ? `Their note:\n> ${p.reopenReason.split("\n").join("\n> ")}\n\
 }
 
 /* ============================================
+   7. INQUIRY TRANSCRIPT (to admin + client)
+   ============================================ */
+export interface InquiryTranscriptMessage {
+  senderName: string;
+  senderType: "CLIENT" | "ADMIN";
+  body: string;
+  createdAt: Date | string;
+  attachmentNames?: string[];
+}
+
+export interface InquiryTranscriptEmailParams {
+  recipientType: "CLIENT" | "ADMIN";
+  clientName: string;
+  startedAt: Date | string;
+  endedAt: Date | string;
+  endedBy: "client" | "admin" | "auto";
+  messages: InquiryTranscriptMessage[];
+  /** For admin recipient: link to /admin/ticket/[id]. Omitted for client. */
+  ticketUrl?: string;
+}
+
+export function renderInquiryTranscriptEmail(p: InquiryTranscriptEmailParams): { subject: string; html: string; text: string } {
+  const startedAt = typeof p.startedAt === "string" ? new Date(p.startedAt) : p.startedAt;
+  const endedAt = typeof p.endedAt === "string" ? new Date(p.endedAt) : p.endedAt;
+  const endedStr = endedAt.toLocaleString("en-US", { month: "long", day: "2-digit", year: "numeric" });
+  const startedStr = startedAt.toLocaleString("en-US", { month: "short", day: "2-digit", hour: "numeric", minute: "2-digit" });
+
+  const endedByLine =
+    p.endedBy === "auto"
+      ? "Auto-archived after 7 days of inactivity."
+      : p.endedBy === "admin"
+        ? "Ended by Christian."
+        : `Ended by ${escape(p.clientName)}.`;
+
+  const transcript = p.messages
+    .map((m) => {
+      const ts =
+        typeof m.createdAt === "string"
+          ? new Date(m.createdAt)
+          : m.createdAt;
+      const tsStr = ts.toLocaleString("en-US", { month: "short", day: "2-digit", hour: "numeric", minute: "2-digit" });
+      const accent = m.senderType === "ADMIN" ? COLORS.signalRed : COLORS.ink;
+      const attachmentLine = m.attachmentNames?.length
+        ? `<div style="margin-top:6px;font-family:${FONT_MONO};font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:${COLORS.inkFade};">📎 ${m.attachmentNames.map((n) => escape(n)).join(", ")}</div>`
+        : "";
+      return `<div style="margin:0 0 14px 0;padding:10px 14px;background:${COLORS.parchment};border-left:3px solid ${accent};">
+<div style="font-family:${FONT_MONO};font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:${COLORS.inkMute};margin-bottom:4px;">
+<strong style="color:${accent};">${escape(m.senderName)}</strong> · ${tsStr}
+</div>
+<div style="font-family:${FONT_DISPLAY};font-size:15px;line-height:1.5;color:${COLORS.inkSoft};">
+${escape(m.body).replace(/\n/g, "<br>")}
+</div>
+${attachmentLine}
+</div>`;
+    })
+    .join("\n");
+
+  const followUp =
+    p.recipientType === "CLIENT"
+      ? bodyText(`Want to follow up? Open the portal and start a new chat anytime.`)
+      : p.ticketUrl
+        ? button({ href: p.ticketUrl, label: "Open the inquiry archive →" })
+        : "";
+
+  const body = `
+${sectionLabel("INQUIRY TRANSCRIPT")}
+${headline(`Quick chat with<br><span style="color:${COLORS.signalRed};font-style:italic;">${escape(p.clientName)}</span>`)}
+${lede(endedByLine)}
+
+${dataTable(`
+${dataRow("Started", startedStr)}
+${dataRow("Ended", endedStr)}
+${dataRow("Messages", String(p.messages.length))}
+`)}
+
+<div style="margin:0 0 8px 0;">${caps("Conversation")}</div>
+${p.messages.length === 0 ? bodyText("(No messages were exchanged.)") : transcript}
+
+${followUp}
+  `.trim();
+
+  const html = shell({
+    title: `Inquiry transcript — ${p.clientName} — ${endedStr}`,
+    preheader: `${p.messages.length} message${p.messages.length === 1 ? "" : "s"} exchanged. ${endedByLine}`,
+    body,
+  });
+
+  const textTranscript = p.messages
+    .map((m) => {
+      const ts = typeof m.createdAt === "string" ? new Date(m.createdAt) : m.createdAt;
+      const tsStr = ts.toLocaleString("en-US", { month: "short", day: "2-digit", hour: "numeric", minute: "2-digit" });
+      return `[${tsStr}] ${m.senderName}:\n${m.body}${m.attachmentNames?.length ? `\n(attachments: ${m.attachmentNames.join(", ")})` : ""}`;
+    })
+    .join("\n\n");
+
+  const text = `Inquiry transcript — ${p.clientName}
+${endedByLine}
+Started: ${startedStr}
+Ended: ${endedStr}
+Messages: ${p.messages.length}
+
+${p.messages.length === 0 ? "(No messages were exchanged.)" : textTranscript}
+
+${p.recipientType === "CLIENT" ? "Want to follow up? Open the portal and start a new chat." : p.ticketUrl ? `Open the archive: ${p.ticketUrl}` : ""}${plainTextFooter()}`;
+
+  return {
+    subject: `Inquiry transcript — ${p.clientName} — ${endedStr}`,
+    html,
+    text,
+  };
+}
+
+/* ============================================
+   8. WAITING INQUIRY (admin nudge)
+   ============================================ */
+export interface WaitingInquiryEmailParams {
+  clientName: string;
+  ticketUrl: string;
+  latestMessageBody: string;
+  latestMessageAt: Date | string;
+}
+
+export function renderWaitingInquiryEmail(p: WaitingInquiryEmailParams): { subject: string; html: string; text: string } {
+  const ts = typeof p.latestMessageAt === "string" ? new Date(p.latestMessageAt) : p.latestMessageAt;
+  const tsStr = ts.toLocaleString("en-US", { month: "short", day: "2-digit", hour: "numeric", minute: "2-digit" });
+
+  const body = `
+${sectionLabel("WAITING INQUIRY")}
+${headline(`<span style="color:${COLORS.signalRed};">${escape(p.clientName)}</span><br>is waiting on you.`)}
+${lede(`A quick-chat message has been sitting unanswered for over an hour.`)}
+
+${quoteBlock(escape(p.latestMessageBody).replace(/\n/g, "<br>"))}
+
+<p style="margin:0 0 16px 0;font-family:${FONT_MONO};font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:${COLORS.inkFade};">
+Sent ${tsStr}
+</p>
+
+${button({ href: p.ticketUrl, label: "Reply in the inquiry →" })}
+  `.trim();
+
+  const html = shell({
+    title: `Waiting inquiry from ${p.clientName}`,
+    preheader: p.latestMessageBody.slice(0, 100),
+    body,
+  });
+
+  const text = `${p.clientName} is waiting on a reply. Their last message (${tsStr}):
+
+> ${p.latestMessageBody.split("\n").join("\n> ")}
+
+Reply here: ${p.ticketUrl}${plainTextFooter()}`;
+
+  return {
+    subject: `You have a waiting inquiry from ${p.clientName}`,
+    html,
+    text,
+  };
+}
+
+/* ============================================
    EXPORTS
    ============================================ */
 export const dispatchEmails = {
@@ -532,4 +692,6 @@ export const dispatchEmails = {
   renderNewMessageToClientEmail,
   renderAwaitingConfirmationEmail,
   renderTicketReopenedEmail,
+  renderInquiryTranscriptEmail,
+  renderWaitingInquiryEmail,
 };
