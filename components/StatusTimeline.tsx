@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, type CSSProperties } from "react";
+import type { TicketStatus } from "./StatusPill";
 
 export interface TicketTimestamps {
   createdAt: string | Date | null;
@@ -14,12 +15,37 @@ export interface TicketTimestamps {
 
 export interface StatusTimelineProps {
   ticket: TicketTimestamps;
+  /** Current ticket status. Drives which stage gets the active/pulse treatment. */
+  status?: TicketStatus;
   /** Force a specific orientation. By default: horizontal on desktop, vertical on mobile. */
   orientation?: "auto" | "horizontal" | "vertical";
   /** Whether to show timestamps under each label. Defaults to true. */
   showTimestamps?: boolean;
   className?: string;
   style?: CSSProperties;
+}
+
+// Map the canonical TicketStatus to which of the six visible stages should
+// be highlighted. Stages: 0=Sent 1=Received 2=Viewed 3=Reviewing 4=Fixing 5=Fixed.
+function statusToStageIndex(
+  status: TicketStatus,
+  ticket: TicketTimestamps,
+): number {
+  switch (status) {
+    case "NEW":
+      return ticket.firstViewedAt ? 2 : 1;
+    case "REVIEWING":
+    case "REOPENED":
+      // Reopened kicks the work back to the admin's queue → highlight Reviewing.
+      return 3;
+    case "FIXING":
+      return 4;
+    case "AWAITING_CONFIRMATION":
+    case "CLOSED":
+      return 5;
+    default:
+      return -1;
+  }
 }
 
 interface Stage {
@@ -42,6 +68,7 @@ function formatStamp(value: string | Date | null | undefined): string | null {
 
 export function StatusTimeline({
   ticket,
+  status,
   orientation = "auto",
   showTimestamps = true,
   className = "",
@@ -56,11 +83,15 @@ export function StatusTimeline({
     { key: "fixedAt", label: "Errors Fixed", timestamp: ticket.fixedAt },
   ];
 
-  // The active stage is the most recent one with a timestamp
-  let activeIndex = -1;
-  stages.forEach((s, i) => {
-    if (s.timestamp) activeIndex = i;
-  });
+  // Prefer the explicit status (so backward transitions move the marker too).
+  // Fall back to the latest stage with a timestamp for callers that don't
+  // pass status — keeps the original behaviour for legacy uses.
+  let activeIndex = status ? statusToStageIndex(status, ticket) : -1;
+  if (activeIndex < 0) {
+    stages.forEach((s, i) => {
+      if (s.timestamp) activeIndex = i;
+    });
+  }
 
   const orientationClass =
     orientation === "horizontal"
@@ -77,10 +108,20 @@ export function StatusTimeline({
       aria-label="Ticket progress"
     >
       {stages.map((stage, i) => {
-        const filled = !!stage.timestamp;
+        // When the caller passed a status, "filled" tracks current position
+        // (at or before the active stage). That way going FIXING → REVIEWING
+        // un-fills Fixing Errors and Errors Fixed even though their timestamps
+        // are still in the DB. Without status, fall back to the original
+        // "every stage with a timestamp is filled" behaviour.
+        const filled = status
+          ? activeIndex >= 0 && i <= activeIndex
+          : !!stage.timestamp;
         const isActive = i === activeIndex;
         const isLast = i === stages.length - 1;
-        const stamp = showTimestamps ? formatStamp(stage.timestamp) : null;
+        // Hide the timestamp text on stages we've rolled back past — keeps
+        // the visual story consistent with the box state.
+        const stamp =
+          showTimestamps && filled ? formatStamp(stage.timestamp) : null;
         // Connector "filled" if THIS stage is filled (the line leading INTO the next stage)
         const connectorFilled = filled;
 

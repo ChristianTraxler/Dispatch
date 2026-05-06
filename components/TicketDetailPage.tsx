@@ -118,7 +118,7 @@ export function TicketDetailPage({
           </span>
           <span className="h-px flex-1 bg-ruleSoft" />
         </div>
-        <StatusTimeline ticket={ticket} />
+        <StatusTimeline ticket={ticket} status={ticket.status} />
       </section>
 
       {/* Confirm / reopen actions — only for client when AWAITING_CONFIRMATION */}
