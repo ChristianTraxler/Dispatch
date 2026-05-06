@@ -8,12 +8,16 @@ import {
   renderNewMessageToClientEmail,
   renderAwaitingConfirmationEmail,
   renderTicketReopenedEmail,
+  renderInquiryTranscriptEmail,
+  renderWaitingInquiryEmail,
   type InviteEmailParams,
   type NewTicketEmailParams,
   type NewMessageToAdminEmailParams,
   type NewMessageToClientEmailParams,
   type AwaitingConfirmationEmailParams,
   type TicketReopenedEmailParams,
+  type InquiryTranscriptEmailParams,
+  type WaitingInquiryEmailParams,
 } from "@/lib/email-templates";
 
 // Lazy-instantiate the Resend client so module evaluation doesn't blow up
@@ -105,5 +109,21 @@ export async function sendNewMessageToClientEmail(
 ) {
   if (!shouldNotify(to, ticketId)) return null;
   const { subject, html, text } = renderNewMessageToClientEmail(params);
+  return resend().emails.send({ from: FROM, to, subject, html, text });
+}
+
+export async function sendInquiryTranscriptEmail(
+  to: string,
+  params: InquiryTranscriptEmailParams,
+) {
+  const { subject, html, text } = renderInquiryTranscriptEmail(params);
+  return resend().emails.send({ from: FROM, to, subject, html, text });
+}
+
+export async function sendWaitingInquiryEmail(
+  to: string,
+  params: WaitingInquiryEmailParams,
+) {
+  const { subject, html, text } = renderWaitingInquiryEmail(params);
   return resend().emails.send({ from: FROM, to, subject, html, text });
 }
