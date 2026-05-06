@@ -1,61 +1,44 @@
-// Phase 9 builds the live client roster (presence indicators, last-seen,
-// per-client site list). For now: a placeholder so the nav link doesn't 404.
-
 import { prisma } from "@/lib/prisma";
+import type { AdminClient, AdminClientSite } from "@/components/AdminClientsPage";
+import { ClientsListClient } from "./clients-list-client";
+
+const OPEN_STATUSES = ["NEW", "REVIEWING", "FIXING", "REOPENED"] as const;
 
 export default async function AdminClientsPage() {
-  const clients = await prisma.clientAccount.findMany({
+  const accounts = await prisma.clientAccount.findMany({
     orderBy: { createdAt: "desc" },
     include: {
-      sites: { select: { id: true, displayName: true, url: true } },
-      _count: { select: { tickets: true } },
+      sites: {
+        orderBy: { addedAt: "asc" },
+        include: {
+          _count: { select: { tickets: true } },
+          tickets: {
+            where: { status: { in: [...OPEN_STATUSES] } },
+            select: { id: true },
+          },
+        },
+      },
     },
   });
 
-  return (
-    <div className="max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12">
-      <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">
-          §
-        </span>
-        <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
-          Subscriber Roster
-        </span>
-      </div>
+  const initial: AdminClient[] = accounts.map((a) => {
+    const sites: AdminClientSite[] = a.sites.map((s) => ({
+      id: s.id,
+      url: s.url,
+      displayName: s.displayName,
+      totalTickets: s._count.tickets,
+      openTickets: s.tickets.length,
+    }));
+    return {
+      id: a.id,
+      name: a.name,
+      email: a.email,
+      joinedAt: a.createdAt.toISOString(),
+      isOnline: false, // hydrated on the client from Realtime presence
+      lastSeenAt: null,
+      sites,
+    };
+  });
 
-      <h1
-        className="font-display text-3xl md:text-5xl leading-none mb-3"
-        style={{ fontVariationSettings: '"opsz" 144' }}
-      >
-        Clients
-      </h1>
-      <p className="font-display italic text-ink-mute mb-10">
-        Live presence and per-client detail lands in Phase 9.
-      </p>
-
-      {clients.length === 0 ? (
-        <p className="font-display italic text-ink-mute">
-          No client accounts yet.
-        </p>
-      ) : (
-        <ul className="rule-thin pt-4 divide-y divide-rule-soft">
-          {clients.map((c) => (
-            <li key={c.id} className="py-4">
-              <div className="flex items-center justify-between gap-6">
-                <div className="min-w-0 flex-1">
-                  <p className="font-display text-lg text-ink truncate">
-                    {c.name}
-                  </p>
-                  <p className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mt-1 truncate">
-                    {c.email} · {c.sites.length} site{c.sites.length === 1 ? "" : "s"} · {c._count.tickets} ticket{c._count.tickets === 1 ? "" : "s"}
-                  </p>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
+  return <ClientsListClient initial={initial} />;
 }

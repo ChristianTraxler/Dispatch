@@ -2,6 +2,10 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { PortalShell, type PortalUser } from "@/components/PortalShell";
+import {
+  useAdminPresenceWatcher,
+  useClientPresenceTracker,
+} from "@/lib/realtime/use-presence";
 
 function deriveActiveNav(pathname: string): "dashboard" | "sites" | "account" {
   if (pathname.startsWith("/portal/sites")) return "sites";
@@ -11,15 +15,20 @@ function deriveActiveNav(pathname: string): "dashboard" | "sites" | "account" {
 
 export function PortalShellClient({
   user,
-  adminOnline,
   children,
 }: {
   user: PortalUser;
-  adminOnline: boolean;
   children: React.ReactNode;
 }) {
   const pathname = usePathname() ?? "/portal/dashboard";
   const router = useRouter();
+
+  useClientPresenceTracker({
+    accountId: user.id,
+    name: user.name,
+    email: user.email,
+  });
+  const adminOnline = useAdminPresenceWatcher();
 
   async function onNavigate(
     target: "dashboard" | "sites" | "account" | "logout" | "new-ticket",

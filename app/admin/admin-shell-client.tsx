@@ -2,6 +2,11 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { AdminShell } from "@/components/AdminShell";
+import { ToastProvider, useToast } from "@/components/Toast";
+import {
+  useAdminPresenceTracker,
+  useClientsPresenceWatcher,
+} from "@/lib/realtime/use-presence";
 
 function deriveActiveNav(
   pathname: string,
@@ -11,13 +16,17 @@ function deriveActiveNav(
   return "dashboard";
 }
 
-export function AdminShellClient({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function AdminShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "/admin";
   const router = useRouter();
+  const { push: pushToast } = useToast();
+
+  // Announce admin presence + watch for client joins/leaves.
+  useAdminPresenceTracker("Christian");
+  const onlineClients = useClientsPresenceWatcher({
+    onJoin: (c) => pushToast({ kind: "signin", title: c.name, detail: "signed in" }),
+    onLeave: (c) => pushToast({ kind: "signout", title: c.name, detail: "signed out" }),
+  });
 
   async function onNavigate(
     target: "dashboard" | "clients" | "invites" | "logout",
@@ -33,8 +42,24 @@ export function AdminShellClient({
   }
 
   return (
-    <AdminShell activeNav={deriveActiveNav(pathname)} onNavigate={onNavigate}>
+    <AdminShell
+      activeNav={deriveActiveNav(pathname)}
+      onNavigate={onNavigate}
+      onlineClientCount={onlineClients.size}
+    >
       {children}
     </AdminShell>
+  );
+}
+
+export function AdminShellClient({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <ToastProvider>
+      <AdminShellInner>{children}</AdminShellInner>
+    </ToastProvider>
   );
 }

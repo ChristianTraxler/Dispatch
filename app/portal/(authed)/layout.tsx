@@ -22,7 +22,6 @@ export default async function PortalLayout({
   return (
     <PortalShellClient
       user={{ id: account.id, name: account.name, email: account.email }}
-      adminOnline={false}
     >
       {children}
     </PortalShellClient>
