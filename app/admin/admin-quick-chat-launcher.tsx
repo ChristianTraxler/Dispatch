@@ -14,6 +14,12 @@ interface ClientRow {
   email: string;
   avatarUrl: string | null;
   hasActiveInquiry: boolean;
+  unreadCount: number;
+  latestMessage: {
+    body: string;
+    senderType: "CLIENT" | "ADMIN";
+    at: string;
+  } | null;
 }
 
 type LauncherState =
@@ -209,11 +215,20 @@ export function AdminQuickChatLauncher() {
     },
   });
 
-  const filtered = clients.filter((c) => {
-    if (!filter.trim()) return true;
-    const q = filter.toLowerCase();
-    return c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q);
-  });
+  const filtered = clients
+    .filter((c) => {
+      if (!filter.trim()) return true;
+      const q = filter.toLowerCase();
+      return c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q);
+    })
+    .sort((a, b) => {
+      // Unread first (highest count first), then by latest message recency, then by name
+      if (a.unreadCount !== b.unreadCount) return b.unreadCount - a.unreadCount;
+      const aTime = a.latestMessage ? new Date(a.latestMessage.at).getTime() : 0;
+      const bTime = b.latestMessage ? new Date(b.latestMessage.at).getTime() : 0;
+      if (aTime !== bTime) return bTime - aTime;
+      return a.name.localeCompare(b.name);
+    });
 
   const isCollapsed = state.kind === "collapsed";
 
@@ -250,7 +265,7 @@ export function AdminQuickChatLauncher() {
         </svg>
         {isCollapsed && unreadCount > 0 && (
           <span
-            className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full bg-signal-red text-parchment-warm font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center ring-2 ring-parchment shadow-md"
+            className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full bg-parchment-warm text-ink font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center ring-2 ring-parchment shadow-md"
             aria-hidden="true"
           >
             {unreadCount > 99 ? "99+" : unreadCount}
@@ -352,30 +367,66 @@ export function AdminQuickChatLauncher() {
               </p>
             ) : (
               <ul className="divide-y divide-rule-soft">
-                {filtered.map((c) => (
-                  <li key={c.id}>
-                    <button
-                      type="button"
-                      onClick={() => pickClient(c.id)}
-                      className="block w-full text-left px-4 py-3 hover:bg-parchment-deep/40 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Avatar src={c.avatarUrl} name={c.name} size={32} tone="client" />
-                        <div className="min-w-0 flex-1">
-                          <p className="font-display text-base text-ink truncate">{c.name}</p>
-                          <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade truncate">
-                            {c.email}
-                          </p>
+                {filtered.map((c) => {
+                  const last = c.latestMessage;
+                  const showPreview = Boolean(last);
+                  const preview = last
+                    ? `${last.senderType === "ADMIN" ? "You: " : ""}${last.body.trim()}`
+                    : "";
+                  return (
+                    <li key={c.id}>
+                      <button
+                        type="button"
+                        onClick={() => pickClient(c.id)}
+                        className={`block w-full text-left px-4 py-3 transition-colors ${
+                          c.unreadCount > 0
+                            ? "bg-parchment-deep/30 hover:bg-parchment-deep/50"
+                            : "hover:bg-parchment-deep/40"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar src={c.avatarUrl} name={c.name} size={32} tone="client" />
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className={`font-display text-base text-ink truncate ${
+                                c.unreadCount > 0 ? "font-medium" : ""
+                              }`}
+                            >
+                              {c.name}
+                            </p>
+                            {showPreview ? (
+                              <p
+                                className={`text-sm truncate ${
+                                  c.unreadCount > 0
+                                    ? "font-display text-ink-soft"
+                                    : "font-display italic text-ink-mute"
+                                }`}
+                              >
+                                {preview}
+                              </p>
+                            ) : (
+                              <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade truncate">
+                                {c.email}
+                              </p>
+                            )}
+                          </div>
+                          {c.unreadCount > 0 ? (
+                            <span
+                              className="min-w-[20px] h-[20px] px-1.5 rounded-full bg-signal-red text-parchment-warm font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center shrink-0"
+                              aria-label={`${c.unreadCount} unread`}
+                            >
+                              {c.unreadCount > 99 ? "99+" : c.unreadCount}
+                            </span>
+                          ) : c.hasActiveInquiry ? (
+                            <span className="font-mono text-[0.55rem] uppercase tracking-widest text-signal-red shrink-0">
+                              Active
+                            </span>
+                          ) : null}
                         </div>
-                        {c.hasActiveInquiry && (
-                          <span className="font-mono text-[0.55rem] uppercase tracking-widest text-signal-red shrink-0">
-                            Active
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  </li>
-                ))}
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
