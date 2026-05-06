@@ -23,6 +23,7 @@ export function TicketDetailClient({
   viewerType,
   otherPartyName,
   myName,
+  clientAvatarUrl,
 }: {
   ticket: TicketDetail;
   ticketAttachments: ChatAttachment[];
@@ -30,6 +31,7 @@ export function TicketDetailClient({
   viewerType: ViewerType;
   otherPartyName: string;
   myName: string;
+  clientAvatarUrl?: string | null;
 }) {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
@@ -172,6 +174,9 @@ export function TicketDetailClient({
       onConfirmFixed={onConfirmFixed}
       onReopen={onReopen}
       onBack={onBack}
+      clientAvatarUrl={clientAvatarUrl ?? null}
+      adminAvatarUrl="/icon.png"
+      clientName={myName}
     />
   );
 }

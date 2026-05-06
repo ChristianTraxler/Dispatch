@@ -7,6 +7,7 @@ import {
   type TicketDetail,
 } from "@/components/TicketDetailPage";
 import { ChatThread, type ChatAttachment, type ChatMessage } from "@/components/ChatThread";
+import { Avatar } from "@/components/Avatar";
 import type { TicketStatus } from "@/components/StatusPill";
 import {
   useTicketChannel,
@@ -20,6 +21,7 @@ export function AdminTicketDetailClient({
   otherPartyName,
   isInquiry = false,
   inquiryEndedAt = null,
+  clientAvatarUrl = null,
 }: {
   ticket: TicketDetail;
   ticketAttachments: ChatAttachment[];
@@ -27,6 +29,7 @@ export function AdminTicketDetailClient({
   otherPartyName: string;
   isInquiry?: boolean;
   inquiryEndedAt?: string | null;
+  clientAvatarUrl?: string | null;
 }) {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
@@ -193,12 +196,15 @@ export function AdminTicketDetailClient({
               {ticket.ticketNumber}
             </span>
           </div>
-          <h1
-            className="font-display text-3xl md:text-4xl leading-tight mb-2"
-            style={{ fontVariationSettings: '"opsz" 144' }}
-          >
-            Quick chat with {otherPartyName}
-          </h1>
+          <div className="flex items-center gap-4 mb-2">
+            <Avatar src={clientAvatarUrl} name={otherPartyName} size={48} tone="client" />
+            <h1
+              className="font-display text-3xl md:text-4xl leading-tight"
+              style={{ fontVariationSettings: '"opsz" 144' }}
+            >
+              Quick chat with {otherPartyName}
+            </h1>
+          </div>
           <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
             <span className="font-display italic text-ink-mute">
               {ticket.siteDisplayName}
@@ -244,6 +250,9 @@ export function AdminTicketDetailClient({
           otherPartyTyping={otherPartyTyping}
           onSendMessage={inquiryEndedAt ? undefined : (onSendMessage as never)}
           onTypingChange={broadcastTyping}
+          clientAvatarUrl={clientAvatarUrl}
+          adminAvatarUrl="/icon.png"
+          clientName={otherPartyName}
         />
       </div>
     );

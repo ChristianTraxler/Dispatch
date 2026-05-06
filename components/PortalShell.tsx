@@ -8,6 +8,7 @@ export interface PortalUser {
   id: string;
   name: string;
   email: string;
+  avatarUrl?: string | null;
 }
 
 export interface PortalShellProps {

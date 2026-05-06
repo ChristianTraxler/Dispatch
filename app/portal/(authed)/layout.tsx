@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentAuthUser, getCurrentClientAccount, isAdmin } from "@/lib/auth/client-session";
+import { hydrateAvatarUrl } from "@/lib/storage";
 import { PortalShellClient } from "../portal-shell-client";
 import { QuickChatLauncher } from "./quick-chat-launcher";
 
@@ -20,12 +21,14 @@ export default async function PortalLayout({
     redirect("/api/portal/auth/logout");
   }
 
+  const avatarUrl = await hydrateAvatarUrl(account.avatarPath);
+
   return (
     <PortalShellClient
-      user={{ id: account.id, name: account.name, email: account.email }}
+      user={{ id: account.id, name: account.name, email: account.email, avatarUrl }}
     >
       {children}
-      <QuickChatLauncher />
+      <QuickChatLauncher adminAvatarUrl="/icon.png" clientAvatarUrl={avatarUrl} />
     </PortalShellClient>
   );
 }

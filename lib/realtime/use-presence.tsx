@@ -31,6 +31,7 @@ export interface OnlineClient {
   accountId: string;
   name: string;
   email: string;
+  avatarUrl?: string | null;
   joinedAt: number;
 }
 
@@ -180,7 +181,9 @@ export function useClientPresenceTracker(client: {
   accountId: string;
   name: string;
   email: string;
+  avatarUrl?: string | null;
 }) {
+  const avatarUrl = client.avatarUrl ?? null;
   useEffect(() => {
     let cancelled = false;
     let cleanup: (() => void) | undefined;
@@ -200,6 +203,7 @@ export function useClientPresenceTracker(client: {
             accountId: client.accountId,
             name: client.name,
             email: client.email,
+            avatarUrl,
             joinedAt: Date.now(),
           });
         }
@@ -214,7 +218,7 @@ export function useClientPresenceTracker(client: {
       cancelled = true;
       cleanup?.();
     };
-  }, [client.accountId, client.name, client.email]);
+  }, [client.accountId, client.name, client.email, avatarUrl]);
 }
 
 const AdminPresenceContext = createContext<{ adminOnline: boolean }>({

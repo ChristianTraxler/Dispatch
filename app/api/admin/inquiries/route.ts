@@ -5,7 +5,7 @@ import {
   AuthRequiredError,
   AdminRequiredError,
 } from "@/lib/auth/admin-guard";
-import { hydrateAttachments } from "@/lib/storage";
+import { hydrateAttachments, hydrateAvatarUrl } from "@/lib/storage";
 
 export async function POST(req: Request) {
   try {
@@ -81,9 +81,12 @@ export async function POST(req: Request) {
     })),
   );
 
+  const clientAvatarUrl = await hydrateAvatarUrl(account.avatarPath);
+
   return NextResponse.json({
     ticketId: ticket.id,
     messages,
     clientName: account.name,
+    clientAvatarUrl,
   });
 }

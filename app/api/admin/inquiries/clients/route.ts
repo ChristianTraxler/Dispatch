@@ -5,6 +5,7 @@ import {
   AuthRequiredError,
   AdminRequiredError,
 } from "@/lib/auth/admin-guard";
+import { hydrateAvatarUrls } from "@/lib/storage";
 
 export async function GET() {
   try {
@@ -22,6 +23,7 @@ export async function GET() {
       id: true,
       name: true,
       email: true,
+      avatarPath: true,
       tickets: {
         where: { isInquiry: true, inquiryEndedAt: null },
         select: { id: true },
@@ -30,11 +32,14 @@ export async function GET() {
     },
   });
 
+  const avatarUrls = await hydrateAvatarUrls(clients.map((c) => c.avatarPath));
+
   return NextResponse.json({
-    clients: clients.map((c) => ({
+    clients: clients.map((c, i) => ({
       id: c.id,
       name: c.name,
       email: c.email,
+      avatarUrl: avatarUrls[i],
       hasActiveInquiry: c.tickets.length > 0,
     })),
   });

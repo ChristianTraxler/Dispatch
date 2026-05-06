@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import type { CSSProperties } from "react";
 import { uploadFile } from "@/lib/upload-client";
+import { Avatar } from "./Avatar";
 
 export type SenderType = "CLIENT" | "ADMIN";
 export type ViewerType = "client" | "admin";
@@ -41,6 +42,12 @@ export interface ChatThreadProps {
   onTypingChange?: (isTyping: boolean) => void;
   /** Whether sending is in progress */
   sending?: boolean;
+  /** Avatar URL for client-side messages (signed URL or null for initials) */
+  clientAvatarUrl?: string | null;
+  /** Avatar URL for admin-side messages (defaults to /icon.png in callers) */
+  adminAvatarUrl?: string | null;
+  /** Display name for the client side (used for the avatar's initials fallback) */
+  clientName?: string;
   className?: string;
   style?: CSSProperties;
 }
@@ -72,6 +79,9 @@ export function ChatThread({
   onSendMessage,
   onTypingChange,
   sending = false,
+  clientAvatarUrl,
+  adminAvatarUrl,
+  clientName,
   className = "",
   style,
 }: ChatThreadProps) {
@@ -232,7 +242,14 @@ export function ChatThread({
           </div>
         )}
         {messages.map((m) => (
-          <MessageBlock key={m.id} message={m} viewerType={viewerType} />
+          <MessageBlock
+            key={m.id}
+            message={m}
+            viewerType={viewerType}
+            clientAvatarUrl={clientAvatarUrl ?? null}
+            adminAvatarUrl={adminAvatarUrl ?? null}
+            clientName={clientName ?? otherPartyName}
+          />
         ))}
 
         {otherPartyTyping && (
@@ -274,7 +291,7 @@ export function ChatThread({
             value={draft}
             onChange={handleDraftChange}
             onKeyDown={handleKeyDown}
-            placeholder="File a reply…"
+            placeholder="Type a message…"
             rows={2}
             className="input-line resize-none w-full"
             style={{ borderBottom: "none" }}
@@ -356,20 +373,44 @@ export function ChatThread({
 interface MessageBlockProps {
   message: ChatMessage;
   viewerType: ViewerType;
+  clientAvatarUrl: string | null;
+  adminAvatarUrl: string | null;
+  clientName?: string;
 }
 
-function MessageBlock({ message, viewerType }: MessageBlockProps) {
+function MessageBlock({
+  message,
+  viewerType,
+  clientAvatarUrl,
+  adminAvatarUrl,
+  clientName,
+}: MessageBlockProps) {
   const isFromViewer =
     (viewerType === "client" && message.senderType === "CLIENT") ||
     (viewerType === "admin" && message.senderType === "ADMIN");
   const isAdmin = message.senderType === "ADMIN";
+  const avatarSrc = isAdmin ? adminAvatarUrl : clientAvatarUrl;
+  const avatarTone = isAdmin ? "admin" : "client";
+  const avatarFallbackName = isAdmin
+    ? message.senderName || "Christian"
+    : clientName || message.senderName;
 
   return (
     <article
       className={`flex flex-col ${isFromViewer ? "items-end text-right" : "items-start"}`}
     >
-      {/* Byline — sender + time */}
-      <div className="flex items-center gap-2 mb-1">
+      {/* Byline — avatar + sender + time */}
+      <div
+        className={`flex items-center gap-2 mb-1 ${
+          isFromViewer ? "flex-row-reverse" : ""
+        }`}
+      >
+        <Avatar
+          src={avatarSrc}
+          name={avatarFallbackName}
+          size={24}
+          tone={avatarTone}
+        />
         <span
           className={[
             "font-mono text-[0.6rem] uppercase tracking-widest",

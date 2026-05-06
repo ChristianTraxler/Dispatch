@@ -2,6 +2,7 @@
 
 import { useState, type CSSProperties } from "react";
 import { PresenceDot } from "./PresenceDot";
+import { Avatar } from "./Avatar";
 
 export interface AdminClientSite {
   id: string;
@@ -20,6 +21,8 @@ export interface AdminClient {
   isOnline: boolean;
   /** Last seen timestamp — only relevant when offline */
   lastSeenAt?: string | Date | null;
+  /** Signed avatar URL or null */
+  avatarUrl?: string | null;
   sites: AdminClientSite[];
 }
 
@@ -168,10 +171,21 @@ function ClientCard({
     <div className="border border-ruleSoft bg-parchment-warm">
       <div className="flex flex-col md:flex-row md:items-center gap-4 px-4 md:px-5 py-4">
         {/* Identity */}
-        <div className="flex items-start gap-3 flex-1 min-w-0">
-          <span className="mt-1.5">
-            <PresenceDot status={client.isOnline ? "online" : "offline"} pulse={client.isOnline} />
-          </span>
+        <div className="flex items-start gap-4 flex-1 min-w-0">
+          <div className="relative shrink-0">
+            <Avatar
+              src={client.avatarUrl ?? null}
+              name={client.name}
+              size={48}
+              tone="client"
+            />
+            <span className="absolute -bottom-0.5 -right-0.5 ring-2 ring-parchment-warm rounded-full">
+              <PresenceDot
+                status={client.isOnline ? "online" : "offline"}
+                pulse={client.isOnline}
+              />
+            </span>
+          </div>
           <div className="min-w-0">
             <h2
               className="font-display text-lg md:text-xl leading-tight"

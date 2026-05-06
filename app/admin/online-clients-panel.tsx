@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useClientsPresence } from "@/lib/realtime/use-presence";
 import { PresenceDot } from "@/components/PresenceDot";
+import { Avatar } from "@/components/Avatar";
 
 /**
  * Live list of currently signed-in clients. Renders on the Live Ledger
@@ -37,18 +38,21 @@ export function OnlineClientsPanel() {
         <ul className="divide-y divide-rule-soft">
           {list.map((c) => (
             <li key={c.accountId} className="px-4 py-2.5">
-              <div className="flex items-center gap-2 min-w-0">
-                <span
-                  className="presence-dot online pulse"
-                  aria-hidden="true"
-                />
-                <span className="font-display text-sm text-ink truncate">
-                  {c.name}
-                </span>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="relative shrink-0">
+                  <Avatar src={c.avatarUrl ?? null} name={c.name} size={32} tone="client" />
+                  <span
+                    className="presence-dot online pulse absolute -bottom-0.5 -right-0.5 ring-2 ring-parchment-warm"
+                    aria-hidden="true"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-display text-sm text-ink truncate">{c.name}</p>
+                  <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade truncate">
+                    {c.email}
+                  </p>
+                </div>
               </div>
-              <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade mt-0.5 truncate ml-[17px]">
-                {c.email}
-              </p>
             </li>
           ))}
         </ul>

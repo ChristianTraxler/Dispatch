@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { hydrateAvatarUrls } from "@/lib/storage";
 import type { AdminClient, AdminClientSite } from "@/components/AdminClientsPage";
 import { ClientsListClient } from "./clients-list-client";
 
@@ -21,7 +22,9 @@ export default async function AdminClientsPage() {
     },
   });
 
-  const initial: AdminClient[] = accounts.map((a) => {
+  const avatarUrls = await hydrateAvatarUrls(accounts.map((a) => a.avatarPath));
+
+  const initial: AdminClient[] = accounts.map((a, i) => {
     const sites: AdminClientSite[] = a.sites.map((s) => ({
       id: s.id,
       url: s.url,
@@ -36,6 +39,7 @@ export default async function AdminClientsPage() {
       joinedAt: a.createdAt.toISOString(),
       isOnline: false, // hydrated on the client from Realtime presence
       lastSeenAt: null,
+      avatarUrl: avatarUrls[i],
       sites,
     };
   });

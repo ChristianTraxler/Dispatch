@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { ticketNumber } from "@/lib/ticket";
-import { hydrateAttachments } from "@/lib/storage";
+import { hydrateAttachments, hydrateAvatarUrl } from "@/lib/storage";
 import type { ChatMessage } from "@/components/ChatThread";
 import type { TicketDetail } from "@/components/TicketDetailPage";
 import { AdminTicketDetailClient } from "./admin-ticket-detail-client";
@@ -17,7 +17,7 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
     where: { id },
     include: {
       site: { select: { url: true, displayName: true } },
-      clientAccount: { select: { name: true, email: true } },
+      clientAccount: { select: { name: true, email: true, avatarPath: true } },
       messages: { orderBy: { createdAt: "asc" } },
     },
   });
@@ -69,6 +69,7 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
   );
 
   const ticketAttachments = await hydrateAttachments(ticket.attachments);
+  const clientAvatarUrl = await hydrateAvatarUrl(ticket.clientAccount.avatarPath);
 
   return (
     <AdminTicketDetailClient
@@ -78,6 +79,7 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
       otherPartyName={ticket.clientAccount.name}
       isInquiry={isInquiry}
       inquiryEndedAt={inquiryEndedAt}
+      clientAvatarUrl={clientAvatarUrl}
     />
   );
 }

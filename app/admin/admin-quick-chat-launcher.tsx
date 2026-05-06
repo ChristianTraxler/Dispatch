@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { ChatThread, type ChatMessage, type ChatAttachment } from "@/components/ChatThread";
+import { Avatar } from "@/components/Avatar";
 import { useTicketChannel } from "@/lib/realtime/use-ticket-channel";
 import { useClientsPresence } from "@/lib/realtime/use-presence";
 
@@ -10,6 +11,7 @@ interface ClientRow {
   id: string;
   name: string;
   email: string;
+  avatarUrl: string | null;
   hasActiveInquiry: boolean;
 }
 
@@ -22,11 +24,14 @@ type LauncherState =
       ticketId: string;
       clientId: string;
       clientName: string;
+      clientAvatarUrl: string | null;
       messages: ChatMessage[];
       ended: boolean;
     }
   | { kind: "promoted"; ticketId: string; clientName: string }
   | { kind: "error"; message: string };
+
+const ADMIN_AVATAR_URL = "/icon.png";
 
 export function AdminQuickChatLauncher() {
   const [state, setState] = useState<LauncherState>({ kind: "collapsed" });
@@ -79,12 +84,14 @@ export function AdminQuickChatLauncher() {
         ticketId: string;
         messages: ChatMessage[];
         clientName: string;
+        clientAvatarUrl: string | null;
       };
       setState({
         kind: "open",
         ticketId: data.ticketId,
         clientId,
         clientName: data.clientName,
+        clientAvatarUrl: data.clientAvatarUrl,
         messages: data.messages,
         ended: false,
       });
@@ -331,8 +338,9 @@ export function AdminQuickChatLauncher() {
                       onClick={() => pickClient(c.id)}
                       className="block w-full text-left px-4 py-3 hover:bg-parchment-deep/40 transition-colors"
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="min-w-0">
+                      <div className="flex items-center gap-3">
+                        <Avatar src={c.avatarUrl} name={c.name} size={32} tone="client" />
+                        <div className="min-w-0 flex-1">
                           <p className="font-display text-base text-ink truncate">{c.name}</p>
                           <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade truncate">
                             {c.email}
@@ -412,6 +420,9 @@ export function AdminQuickChatLauncher() {
               otherPartyName={state.clientName}
               otherPartyOnline={otherPartyOnline || ticketChannelOnline}
               onSendMessage={state.ended ? undefined : sendMessage}
+              clientAvatarUrl={state.clientAvatarUrl}
+              adminAvatarUrl={ADMIN_AVATAR_URL}
+              clientName={state.clientName}
               className="h-full"
             />
           </div>

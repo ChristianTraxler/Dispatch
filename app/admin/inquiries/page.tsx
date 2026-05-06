@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { hydrateAvatarUrls } from "@/lib/storage";
+import { Avatar } from "@/components/Avatar";
 import { InquiriesLiveRefresh } from "./inquiries-refresh";
 
 interface PageProps {
@@ -34,7 +36,7 @@ export default async function AdminInquiriesPage({ searchParams }: PageProps) {
       { createdAt: "desc" },
     ],
     include: {
-      clientAccount: { select: { name: true } },
+      clientAccount: { select: { name: true, avatarPath: true } },
       _count: { select: { messages: true } },
       messages: {
         orderBy: { createdAt: "desc" },
@@ -43,6 +45,10 @@ export default async function AdminInquiriesPage({ searchParams }: PageProps) {
       },
     },
   });
+
+  const avatarUrls = await hydrateAvatarUrls(
+    inquiries.map((t) => t.clientAccount.avatarPath),
+  );
 
   const [activeCount, archivedCount] = await Promise.all([
     prisma.ticket.count({ where: { isInquiry: true, inquiryEndedAt: null } }),
@@ -98,7 +104,7 @@ export default async function AdminInquiriesPage({ searchParams }: PageProps) {
         </p>
       ) : (
         <ul className="divide-y divide-rule-soft">
-          {inquiries.map((t) => {
+          {inquiries.map((t, i) => {
             const last = t.messages[0];
             const preview = last?.body?.trim().slice(0, 100) ?? "(no messages yet)";
             const lastSenderTag =
@@ -110,7 +116,13 @@ export default async function AdminInquiriesPage({ searchParams }: PageProps) {
                   href={`/admin/ticket/${t.id}`}
                   className="block py-4 hover:bg-parchment-warm/40 transition-colors px-2"
                 >
-                  <div className="flex flex-col md:flex-row md:items-center md:gap-6">
+                  <div className="flex items-center gap-4">
+                    <Avatar
+                      src={avatarUrls[i]}
+                      name={t.clientAccount.name}
+                      size={40}
+                      tone="client"
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="font-display text-lg text-ink">
                         {t.clientAccount.name}
@@ -122,7 +134,7 @@ export default async function AdminInquiriesPage({ searchParams }: PageProps) {
                         {preview}
                       </p>
                     </div>
-                    <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade md:text-right shrink-0 mt-2 md:mt-0">
+                    <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade text-right shrink-0">
                       {t._count.messages} msg{t._count.messages === 1 ? "" : "s"} · {formatRelative(activity)}
                     </div>
                   </div>

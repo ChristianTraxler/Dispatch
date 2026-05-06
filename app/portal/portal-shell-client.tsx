@@ -28,6 +28,7 @@ function PortalShellInner({
     accountId: user.id,
     name: user.name,
     email: user.email,
+    avatarUrl: user.avatarUrl,
   });
   const adminOnline = useAdminPresence();
 

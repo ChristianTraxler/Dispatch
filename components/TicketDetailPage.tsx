@@ -46,6 +46,12 @@ export interface TicketDetailPageProps {
   onStatusChange?: (newStatus: TicketStatus) => void | Promise<void>;
   /** Back navigation */
   onBack?: () => void;
+  /** Avatar for client-side messages (signed URL or null) */
+  clientAvatarUrl?: string | null;
+  /** Avatar for admin-side messages (typically /icon.png) */
+  adminAvatarUrl?: string | null;
+  /** Client display name (for avatar initials when no image set) */
+  clientName?: string;
   className?: string;
   style?: CSSProperties;
 }
@@ -64,6 +70,9 @@ export function TicketDetailPage({
   onReopen,
   onStatusChange,
   onBack,
+  clientAvatarUrl,
+  adminAvatarUrl,
+  clientName,
   className = "",
   style,
 }: TicketDetailPageProps) {
@@ -238,6 +247,9 @@ export function TicketDetailPage({
             otherPartyTyping={otherPartyTyping}
             onSendMessage={onSendMessage as never}
             onTypingChange={onTypingChange}
+            clientAvatarUrl={clientAvatarUrl ?? null}
+            adminAvatarUrl={adminAvatarUrl ?? null}
+            clientName={clientName}
           />
         </section>
       </div>
