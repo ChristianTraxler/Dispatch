@@ -67,6 +67,10 @@ model Ticket {
   category        TicketCategory
   status          TicketStatus   @default(NEW)
   attachments     Json?
+  isInquiry      Boolean   @default(false) @map("is_inquiry")
+  inquiryEndedAt DateTime? @map("inquiry_ended_at")
+  lastMessageAt  DateTime? @map("last_message_at")
+  adminNudgedAt  DateTime? @map("admin_nudged_at")
 
   // 6-stage progress timestamps
   createdAt          DateTime  @default(now()) @map("created_at")
@@ -85,6 +89,8 @@ model Ticket {
   @@index([clientAccountId])
   @@index([siteId])
   @@index([status])
+  @@index([isInquiry, inquiryEndedAt])
+  @@index([clientAccountId, isInquiry, inquiryEndedAt])
   @@map("tickets")
 }
 
