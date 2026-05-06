@@ -1,0 +1,27 @@
+name: Trigger Vercel deploy
+
+# Belt-and-suspenders for the Vercel↔GitHub native webhook, which has dropped
+# pushes silently in the past. This workflow calls Vercel's Deploy Hook
+# directly so production rebuilds on every push to main even if the native
+# integration is broken. Both paths fire — Vercel deduplicates if it already
+# has the same commit.
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fire Vercel deploy hook
+        run: |
+          if [ -z "${VERCEL_DEPLOY_HOOK}" ]; then
+            echo "VERCEL_DEPLOY_HOOK secret is not set — skipping."
+            exit 0
+          fi
+          curl -fsS -X POST "${VERCEL_DEPLOY_HOOK}" -o response.json -w "HTTP %{http_code}\n"
+          cat response.json
+        env:
+          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
