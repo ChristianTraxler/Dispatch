@@ -265,7 +265,7 @@ export function AdminQuickChatLauncher() {
         </svg>
         {isCollapsed && unreadCount > 0 && (
           <span
-            className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full bg-parchment-warm text-ink font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center ring-2 ring-parchment shadow-md"
+            className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full bg-ink text-parchment-warm font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center ring-2 ring-parchment shadow-md"
             aria-hidden="true"
           >
             {unreadCount > 99 ? "99+" : unreadCount}
