@@ -58,7 +58,7 @@ export async function POST(req: Request) {
   }
 
   // Create Supabase Auth user (auto-confirmed — invite token is the trust mechanism)
-  const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+  const { data: created, error: createErr } = await supabaseAdmin().auth.admin.createUser({
     email: emailNorm,
     password,
     email_confirm: true,
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     // Clean up the Supabase user so the email can be re-invited later.
-    await supabaseAdmin.auth.admin.deleteUser(created.user.id).catch(() => {});
+    await supabaseAdmin().auth.admin.deleteUser(created.user.id).catch(() => {});
     console.error("[signup] transaction failed:", err);
     return NextResponse.json(
       { error: "Could not finish signup. Try again." },
