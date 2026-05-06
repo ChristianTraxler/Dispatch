@@ -17,12 +17,10 @@ export function AdminTicketDetailClient({
   ticket,
   messages: initialMessages,
   otherPartyName,
-  otherPartyOnline,
 }: {
   ticket: TicketDetail;
   messages: ChatMessage[];
   otherPartyName: string;
-  otherPartyOnline: boolean;
 }) {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
@@ -65,7 +63,7 @@ export function AdminTicketDetailClient({
     [rawToChatMessage],
   );
 
-  const { broadcastTyping } = useTicketChannel({
+  const { broadcastTyping, otherPartyOnline } = useTicketChannel({
     ticketId: ticket.id,
     viewerSide: "ADMIN",
     onMessageInsert: handleInsert,

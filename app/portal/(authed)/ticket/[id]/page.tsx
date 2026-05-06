@@ -60,7 +60,6 @@ export default async function ClientTicketDetailPage({ params }: PageProps) {
       messages={messages}
       viewerType="client"
       otherPartyName="Christian"
-      otherPartyOnline={false}
       myName={account.name}
     />
   );

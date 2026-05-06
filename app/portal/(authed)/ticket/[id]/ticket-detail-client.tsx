@@ -17,14 +17,12 @@ export function TicketDetailClient({
   messages: initialMessages,
   viewerType,
   otherPartyName,
-  otherPartyOnline,
   myName,
 }: {
   ticket: TicketDetail;
   messages: ChatMessage[];
   viewerType: ViewerType;
   otherPartyName: string;
-  otherPartyOnline: boolean;
   myName: string;
 }) {
   const router = useRouter();
@@ -69,7 +67,7 @@ export function TicketDetailClient({
     [rawToChatMessage],
   );
 
-  const { broadcastTyping } = useTicketChannel({
+  const { broadcastTyping, otherPartyOnline } = useTicketChannel({
     ticketId: ticket.id,
     viewerSide: "CLIENT",
     onMessageInsert: handleInsert,

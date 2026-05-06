@@ -65,7 +65,6 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
       ticket={detail}
       messages={messages}
       otherPartyName={ticket.clientAccount.name}
-      otherPartyOnline={false}
     />
   );
 }
