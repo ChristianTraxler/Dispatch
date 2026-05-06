@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import Link from "next/link";
 import { ChatThread, type ChatMessage, type ChatAttachment } from "@/components/ChatThread";
 import { useTicketChannel } from "@/lib/realtime/use-ticket-channel";
+import { useAdminPresence } from "@/lib/realtime/use-presence";
 
 type LauncherState =
   | { kind: "collapsed" }
@@ -128,8 +129,10 @@ export function QuickChatLauncher() {
     }
   };
 
+  const adminOnline = useAdminPresence();
+
   const activeTicketId = state.kind === "open" ? state.ticketId : "";
-  useTicketChannel({
+  const { otherPartyOnline: ticketChannelOnline } = useTicketChannel({
     ticketId: activeTicketId,
     viewerSide: "CLIENT",
     onMessageInsert: (row) => {
@@ -272,6 +275,7 @@ export function QuickChatLauncher() {
               messages={state.messages}
               viewerType="client"
               otherPartyName="Christian"
+              otherPartyOnline={adminOnline || ticketChannelOnline}
               onSendMessage={state.ended ? undefined : sendMessage}
               className="h-full"
             />

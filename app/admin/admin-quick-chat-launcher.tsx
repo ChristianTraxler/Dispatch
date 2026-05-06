@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { ChatThread, type ChatMessage, type ChatAttachment } from "@/components/ChatThread";
 import { useTicketChannel } from "@/lib/realtime/use-ticket-channel";
+import { useClientsPresence } from "@/lib/realtime/use-presence";
 
 interface ClientRow {
   id: string;
@@ -162,8 +163,12 @@ export function AdminQuickChatLauncher() {
     }
   };
 
+  const onlineClients = useClientsPresence();
+  const otherPartyOnline =
+    state.kind === "open" ? onlineClients.has(state.clientId) : false;
+
   const activeTicketId = state.kind === "open" ? state.ticketId : "";
-  useTicketChannel({
+  const { otherPartyOnline: ticketChannelOnline } = useTicketChannel({
     ticketId: activeTicketId,
     viewerSide: "ADMIN",
     onMessageInsert: (row) => {
@@ -368,6 +373,7 @@ export function AdminQuickChatLauncher() {
               messages={state.messages}
               viewerType="admin"
               otherPartyName={state.clientName}
+              otherPartyOnline={otherPartyOnline || ticketChannelOnline}
               onSendMessage={state.ended ? undefined : sendMessage}
               className="h-full"
             />
