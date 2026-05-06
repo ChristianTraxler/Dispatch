@@ -5,9 +5,13 @@ import {
   AdminInvitesPage,
   type AdminInvite,
 } from "@/components/AdminInvitesPage";
+import { useRealtimeRefresh } from "@/lib/realtime/use-realtime-refresh";
 
 export function InvitesListClient({ invites }: { invites: AdminInvite[] }) {
   const router = useRouter();
+
+  // Live-update on any invite change — created, redeemed, revoked, expired.
+  useRealtimeRefresh({ table: "invites" });
 
   function onCreateInvite() {
     router.push("/admin/invites/new");

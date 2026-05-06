@@ -5,6 +5,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ticketNumber } from "@/lib/ticket";
 import { StatusPill } from "@/components/StatusPill";
+import { RefreshTicketsOnChange } from "./refresh-on-change";
 
 function formatRelative(value: Date): string {
   const diff = Date.now() - value.getTime();
@@ -29,6 +30,7 @@ export default async function AdminTicketsPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12">
+      <RefreshTicketsOnChange />
       <div className="flex items-center gap-3 mb-3">
         <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">
           §
