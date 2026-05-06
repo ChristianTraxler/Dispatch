@@ -6,16 +6,19 @@ import { PresenceDot } from "./PresenceDot";
 
 export interface AdminShellProps {
   /** Active nav item key */
-  activeNav?: "dashboard" | "clients" | "invites";
+  activeNav?: "dashboard" | "inquiries" | "clients" | "invites";
   /** How many clients are currently online (drives the live count badge) */
   onlineClientCount?: number;
+  /** Active-inquiry count badge on the Inquiries nav item */
+  inquiryCount?: number;
   /** Click handler for nav items */
-  onNavigate?: (target: "dashboard" | "clients" | "invites" | "logout") => void;
+  onNavigate?: (target: "dashboard" | "inquiries" | "clients" | "invites" | "logout") => void;
   children: ReactNode;
 }
 
-const ADMIN_NAV: { key: "dashboard" | "clients" | "invites"; label: string }[] = [
+const ADMIN_NAV: { key: "dashboard" | "inquiries" | "clients" | "invites"; label: string }[] = [
   { key: "dashboard", label: "Live Ledger" },
+  { key: "inquiries", label: "Inquiries" },
   { key: "clients", label: "Clients" },
   { key: "invites", label: "Invites" },
 ];
@@ -23,6 +26,7 @@ const ADMIN_NAV: { key: "dashboard" | "clients" | "invites"; label: string }[] =
 export function AdminShell({
   activeNav = "dashboard",
   onlineClientCount = 0,
+  inquiryCount = 0,
   onNavigate,
   children,
 }: AdminShellProps) {
@@ -77,6 +81,11 @@ export function AdminShell({
                 ].join(" ")}
               >
                 {item.label}
+                {item.key === "inquiries" && inquiryCount > 0 && (
+                  <span className="ml-1.5 inline-block min-w-[1.1rem] px-1 py-px text-center bg-signal-red text-parchment-warm font-mono text-[0.55rem] leading-none">
+                    {inquiryCount}
+                  </span>
+                )}
               </button>
             ))}
           </nav>
