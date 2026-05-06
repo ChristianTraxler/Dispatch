@@ -20,13 +20,24 @@ function formatRelative(value: Date): string {
 }
 
 export default async function AdminLedgerPage() {
-  const [openCount, awaitingCount, totalClients, totalSites, recent] =
+  const [openCount, awaitingCount, inquiryCount, totalClients, totalSites, recent] =
     await Promise.all([
-      prisma.ticket.count({ where: { status: { in: [...OPEN_STATUSES] } } }),
-      prisma.ticket.count({ where: { status: "AWAITING_CONFIRMATION" } }),
+      prisma.ticket.count({
+        where: {
+          isInquiry: false,
+          status: { in: [...OPEN_STATUSES] },
+        },
+      }),
+      prisma.ticket.count({
+        where: { isInquiry: false, status: "AWAITING_CONFIRMATION" },
+      }),
+      prisma.ticket.count({
+        where: { isInquiry: true, inquiryEndedAt: null },
+      }),
       prisma.clientAccount.count(),
       prisma.site.count(),
       prisma.ticket.findMany({
+        where: { isInquiry: false },
         orderBy: { createdAt: "desc" },
         take: 5,
         include: {
@@ -62,9 +73,10 @@ export default async function AdminLedgerPage() {
       </p>
 
       {/* Stat strip */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-rule border border-rule mb-12">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-px bg-rule border border-rule mb-12">
         <Stat label="Open Tickets" value={openCount} accent="signal-red" />
         <Stat label="Awaiting Confirm" value={awaitingCount} />
+        <Stat label="Open Inquiries" value={inquiryCount} />
         <Stat label="Clients" value={totalClients} />
         <Stat label="Sites" value={totalSites} />
       </div>

@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   if (!account) redirect("/portal");
 
   const tickets = await prisma.ticket.findMany({
-    where: { clientAccountId: account.id },
+    where: { clientAccountId: account.id, isInquiry: false },
     orderBy: { createdAt: "desc" },
     include: {
       site: { select: { id: true, url: true, displayName: true } },

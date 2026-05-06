@@ -21,6 +21,7 @@ function formatRelative(value: Date): string {
 
 export default async function AdminTicketsPage() {
   const tickets = await prisma.ticket.findMany({
+    where: { isInquiry: false },
     orderBy: { createdAt: "desc" },
     include: {
       site: { select: { displayName: true, url: true } },
