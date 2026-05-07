@@ -310,9 +310,199 @@ interactive elements. Intended for cleaning up test tickets."
 
 ---
 
+## Task 3: Real-time deletion on the client portal
+
+Added after Task 2 in response to a follow-up requirement: "when deleting a ticket, it needs to update in real-time on the client side as well." The admin's own list already auto-refreshes (via `RefreshTicketsOnChange` → `useRealtimeRefresh`). This task brings the same behavior to two client-portal surfaces:
+
+1. Portal dashboard list — the deleted ticket's row vanishes without a manual reload.
+2. Portal ticket detail — if the client has the deleted ticket open, redirect them back to the dashboard with a brief notice.
+
+**Files:**
+- Create: `app/portal/(authed)/dashboard/refresh-on-change.tsx`
+- Modify: `app/portal/(authed)/dashboard/page.tsx` (mount the headless component)
+- Create: `lib/realtime/use-ticket-deletion-watch.ts`
+- Modify: `app/portal/(authed)/ticket/[id]/ticket-detail-client.tsx` (use the new hook)
+
+Why a single Task 3 and not two: the dashboard piece and the detail-page piece are tightly coupled in user experience — testing one without the other leaves a half-finished feeling. Single commit, single review.
+
+- [ ] **Step 1: Create the dashboard refresh component**
+
+Create `app/portal/(authed)/dashboard/refresh-on-change.tsx` with this exact content:
+
+```tsx
+"use client";
+
+import { useRealtimeRefresh } from "@/lib/realtime/use-realtime-refresh";
+
+/**
+ * Headless — subscribes to the tickets table and refreshes the
+ * containing server page on any change. Mirrors the admin-side
+ * RefreshTicketsOnChange so the client dashboard reacts when admin
+ * actions (delete, status update, new ticket from another device)
+ * change the underlying data.
+ */
+export function RefreshDashboardOnTicketChange() {
+  useRealtimeRefresh({ table: "tickets" });
+  return null;
+}
+```
+
+`useRealtimeRefresh` already handles auth token plumbing (it calls `supabase.realtime.setAuth` before subscribing) so RLS sees the client as authenticated and DELETE events for tickets they own propagate.
+
+- [ ] **Step 2: Mount the refresh component on the dashboard page**
+
+In `app/portal/(authed)/dashboard/page.tsx`:
+
+(a) Add the import alongside the others near the top:
+
+```tsx
+import { RefreshDashboardOnTicketChange } from "./refresh-on-change";
+```
+
+(b) Replace the final return statement:
+
+```tsx
+  return <DashboardClient tickets={ticketDtos} sites={sites} />;
+```
+
+with:
+
+```tsx
+  return (
+    <>
+      <RefreshDashboardOnTicketChange />
+      <DashboardClient tickets={ticketDtos} sites={sites} />
+    </>
+  );
+```
+
+- [ ] **Step 3: Create the ticket-deletion watch hook**
+
+Create `lib/realtime/use-ticket-deletion-watch.ts` with this exact content:
+
+```ts
+"use client";
+
+import { useEffect, useRef } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+
+/**
+ * Subscribe to the DELETE event on `tickets` for one specific id and
+ * fire `onDeleted` if the row is removed while the page is mounted.
+ * Used by detail pages to redirect away gracefully when the underlying
+ * ticket is deleted by the other side.
+ *
+ * Auth token is set before subscribe (same gotcha as use-ticket-channel)
+ * so RLS sees an authed connection and forwards the DELETE event.
+ */
+export function useTicketDeletionWatch(
+  ticketId: string,
+  onDeleted: () => void,
+) {
+  const onDeletedRef = useRef(onDeleted);
+  onDeletedRef.current = onDeleted;
+
+  useEffect(() => {
+    if (!ticketId) return;
+    const supabase = getSupabaseBrowserClient();
+    let cancelled = false;
+    let cleanup: (() => void) | undefined;
+
+    (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (cancelled) return;
+      if (session) supabase.realtime.setAuth(session.access_token);
+
+      const channel = supabase
+        .channel(`ticket-deletion:${ticketId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "DELETE",
+            schema: "public",
+            table: "tickets",
+            filter: `id=eq.${ticketId}`,
+          },
+          () => onDeletedRef.current(),
+        )
+        .subscribe();
+
+      cleanup = () => supabase.removeChannel(channel);
+    })();
+
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
+  }, [ticketId]);
+}
+```
+
+Notes:
+- The Supabase `tickets` table is already exposed for realtime DELETE events (see `lib/realtime/use-tickets-feed.ts` which subscribes to DELETE without a filter). Filtering by primary key `id=eq.${ticketId}` works even with `REPLICA IDENTITY DEFAULT` because the PK is always included on DELETE payloads.
+- The callback ref pattern (mirroring `use-ticket-channel.ts`) lets parents pass inline handlers without resubscribing on every render.
+
+- [ ] **Step 4: Wire the hook into the portal ticket detail client**
+
+In `app/portal/(authed)/ticket/[id]/ticket-detail-client.tsx`:
+
+(a) Add the import alongside the existing realtime import:
+
+```tsx
+import { useTicketDeletionWatch } from "@/lib/realtime/use-ticket-deletion-watch";
+```
+
+(b) Inside the `TicketDetailClient` component body, after the existing `useTicketChannel` call, add:
+
+```tsx
+  useTicketDeletionWatch(ticket.id, () => {
+    window.alert("This ticket was deleted by support.");
+    router.push("/portal/dashboard");
+  });
+```
+
+Place it directly under the `useTicketChannel({ ... })` block, before the `useEffect(...)` that marks unread messages.
+
+- [ ] **Step 5: Type-check and lint**
+
+```bash
+npm run lint
+```
+
+Expected: no new errors in any of the four files touched. Pre-existing repo warnings unrelated to this work are fine.
+
+- [ ] **Step 6: Manual verify in the browser**
+
+Skip — the controller will perform the manual verification end-to-end after the commit lands. (Verification will involve: open the portal dashboard in one browser, the admin tickets page in another, delete a ticket from admin, confirm the row vanishes from the portal dashboard within a beat. Then repeat with the portal viewing the ticket detail page — confirm the alert + redirect.)
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add app/portal/\(authed\)/dashboard/refresh-on-change.tsx \
+        app/portal/\(authed\)/dashboard/page.tsx \
+        lib/realtime/use-ticket-deletion-watch.ts \
+        app/portal/\(authed\)/ticket/\[id\]/ticket-detail-client.tsx
+git commit -m "feat(portal): real-time reaction to admin ticket deletion
+
+Adds two client-portal surfaces that react to ticket DELETE events:
+- Dashboard list refreshes on any tickets-table change (mirrors the
+  admin-side RefreshTicketsOnChange pattern).
+- Open ticket detail page alerts and redirects to the dashboard if
+  the underlying ticket is deleted while the page is mounted.
+
+Auth token is explicitly set on the realtime client before subscribe
+so RLS forwards the DELETE event to the owning client."
+```
+
+---
+
 ## Done
 
-- New behavior: admin can delete any ticket from `/admin/tickets` via a per-row trash button.
-- No automated tests added (none expected — see spec).
-- Two commits land: one backend, one frontend.
+- Admin can delete any ticket from `/admin/tickets` via a per-row trash button (Task 2).
+- Both the admin tickets list and the client portal dashboard react in real time (Tasks 2 + 3).
+- A client viewing the deleted ticket's detail page is alerted and redirected to their dashboard.
+- No automated tests added (none expected — see spec; no test runner in repo).
+- Three commits land: backend handler, admin UI, client realtime.
 - Orphaned Supabase Storage attachments are accepted as known and tracked under post-launch cleanup.
