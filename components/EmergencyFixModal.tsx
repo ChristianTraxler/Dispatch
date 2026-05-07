@@ -22,12 +22,20 @@ export function EmergencyFixModal({ open, feeCents, onConfirm, onCancel }: Emerg
     if (open) setAcked(false);
   }, [open]);
 
-  // Focus management + Esc-to-cancel + Enter-to-confirm-when-acked.
+  // Capture initial focus + restore on close. Runs only when `open` flips.
   useEffect(() => {
     if (!open) return;
     const previouslyFocused = document.activeElement as HTMLElement | null;
     cancelBtnRef.current?.focus();
+    return () => {
+      previouslyFocused?.focus?.();
+    };
+  }, [open]);
 
+  // Keyboard handlers. Re-bound when `acked` or callbacks change so the
+  // closure sees fresh values, but does NOT re-run focus capture/restore.
+  useEffect(() => {
+    if (!open) return;
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
         e.preventDefault();
@@ -56,11 +64,7 @@ export function EmergencyFixModal({ open, feeCents, onConfirm, onCancel }: Emerg
       }
     }
     document.addEventListener("keydown", onKey);
-
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      previouslyFocused?.focus?.();
-    };
+    return () => document.removeEventListener("keydown", onKey);
   }, [open, acked, onCancel, onConfirm]);
 
   if (!open) return null;
