@@ -6,13 +6,13 @@ import { PresenceDot } from "./PresenceDot";
 
 export interface AdminShellProps {
   /** Active nav item key */
-  activeNav?: "dashboard" | "inquiries" | "clients" | "invites";
+  activeNav?: "dashboard" | "inquiries" | "clients" | "invites" | "account";
   /** How many clients are currently online (drives the live count badge) */
   onlineClientCount?: number;
   /** Active-inquiry count badge on the Inquiries nav item */
   inquiryCount?: number;
   /** Click handler for nav items */
-  onNavigate?: (target: "dashboard" | "inquiries" | "clients" | "invites" | "logout") => void;
+  onNavigate?: (target: "dashboard" | "inquiries" | "clients" | "invites" | "account" | "logout") => void;
   children: ReactNode;
 }
 
@@ -43,6 +43,13 @@ export function AdminShell({
                 {onlineClientCount} live
               </span>
             </span>
+            <button
+              type="button"
+              onClick={() => onNavigate?.("account")}
+              className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors"
+            >
+              Account →
+            </button>
             <button
               type="button"
               onClick={() => onNavigate?.("logout")}

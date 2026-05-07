@@ -132,3 +132,18 @@ enum TicketCategory {
   QUESTION
   URGENT
 }
+
+/// Singleton row keyed by id="global". Stores admin-controlled availability
+/// settings: weekly business hours, IANA timezone, and out-of-office state.
+model AdminSettings {
+  id          String    @id                    // always "global"
+  timezone    String    @default("America/New_York")
+  hours       Json      // { "0": { enabled:false }, "1": { enabled:true, open:"09:00", close:"17:00" }, ... }
+  oooEnabled  Boolean   @default(false)        @map("ooo_enabled")
+  oooFrom     DateTime?                         @map("ooo_from")
+  oooUntil    DateTime?                         @map("ooo_until")
+  oooMessage  String?                           @map("ooo_message")
+  updatedAt   DateTime  @updatedAt              @map("updated_at")
+
+  @@map("admin_settings")
+}
