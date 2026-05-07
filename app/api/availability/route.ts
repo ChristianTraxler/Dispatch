@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
   computeAvailability,
+  isAfterHours,
   type AdminSettingsInput,
   type WeeklyHours,
 } from "@/lib/availability";
@@ -36,10 +37,18 @@ export async function GET() {
     holidays: row?.holidays ?? [],
   };
 
-  const availability = computeAvailability(settings, false, new Date());
+  const now = new Date();
+  const availability = computeAvailability(settings, false, now);
+  const afterHours = isAfterHours(settings, now);
+  const emergencyFeeCents = row?.emergencyFeeCents ?? 5000;
 
   return NextResponse.json(
-    { ...availability, settings: serializeSettings(settings) },
+    {
+      ...availability,
+      settings: serializeSettings(settings),
+      isAfterHours: afterHours,
+      emergencyFeeCents,
+    },
     {
       headers: { "Cache-Control": "public, max-age=30, stale-while-revalidate=60" },
     },
