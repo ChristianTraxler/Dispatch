@@ -4,7 +4,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { PortalShell, type PortalUser } from "@/components/PortalShell";
 import {
   AdminPresenceProvider,
-  useAdminPresence,
   useClientPresenceTracker,
 } from "@/lib/realtime/use-presence";
 
@@ -30,7 +29,6 @@ function PortalShellInner({
     email: user.email,
     avatarUrl: user.avatarUrl,
   });
-  const adminOnline = useAdminPresence();
 
   async function onNavigate(
     target: "dashboard" | "sites" | "account" | "logout" | "new-ticket",
@@ -52,7 +50,6 @@ function PortalShellInner({
   return (
     <PortalShell
       user={user}
-      adminOnline={adminOnline}
       activeNav={deriveActiveNav(pathname)}
       onNavigate={onNavigate}
     >
