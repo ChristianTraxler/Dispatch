@@ -1,5 +1,4 @@
-// Minimal admin ticket queue. Phase 8 replaces this with the Live Ledger,
-// but admins need a way to find tickets right now to test status transitions.
+// Admin ticket queue.
 
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
@@ -49,8 +48,7 @@ export default async function AdminTicketsPage() {
         Tickets
       </h1>
       <p className="font-display italic text-ink-mute mb-10">
-        Every dispatch filed, newest first. The Live Ledger replaces this view
-        in Phase 8.
+        Every dispatch filed, newest first.
       </p>
 
       {tickets.length === 0 ? (
