@@ -1,23 +1,11 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { hydrateAvatarUrls } from "@/lib/storage";
-import { Avatar } from "@/components/Avatar";
 import { InquiriesLiveRefresh } from "./inquiries-refresh";
+import { InquiryRow, type InquiryRowData } from "./inquiry-row";
 
 interface PageProps {
   searchParams: Promise<{ tab?: string }>;
-}
-
-function formatRelative(value: Date): string {
-  const diff = Date.now() - value.getTime();
-  const minutes = Math.floor(diff / 60_000);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 7) return `${days}d ago`;
-  return value.toLocaleString("en-US", { month: "short", day: "2-digit" });
 }
 
 export default async function AdminInquiriesPage({ searchParams }: PageProps) {
@@ -106,41 +94,24 @@ export default async function AdminInquiriesPage({ searchParams }: PageProps) {
         <ul className="divide-y divide-rule-soft">
           {inquiries.map((t, i) => {
             const last = t.messages[0];
-            const preview = last?.body?.trim().slice(0, 100) ?? "(no messages yet)";
+            const preview =
+              last?.body?.trim().slice(0, 100) ?? "(no messages yet)";
             const lastSenderTag =
-              last?.senderType === "CLIENT" ? "client" : last?.senderType === "ADMIN" ? "you" : "—";
-            const activity = t.lastMessageAt ?? t.createdAt;
-            return (
-              <li key={t.id}>
-                <Link
-                  href={`/admin/ticket/${t.id}`}
-                  className="block py-4 hover:bg-parchment-warm/40 transition-colors px-2"
-                >
-                  <div className="flex items-center gap-4">
-                    <Avatar
-                      src={avatarUrls[i]}
-                      name={t.clientAccount.name}
-                      size={40}
-                      tone="client"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-display text-lg text-ink">
-                        {t.clientAccount.name}
-                      </p>
-                      <p className="font-display italic text-ink-mute text-sm mt-1 truncate">
-                        <span className="font-mono not-italic text-[0.55rem] uppercase tracking-widest text-ink-fade mr-2">
-                          {lastSenderTag}:
-                        </span>
-                        {preview}
-                      </p>
-                    </div>
-                    <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade text-right shrink-0">
-                      {t._count.messages} msg{t._count.messages === 1 ? "" : "s"} · {formatRelative(activity)}
-                    </div>
-                  </div>
-                </Link>
-              </li>
-            );
+              last?.senderType === "CLIENT"
+                ? "client"
+                : last?.senderType === "ADMIN"
+                  ? "you"
+                  : "—";
+            const row: InquiryRowData = {
+              id: t.id,
+              clientName: t.clientAccount.name,
+              avatarUrl: avatarUrls[i],
+              preview,
+              lastSenderTag,
+              messageCount: t._count.messages,
+              activityIso: (t.lastMessageAt ?? t.createdAt).toISOString(),
+            };
+            return <InquiryRow key={t.id} row={row} />;
           })}
         </ul>
       )}
