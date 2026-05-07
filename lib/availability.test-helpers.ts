@@ -35,7 +35,7 @@ interface Case {
 
 const cases: Case[] = [
   {
-    name: "ooo: enabled with no until → ooo state, default detail",
+    name: "ooo: enabled with no message and no until → empty detail (label stands alone)",
     fn: () => {
       const r = computeAvailability(
         settings({ oooEnabled: true }),
@@ -44,7 +44,8 @@ const cases: Case[] = [
       );
       assertEq(r.state, "ooo");
       assertEq(r.label, "Out of office");
-      assertContains(r.detail, "office");
+      assertEq(r.detail, "");
+      assertEq(r.nextOpenAt, null);
     },
   },
   {

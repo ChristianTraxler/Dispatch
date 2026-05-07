@@ -50,7 +50,10 @@ export async function GET() {
       emergencyFeeCents,
     },
     {
-      headers: { "Cache-Control": "public, max-age=30, stale-while-revalidate=60" },
+      // No shared caching: clients refetch this on the "settings-changed"
+      // broadcast and need fresh data immediately. A 30s CDN cache made
+      // OOO toggles invisible on the client portal until the cache expired.
+      headers: { "Cache-Control": "no-store" },
     },
   );
 }

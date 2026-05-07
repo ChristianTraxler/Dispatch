@@ -41,15 +41,14 @@ export function computeAvailability(
     (!settings.oooUntil || now < settings.oooUntil);
 
   if (oooActive) {
-    const detail =
-      settings.oooMessage?.trim() ||
-      (settings.oooUntil
-        ? `Out of office until ${settings.oooUntil.toISOString().slice(0, 10)}`
-        : "Out of office.");
+    // detail is the admin's custom message when set; otherwise empty.
+    // The renderer formats `nextOpenAt` ("back Mon 9:00 AM") for the
+    // viewer's timezone — keeping that out of `detail` avoids the awkward
+    // "Out of office — Out of office until 2026-05-12" duplication.
     return {
       state: "ooo",
       label: "Out of office",
-      detail,
+      detail: settings.oooMessage?.trim() ?? "",
       nextOpenAt: settings.oooUntil ? settings.oooUntil.toISOString() : null,
     };
   }

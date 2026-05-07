@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import {
   computeAvailability,
@@ -26,19 +32,31 @@ interface ApiResponse {
   };
 }
 
+interface AdminStatusValue {
+  availability: Availability;
+  settings: AdminSettingsInput;
+}
+
+const AdminStatusContext = createContext<AdminStatusValue | null>(null);
+
 /**
- * Subscribes to admin availability and recomputes locally on:
+ * Single source of truth for admin availability on the client. Subscribes once
+ * per provider and fans the result out via context, so multiple consumers
+ * (header BusinessHoursPill + chat AdminAvailabilityLine) can read it without
+ * each opening their own Supabase channel — Supabase Realtime rejects multiple
+ * subscribes on the same channel name.
+ *
+ * Recomputes locally on:
  *   - presence flips (admin online/offline)
  *   - admin-status broadcast (settings saved)
  *   - 60s tick (so the day-window crossing updates)
  *   - tab visibilitychange (so a tab that slept catches up immediately)
  */
-export function useAdminStatus(): Availability | null {
+export function AdminStatusProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<AdminSettingsInput | null>(null);
   const [now, setNow] = useState<Date>(new Date());
   const adminOnline = useAdminPresence();
 
-  // Initial fetch + broadcast subscription
   useEffect(() => {
     let cancelled = false;
     const supabase = getSupabaseBrowserClient();
@@ -86,12 +104,28 @@ export function useAdminStatus(): Availability | null {
     };
   }, []);
 
-  // 60s tick
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(id);
   }, []);
 
-  if (!settings) return null;
-  return computeAvailability(settings, adminOnline, now);
+  const value: AdminStatusValue | null = settings
+    ? { availability: computeAvailability(settings, adminOnline, now), settings }
+    : null;
+
+  return (
+    <AdminStatusContext.Provider value={value}>
+      {children}
+    </AdminStatusContext.Provider>
+  );
+}
+
+/** Computed availability state. Null while the initial fetch is in flight. */
+export function useAdminStatus(): Availability | null {
+  return useContext(AdminStatusContext)?.availability ?? null;
+}
+
+/** Raw settings (timezone, hours, OOO, holidays). Null while loading. */
+export function useAdminSettings(): AdminSettingsInput | null {
+  return useContext(AdminStatusContext)?.settings ?? null;
 }
