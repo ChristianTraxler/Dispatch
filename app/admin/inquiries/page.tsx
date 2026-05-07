@@ -2,7 +2,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { hydrateAvatarUrls } from "@/lib/storage";
 import { InquiriesLiveRefresh } from "./inquiries-refresh";
-import { InquiryRow, type InquiryRowData } from "./inquiry-row";
+import type { InquiryRowData } from "./inquiry-row";
+import { InquiriesListClient } from "./inquiries-list-client";
 
 interface PageProps {
   searchParams: Promise<{ tab?: string }>;
@@ -86,35 +87,32 @@ export default async function AdminInquiriesPage({ searchParams }: PageProps) {
         </Link>
       </div>
 
-      {inquiries.length === 0 ? (
-        <p className="font-display italic text-ink-mute">
-          {showArchived ? "Nothing archived yet." : "No active inquiries."}
-        </p>
-      ) : (
-        <ul className="divide-y divide-rule-soft">
-          {inquiries.map((t, i) => {
-            const last = t.messages[0];
-            const preview =
-              last?.body?.trim().slice(0, 100) ?? "(no messages yet)";
-            const lastSenderTag =
-              last?.senderType === "CLIENT"
-                ? "client"
-                : last?.senderType === "ADMIN"
-                  ? "you"
-                  : "—";
-            const row: InquiryRowData = {
-              id: t.id,
-              clientName: t.clientAccount.name,
-              avatarUrl: avatarUrls[i],
-              preview,
-              lastSenderTag,
-              messageCount: t._count.messages,
-              activityIso: (t.lastMessageAt ?? t.createdAt).toISOString(),
-            };
-            return <InquiryRow key={t.id} row={row} />;
-          })}
-        </ul>
-      )}
+      <InquiriesListClient
+        initial={inquiries.map((t, i) => {
+          const last = t.messages[0];
+          const preview =
+            last?.body?.trim().slice(0, 100) ?? "(no messages yet)";
+          const lastSenderTag =
+            last?.senderType === "CLIENT"
+              ? "client"
+              : last?.senderType === "ADMIN"
+                ? "you"
+                : "—";
+          const row: InquiryRowData = {
+            id: t.id,
+            clientName: t.clientAccount.name,
+            avatarUrl: avatarUrls[i],
+            preview,
+            lastSenderTag,
+            messageCount: t._count.messages,
+            activityIso: (t.lastMessageAt ?? t.createdAt).toISOString(),
+          };
+          return row;
+        })}
+        emptyMessage={
+          showArchived ? "Nothing archived yet." : "No active inquiries."
+        }
+      />
     </div>
   );
 }
