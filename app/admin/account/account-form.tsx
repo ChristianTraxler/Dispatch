@@ -372,6 +372,19 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                 aria-label="Start time"
                 className="font-mono text-sm border border-rule bg-parchment px-2 py-1 disabled:opacity-50"
               />
+              {(oooFrom || oooFromTime) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOooFrom("");
+                    setOooFromTime("");
+                  }}
+                  aria-label="Clear start date and time"
+                  className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
 
@@ -398,6 +411,19 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                 aria-label="Return time"
                 className="font-mono text-sm border border-rule bg-parchment px-2 py-1 disabled:opacity-50"
               />
+              {(oooUntil || oooUntilTime) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOooUntil("");
+                    setOooUntilTime("");
+                  }}
+                  aria-label="Clear return date and time"
+                  className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
 

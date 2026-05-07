@@ -79,9 +79,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 function ToastContainer() {
   const { toasts, dismiss } = useToast();
 
+  const bottomClass = process.env.NODE_ENV === "development" ? "bottom-20" : "bottom-5";
+
   return (
     <div
-      className="fixed bottom-5 left-5 z-[100] flex flex-col-reverse gap-2 pointer-events-none w-[min(92vw,360px)]"
+      className={`fixed ${bottomClass} left-5 z-[100] flex flex-col-reverse gap-2 pointer-events-none w-[min(92vw,360px)]`}
       role="region"
       aria-live="polite"
       aria-label="Notifications"
