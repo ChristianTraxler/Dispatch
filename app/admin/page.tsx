@@ -85,16 +85,16 @@ export default async function AdminLedgerPage() {
       <div className="grid lg:grid-cols-[2fr_1fr] gap-8 items-start">
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">
+            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red shrink-0">
               §
             </span>
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute whitespace-nowrap">
               Recent Dispatches
             </span>
-            <span className="h-px flex-1 bg-rule-soft" />
+            <span className="h-px flex-1 bg-rule-soft min-w-[1rem]" />
             <Link
               href="/admin/tickets"
-              className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors"
+              className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors whitespace-nowrap shrink-0"
             >
               All →
             </Link>
@@ -114,9 +114,9 @@ export default async function AdminLedgerPage() {
                   >
                     <div className="flex flex-col md:flex-row md:items-center md:gap-6">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-1">
-                          <StatusPill status={t.status} />
-                          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade">
+                        <div className="flex items-center gap-3 mb-1 min-w-0">
+                          <StatusPill status={t.status} className="shrink-0" />
+                          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade truncate">
                             {ticketNumber(t.id, t.createdAt)}
                           </span>
                         </div>

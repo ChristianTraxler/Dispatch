@@ -233,7 +233,7 @@ export function ChatThread({
               aria-hidden="true"
             />
             <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
-              {otherPartyOnline ? "Online" : "Offline"}
+              {otherPartyOnline ? "Currently viewing" : "Not currently viewing"}
             </span>
           </div>
         )}
