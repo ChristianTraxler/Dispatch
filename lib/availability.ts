@@ -24,7 +24,7 @@ export interface Availability {
   state: AvailabilityState;
   label: string;
   detail: string;
-  nextOpenAt: string | null; // ISO; null when state is "online", "available", or open-ended ooo
+  nextOpenAt: string | null; // ISO; null when "online"/"available", when "ooo" has no oooUntil, or when no future open exists
 }
 
 export function computeAvailability(
