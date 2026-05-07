@@ -107,29 +107,18 @@ export async function DELETE(
   }
 
   const { id } = await context.params;
-  const { count } = await prisma.ticket.deleteMany({
-    where: { id, isInquiry: true },
-  });
-  if (count === 0) {
-    // Either not found, or it was a tracked ticket. One follow-up read
-    // disambiguates so the caller gets the right error.
-    const still = await prisma.ticket.findUnique({
-      where: { id },
-      select: { id: true },
-    });
-    if (!still) {
-      return NextResponse.json(
-        { error: "Inquiry not found." },
-        { status: 404 },
-      );
+  try {
+    await prisma.ticket.delete({ where: { id } });
+  } catch (err) {
+    if (
+      err &&
+      typeof err === "object" &&
+      "code" in err &&
+      (err as { code?: string }).code === "P2025"
+    ) {
+      return NextResponse.json({ error: "Ticket not found." }, { status: 404 });
     }
-    return NextResponse.json(
-      {
-        error:
-          "Endpoint scoped to inquiries; refusing to delete a tracked ticket.",
-      },
-      { status: 400 },
-    );
+    throw err;
   }
   return NextResponse.json({ ok: true });
 }
