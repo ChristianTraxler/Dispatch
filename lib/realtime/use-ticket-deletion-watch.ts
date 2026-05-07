@@ -46,6 +46,11 @@ export function useTicketDeletionWatch(
         )
         .subscribe();
 
+      if (cancelled) {
+        supabase.removeChannel(channel);
+        return;
+      }
+
       cleanup = () => supabase.removeChannel(channel);
     })();
 
