@@ -72,6 +72,8 @@ model Ticket {
   inquiryEndedAt DateTime? @map("inquiry_ended_at")
   lastMessageAt  DateTime? @map("last_message_at")
   adminNudgedAt  DateTime? @map("admin_nudged_at")
+  isEmergency             Boolean @default(false) @map("is_emergency")
+  emergencyFeeAmountCents Int?    @map("emergency_fee_amount_cents")
 
   // 6-stage progress timestamps
   createdAt          DateTime  @default(now()) @map("created_at")
@@ -143,6 +145,8 @@ model AdminSettings {
   oooFrom     DateTime?                         @map("ooo_from")
   oooUntil    DateTime?                         @map("ooo_until")
   oooMessage  String?                           @map("ooo_message")
+  holidays           String[] @default([])
+  emergencyFeeCents  Int      @default(5000) @map("emergency_fee_cents")
   updatedAt   DateTime  @updatedAt              @map("updated_at")
 
   @@map("admin_settings")
