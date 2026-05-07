@@ -25,6 +25,8 @@ export async function GET() {
     oooFrom: row.oooFrom?.toISOString() ?? null,
     oooUntil: row.oooUntil?.toISOString() ?? null,
     oooMessage: row.oooMessage,
+    holidays: row.holidays,
+    emergencyFeeCents: row.emergencyFeeCents,
   });
 }
 
@@ -35,6 +37,8 @@ interface PatchBody {
   oooFrom?: string | null;
   oooUntil?: string | null;
   oooMessage?: string | null;
+  holidays?: string[];
+  emergencyFeeCents?: number;
 }
 
 const HHMM = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
@@ -58,6 +62,26 @@ function validateHours(h: unknown): h is WeeklyHours {
     }
   }
   return true;
+}
+
+const YMD = /^\d{4}-\d{2}-\d{2}$/;
+
+function validateAndNormalizeHolidays(input: unknown): string[] | null {
+  if (!Array.isArray(input)) return null;
+  if (input.length > 100) return null;
+  const out: string[] = [];
+  for (const v of input) {
+    if (typeof v !== "string" || !YMD.test(v)) return null;
+    // catch fake dates like 2026-02-30: round-trip through Date and compare.
+    const d = new Date(`${v}T00:00:00Z`);
+    if (Number.isNaN(d.getTime())) return null;
+    const round = `${d.getUTCFullYear().toString().padStart(4, "0")}-${(d.getUTCMonth() + 1)
+      .toString()
+      .padStart(2, "0")}-${d.getUTCDate().toString().padStart(2, "0")}`;
+    if (round !== v) return null;
+    out.push(v);
+  }
+  return Array.from(new Set(out)).sort();
 }
 
 export async function PATCH(req: Request) {
@@ -120,6 +144,30 @@ export async function PATCH(req: Request) {
     }
     data.oooMessage = body.oooMessage;
   }
+  if (body.holidays !== undefined) {
+    const normalized = validateAndNormalizeHolidays(body.holidays);
+    if (!normalized) {
+      return NextResponse.json(
+        { error: "Invalid holidays: each must be a valid YYYY-MM-DD." },
+        { status: 400 },
+      );
+    }
+    data.holidays = normalized;
+  }
+  if (body.emergencyFeeCents !== undefined) {
+    if (
+      typeof body.emergencyFeeCents !== "number" ||
+      !Number.isInteger(body.emergencyFeeCents) ||
+      body.emergencyFeeCents < 0 ||
+      body.emergencyFeeCents > 1_000_000
+    ) {
+      return NextResponse.json(
+        { error: "Invalid emergencyFeeCents: integer between 0 and 1000000 (i.e. $0–$10,000)." },
+        { status: 400 },
+      );
+    }
+    data.emergencyFeeCents = body.emergencyFeeCents;
+  }
 
   if (Object.keys(data).length === 0) {
     return NextResponse.json({ error: "No fields to update." }, { status: 400 });
@@ -136,6 +184,8 @@ export async function PATCH(req: Request) {
       oooFrom: (data.oooFrom as Date | null | undefined) ?? null,
       oooUntil: (data.oooUntil as Date | null | undefined) ?? null,
       oooMessage: (data.oooMessage as string | null | undefined) ?? null,
+      holidays: (data.holidays as string[] | undefined) ?? [],
+      emergencyFeeCents: (data.emergencyFeeCents as number | undefined) ?? 5000,
     },
   });
 
@@ -167,5 +217,7 @@ export async function PATCH(req: Request) {
     oooFrom: updated.oooFrom?.toISOString() ?? null,
     oooUntil: updated.oooUntil?.toISOString() ?? null,
     oooMessage: updated.oooMessage,
+    holidays: updated.holidays,
+    emergencyFeeCents: updated.emergencyFeeCents,
   });
 }

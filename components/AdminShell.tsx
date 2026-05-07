@@ -3,6 +3,7 @@
 import { type ReactNode } from "react";
 import { Masthead } from "./Masthead";
 import { PresenceDot } from "./PresenceDot";
+import { PullToRefresh } from "./PullToRefresh";
 
 export interface AdminShellProps {
   /** Active nav item key */
@@ -108,7 +109,9 @@ export function AdminShell({
         </div>
       </div>
 
-      <main className="flex-1">{children}</main>
+      <main className="flex-1">
+        <PullToRefresh>{children}</PullToRefresh>
+      </main>
     </div>
   );
 }

@@ -19,6 +19,7 @@ export interface AdminSettingsInput {
   oooFrom: Date | null;
   oooUntil: Date | null;
   oooMessage: string | null;
+  holidays: string[]; // YYYY-MM-DD list, in `timezone`
 }
 
 export interface Availability {
@@ -64,7 +65,7 @@ export function computeAvailability(
   }
 
   // 3. Within hours?
-  if (isWithinHours(settings.hours, settings.timezone, now)) {
+  if (isWithinHours(settings, now)) {
     return {
       state: "available",
       label: "Available",
@@ -74,7 +75,7 @@ export function computeAvailability(
   }
 
   // 4. Offline — find next open
-  const nextOpenAt = findNextOpen(settings.hours, settings.timezone, now);
+  const nextOpenAt = findNextOpen(settings, now);
   return {
     state: "offline",
     label: "Offline",
@@ -123,9 +124,14 @@ function parseHHmm(s: string): { h: number; m: number } | null {
   return { h, m: min };
 }
 
-function isWithinHours(hours: WeeklyHours, tz: string, now: Date): boolean {
-  const z = getZonedParts(now, tz);
-  const day = hours[String(z.weekday) as keyof WeeklyHours];
+function isWithinHours(settings: AdminSettingsInput, now: Date): boolean {
+  const z = getZonedParts(now, settings.timezone);
+  const ymd = `${z.year.toString().padStart(4, "0")}-${z.month
+    .toString()
+    .padStart(2, "0")}-${z.day.toString().padStart(2, "0")}`;
+  if (settings.holidays.includes(ymd)) return false;
+
+  const day = settings.hours[String(z.weekday) as keyof WeeklyHours];
   if (!day?.enabled || !day.open || !day.close) return false;
   const open = parseHHmm(day.open);
   const close = parseHHmm(day.close);
@@ -134,15 +140,29 @@ function isWithinHours(hours: WeeklyHours, tz: string, now: Date): boolean {
   return cur >= open.h * 60 + open.m && cur < close.h * 60 + close.m;
 }
 
-function findNextOpen(hours: WeeklyHours, tz: string, now: Date): Date | null {
-  for (let offset = 0; offset < 8; offset++) {
+/**
+ * Returns true when `now` is outside the admin's scheduled business hours
+ * in the configured timezone. Holidays count as after-hours. OOO does NOT
+ * count as after-hours — OOO is for short absences (appointments) where
+ * filing should still be a normal ticket.
+ */
+export function isAfterHours(settings: AdminSettingsInput, now: Date): boolean {
+  return !isWithinHours(settings, now);
+}
+
+function findNextOpen(settings: AdminSettingsInput, now: Date): Date | null {
+  for (let offset = 0; offset < 14; offset++) {
     const probe = new Date(now.getTime() + offset * 86_400_000);
-    const z = getZonedParts(probe, tz);
-    const day = hours[String(z.weekday) as keyof WeeklyHours];
+    const z = getZonedParts(probe, settings.timezone);
+    const ymd = `${z.year.toString().padStart(4, "0")}-${z.month
+      .toString()
+      .padStart(2, "0")}-${z.day.toString().padStart(2, "0")}`;
+    if (settings.holidays.includes(ymd)) continue;
+    const day = settings.hours[String(z.weekday) as keyof WeeklyHours];
     if (!day?.enabled || !day.open) continue;
     const open = parseHHmm(day.open);
     if (!open) continue;
-    const candidate = utcInstantForLocal(z.year, z.month, z.day, open.h, open.m, tz);
+    const candidate = utcInstantForLocal(z.year, z.month, z.day, open.h, open.m, settings.timezone);
     if (candidate.getTime() > now.getTime()) return candidate;
   }
   return null;

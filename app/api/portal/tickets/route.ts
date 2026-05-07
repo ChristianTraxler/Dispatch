@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
 import { sendNewTicketEmail } from "@/lib/email";
 import { ticketNumber } from "@/lib/ticket";
+import { isAfterHours, type AdminSettingsInput, type WeeklyHours } from "@/lib/availability";
 
 const VALID_CATEGORIES = new Set([
   "BUG",
@@ -24,6 +25,7 @@ export async function POST(req: Request) {
     description?: string;
     category?: string;
     attachments?: unknown;
+    isEmergency?: boolean;
   };
   try {
     payload = await req.json();
@@ -54,6 +56,29 @@ export async function POST(req: Request) {
 
   const site = account.sites.find((s) => s.id === siteId)!;
 
+  // Load admin settings to decide if emergency is currently allowed.
+  const settingsRow = await prisma.adminSettings.findUnique({ where: { id: "global" } });
+  const settings: AdminSettingsInput = {
+    timezone: settingsRow?.timezone ?? "America/New_York",
+    hours: (settingsRow?.hours as WeeklyHours | undefined) ?? {
+      "0": { enabled: false },
+      "1": { enabled: true, open: "09:00", close: "17:00" },
+      "2": { enabled: true, open: "09:00", close: "17:00" },
+      "3": { enabled: true, open: "09:00", close: "17:00" },
+      "4": { enabled: true, open: "09:00", close: "17:00" },
+      "5": { enabled: true, open: "09:00", close: "17:00" },
+      "6": { enabled: false },
+    },
+    oooEnabled: settingsRow?.oooEnabled ?? false,
+    oooFrom: settingsRow?.oooFrom ?? null,
+    oooUntil: settingsRow?.oooUntil ?? null,
+    oooMessage: settingsRow?.oooMessage ?? null,
+    holidays: settingsRow?.holidays ?? [],
+  };
+  const serverIsAfterHours = isAfterHours(settings, new Date());
+  const finalIsEmergency = payload.isEmergency === true && serverIsAfterHours;
+  const feeSnapshotCents = finalIsEmergency ? settingsRow?.emergencyFeeCents ?? 5000 : null;
+
   const ticket = await prisma.ticket.create({
     data: {
       clientAccountId: account.id,
@@ -63,6 +88,8 @@ export async function POST(req: Request) {
       category: category as "BUG" | "CONTENT" | "FEATURE" | "QUESTION" | "URGENT",
       status: "NEW",
       receivedAt: new Date(), // Stage 2 of the 6-stage timeline
+      isEmergency: finalIsEmergency,
+      emergencyFeeAmountCents: feeSnapshotCents,
       ...(Array.isArray(payload.attachments) && payload.attachments.length > 0
         ? { attachments: payload.attachments }
         : {}),
@@ -85,6 +112,8 @@ export async function POST(req: Request) {
         siteDisplayName: site.displayName,
         siteUrl: site.url,
         description: ticket.description,
+        isEmergency: ticket.isEmergency,
+        emergencyFeeAmountCents: ticket.emergencyFeeAmountCents,
       });
     } catch (err) {
       console.error("[ticket] new-ticket email failed:", err);

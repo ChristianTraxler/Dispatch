@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useState, useEffect, type CSSProperties } from "react";
 import { AttachmentDropzone, type UploadedAttachment } from "./AttachmentDropzone";
 import { uploadFile } from "@/lib/upload-client";
+import { EmergencyFixModal } from "./EmergencyFixModal";
 
 export interface NewTicketSite {
   id: string;
@@ -16,6 +17,7 @@ export interface NewTicketSubmission {
   category: string;
   description: string;
   attachments: UploadedAttachment[];
+  isEmergency: boolean;
 }
 
 export interface NewTicketPageProps {
@@ -27,6 +29,10 @@ export interface NewTicketPageProps {
   onCancel?: () => void;
   className?: string;
   style?: CSSProperties;
+  /** When true on first render, the Emergency button is visible immediately. */
+  initialIsAfterHours?: boolean;
+  /** Default fee in cents while the first /api/availability response is in flight. */
+  initialEmergencyFeeCents?: number;
 }
 
 const CATEGORIES = [
@@ -44,6 +50,8 @@ export function NewTicketPage({
   onCancel,
   className = "",
   style,
+  initialIsAfterHours = false,
+  initialEmergencyFeeCents = 5000,
 }: NewTicketPageProps) {
   const [siteId, setSiteId] = useState(defaultSiteId ?? sites[0]?.id ?? "");
   const [title, setTitle] = useState("");
@@ -52,6 +60,45 @@ export function NewTicketPage({
   const [attachments, setAttachments] = useState<UploadedAttachment[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
+  const [isAfterHours, setIsAfterHours] = useState<boolean>(initialIsAfterHours);
+  const [feeCents, setFeeCents] = useState<number>(initialEmergencyFeeCents);
+  const [isEmergency, setIsEmergency] = useState<boolean>(false);
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [resumedNotice, setResumedNotice] = useState<boolean>(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function tick() {
+      try {
+        const res = await fetch("/api/availability", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = (await res.json()) as { isAfterHours?: boolean; emergencyFeeCents?: number };
+        if (cancelled) return;
+        if (typeof data.isAfterHours === "boolean") setIsAfterHours(data.isAfterHours);
+        if (typeof data.emergencyFeeCents === "number") setFeeCents(data.emergencyFeeCents);
+      } catch {
+        // Network blip — keep last known state.
+      }
+    }
+    tick();
+    const id = setInterval(tick, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isAfterHours && isEmergency) {
+      setIsEmergency(false);
+      setResumedNotice(true);
+    }
+  }, [isAfterHours, isEmergency]);
+
+  function dismissResumedNotice() {
+    if (resumedNotice) setResumedNotice(false);
+  }
+
   const canSubmit = !!siteId && !!title.trim() && !!description.trim();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -59,7 +106,14 @@ export function NewTicketPage({
     if (!canSubmit) return;
     setSubmitting(true);
     try {
-      await onSubmit?.({ siteId, title: title.trim(), category, description: description.trim(), attachments });
+      await onSubmit?.({
+        siteId,
+        title: title.trim(),
+        category,
+        description: description.trim(),
+        attachments,
+        isEmergency,
+      });
     } finally {
       setSubmitting(false);
     }
@@ -134,7 +188,7 @@ export function NewTicketPage({
           <input
             id="title"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => { dismissResumedNotice(); setTitle(e.target.value); }}
             placeholder="Brief summary of the issue"
             required
             maxLength={120}
@@ -190,7 +244,7 @@ export function NewTicketPage({
           <textarea
             id="description"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => { dismissResumedNotice(); setDescription(e.target.value); }}
             placeholder="What's happening? What did you expect? Steps to reproduce, if you have them."
             required
             rows={6}
@@ -232,6 +286,39 @@ export function NewTicketPage({
           />
         </div>
 
+        {/* Emergency Fix (only after hours) */}
+        {isAfterHours ? (
+          <div className="pt-2">
+            {resumedNotice ? (
+              <p className="font-mono text-[0.7rem] uppercase tracking-widest text-ink-mute mb-3">
+                Business hours resumed — emergency fee removed.
+              </p>
+            ) : null}
+            {isEmergency ? (
+              <div className="flex items-center justify-between gap-3 border border-signal-red bg-parchment-warm px-4 py-3">
+                <span className="font-display text-ink">
+                  Filing with <strong className="text-signal-red">${(feeCents / 100).toFixed(0)} emergency fee</strong>.
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsEmergency(false)}
+                  className="font-mono text-[0.7rem] uppercase tracking-widest text-ink-mute hover:text-signal-red underline underline-offset-2"
+                >
+                  Undo
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setModalOpen(true)}
+                className="w-full font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-3 hover:bg-signal-red hover:text-parchment-warm transition-colors"
+              >
+                Emergency Fix — outside business hours (${(feeCents / 100).toFixed(0)} fee)
+              </button>
+            )}
+          </div>
+        ) : null}
+
         {/* Actions */}
         <div className="flex items-center justify-between gap-4 pt-4 rule-thin border-t">
           {onCancel ? (
@@ -241,11 +328,29 @@ export function NewTicketPage({
           ) : (
             <span />
           )}
-          <button type="submit" disabled={!canSubmit || submitting} className="btn-dispatch">
-            {submitting ? "Filing…" : "File dispatch →"}
+          <button
+            type="submit"
+            disabled={!canSubmit || submitting}
+            className={`btn-dispatch ${isEmergency ? "bg-signal-red hover:bg-signal-redDeep" : ""}`}
+          >
+            {submitting
+              ? "Filing…"
+              : isEmergency
+              ? "File emergency dispatch →"
+              : "File dispatch →"}
           </button>
         </div>
       </form>
+
+      <EmergencyFixModal
+        open={modalOpen}
+        feeCents={feeCents}
+        onConfirm={() => {
+          setIsEmergency(true);
+          setModalOpen(false);
+        }}
+        onCancel={() => setModalOpen(false)}
+      />
     </div>
   );
 }

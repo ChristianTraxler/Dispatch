@@ -25,6 +25,7 @@ export function NewTicketClient({
         title: data.title,
         description: data.description,
         category: data.category,
+        isEmergency: data.isEmergency,
         attachments: data.attachments
           .filter((a) => a.path)
           .map((a) => ({

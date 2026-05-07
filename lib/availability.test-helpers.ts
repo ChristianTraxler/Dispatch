@@ -23,6 +23,7 @@ function settings(over: Partial<AdminSettingsInput> = {}): AdminSettingsInput {
     oooFrom: null,
     oooUntil: null,
     oooMessage: null,
+    holidays: [],
     ...over,
   };
 }

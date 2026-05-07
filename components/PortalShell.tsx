@@ -2,7 +2,8 @@
 
 import { type ReactNode } from "react";
 import { Masthead } from "./Masthead";
-import { PresenceDot } from "./PresenceDot";
+import type { Availability } from "@/lib/availability";
+import { PullToRefresh } from "./PullToRefresh";
 
 export interface PortalUser {
   id: string;
@@ -14,8 +15,11 @@ export interface PortalUser {
 export interface PortalShellProps {
   /** Currently signed-in client */
   user: PortalUser;
-  /** Whether the admin is currently online */
-  adminOnline?: boolean;
+  /**
+   * Live admin availability (online / available / ooo / offline). Pass null
+   * while it's still loading; the header will hide the indicator until ready.
+   */
+  adminStatus?: Availability | null;
   /** Active nav item key */
   activeNav?: "dashboard" | "sites" | "account";
   /** Click handler for nav items — in production these are <Link> hrefs */
@@ -29,9 +33,37 @@ const NAV_ITEMS: { key: "dashboard" | "sites" | "account"; label: string }[] = [
   { key: "account", label: "Account" },
 ];
 
+function statusDotClass(state: Availability["state"]): string {
+  switch (state) {
+    case "online":
+      return "bg-emerald-500";
+    case "available":
+      return "bg-amber-500";
+    case "ooo":
+      return "bg-signal-red";
+    case "offline":
+    default:
+      return "bg-ink-fade";
+  }
+}
+
+function statusLabel(state: Availability["state"]): string {
+  switch (state) {
+    case "online":
+      return "Admin online";
+    case "available":
+      return "Admin available";
+    case "ooo":
+      return "Out of office";
+    case "offline":
+    default:
+      return "Admin offline";
+  }
+}
+
 export function PortalShell({
   user,
-  adminOnline = false,
+  adminStatus,
   activeNav = "dashboard",
   onNavigate,
   children,
@@ -42,12 +74,23 @@ export function PortalShell({
         compact
         rightContent={
           <div className="flex items-center gap-4">
-            <span className="hidden md:inline-flex items-center gap-2">
-              <PresenceDot status={adminOnline ? "online" : "offline"} pulse={adminOnline} />
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
-                Admin {adminOnline ? "online" : "offline"}
+            {adminStatus && (
+              <span
+                className="hidden md:inline-flex items-center gap-2"
+                role="status"
+                aria-live="polite"
+              >
+                <span
+                  className={`inline-block w-2 h-2 rounded-full ${statusDotClass(adminStatus.state)} ${
+                    adminStatus.state === "online" ? "animate-pulse" : ""
+                  }`}
+                  aria-hidden="true"
+                />
+                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                  {statusLabel(adminStatus.state)}
+                </span>
               </span>
-            </span>
+            )}
             <button
               type="button"
               onClick={() => onNavigate?.("logout")}
@@ -103,7 +146,9 @@ export function PortalShell({
       </div>
 
       {/* Page content */}
-      <main className="flex-1">{children}</main>
+      <main className="flex-1">
+        <PullToRefresh>{children}</PullToRefresh>
+      </main>
     </div>
   );
 }

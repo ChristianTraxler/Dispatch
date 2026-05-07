@@ -26,6 +26,8 @@ export default async function AccountPage() {
     oooFromIso: row?.oooFrom?.toISOString() ?? "",
     oooUntilIso: row?.oooUntil?.toISOString() ?? "",
     oooMessage: row?.oooMessage ?? "",
+    holidays: row?.holidays ?? [],
+    emergencyFeeCents: row?.emergencyFeeCents ?? 5000,
   };
 
   return (
