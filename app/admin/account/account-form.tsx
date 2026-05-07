@@ -85,6 +85,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
         oooFrom: fromIso ? new Date(fromIso) : null,
         oooUntil: cutoffIso ? new Date(cutoffIso) : null,
         oooMessage: oooMessage || null,
+        holidays: [], // wired up in Task 6 once the form holds holiday state
       },
       false,
       new Date(),

@@ -33,6 +33,7 @@ export async function GET() {
     oooFrom: row?.oooFrom ?? null,
     oooUntil: row?.oooUntil ?? null,
     oooMessage: row?.oooMessage ?? null,
+    holidays: row?.holidays ?? [],
   };
 
   const availability = computeAvailability(settings, false, new Date());
@@ -53,5 +54,6 @@ function serializeSettings(s: AdminSettingsInput) {
     oooFrom: s.oooFrom ? s.oooFrom.toISOString() : null,
     oooUntil: s.oooUntil ? s.oooUntil.toISOString() : null,
     oooMessage: s.oooMessage,
+    holidays: s.holidays,
   };
 }

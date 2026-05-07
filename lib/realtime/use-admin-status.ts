@@ -22,6 +22,7 @@ interface ApiResponse {
     oooFrom: string | null;
     oooUntil: string | null;
     oooMessage: string | null;
+    holidays: string[];
   };
 }
 
@@ -54,6 +55,7 @@ export function useAdminStatus(): Availability | null {
           oooFrom: data.settings.oooFrom ? new Date(data.settings.oooFrom) : null,
           oooUntil: data.settings.oooUntil ? new Date(data.settings.oooUntil) : null,
           oooMessage: data.settings.oooMessage,
+          holidays: data.settings.holidays,
         });
       } catch {
         // ignore; will retry on tick
