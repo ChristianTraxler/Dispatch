@@ -15,6 +15,7 @@ import {
   useTicketChannel,
   type RawMessageRow,
 } from "@/lib/realtime/use-ticket-channel";
+import { useTicketDeletionWatch } from "@/lib/realtime/use-ticket-deletion-watch";
 import { AdminAvailabilityLine } from "@/components/AdminAvailabilityLine";
 
 export function TicketDetailClient({
@@ -91,6 +92,11 @@ export function TicketDetailClient({
     onMessageInsert: handleInsert,
     onMessageUpdate: handleUpdate,
     onOtherTyping: setOtherPartyTyping,
+  });
+
+  useTicketDeletionWatch(ticket.id, () => {
+    window.alert("This ticket was deleted by support.");
+    router.push("/portal/dashboard");
   });
 
   // Mark unread admin messages as read when the page first renders.

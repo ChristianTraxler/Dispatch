@@ -7,6 +7,7 @@ import {
   type DashboardTicket,
 } from "@/components/DashboardPage";
 import { DashboardClient } from "./dashboard-client";
+import { RefreshDashboardOnTicketChange } from "./refresh-on-change";
 
 export default async function DashboardPage() {
   const account = await getCurrentClientAccount();
@@ -44,5 +45,10 @@ export default async function DashboardPage() {
     displayName: s.displayName,
   }));
 
-  return <DashboardClient tickets={ticketDtos} sites={sites} />;
+  return (
+    <>
+      <RefreshDashboardOnTicketChange />
+      <DashboardClient tickets={ticketDtos} sites={sites} />
+    </>
+  );
 }
