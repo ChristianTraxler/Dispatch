@@ -331,7 +331,7 @@ export function NewTicketPage({
           <button
             type="submit"
             disabled={!canSubmit || submitting}
-            className={`btn-dispatch ${isEmergency ? "bg-signal-red hover:bg-signal-red-deep" : ""}`}
+            className={`btn-dispatch ${isEmergency ? "bg-signal-red hover:bg-signal-redDeep" : ""}`}
           >
             {submitting
               ? "Filing…"
