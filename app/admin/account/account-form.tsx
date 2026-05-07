@@ -139,7 +139,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
         pushToast({ kind: "error", title: "Save failed", detail: data.error ?? "Couldn't save OOO." });
         return;
       }
-      pushToast({ kind: "info", title: oooEnabled ? "Out of office on" : "Out of office off" });
+      pushToast({ kind: "info", title: oooEnabled ? "Out Of Office On" : "Out Of Office Off" });
       router.refresh();
     } finally {
       setSavingOoo(false);
