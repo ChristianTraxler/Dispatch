@@ -14,9 +14,11 @@ export default async function ClientSitesPage() {
     where: { clientAccountId: account.id },
     orderBy: { addedAt: "asc" },
     include: {
-      _count: { select: { tickets: true } },
+      // Inquiries (quick chats) are a separate channel until promoted, so
+      // they shouldn't be counted as tickets in the client's site stats.
+      _count: { select: { tickets: { where: { isInquiry: false } } } },
       tickets: {
-        where: { status: { in: [...OPEN_STATUSES] } },
+        where: { isInquiry: false, status: { in: [...OPEN_STATUSES] } },
         select: { id: true },
       },
     },

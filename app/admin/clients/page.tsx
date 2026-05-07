@@ -12,9 +12,12 @@ export default async function AdminClientsPage() {
       sites: {
         orderBy: { addedAt: "asc" },
         include: {
-          _count: { select: { tickets: true } },
+          // Counts/lists here drive the per-client "TICKETS / OPEN" badges.
+          // Inquiries (quick chats) are a separate queue until promoted, so
+          // exclude them from both the total and the open-status filter.
+          _count: { select: { tickets: { where: { isInquiry: false } } } },
           tickets: {
-            where: { status: { in: [...OPEN_STATUSES] } },
+            where: { isInquiry: false, status: { in: [...OPEN_STATUSES] } },
             select: { id: true },
           },
         },
