@@ -287,10 +287,25 @@ export interface NewTicketEmailParams {
   siteDisplayName: string;
   siteUrl: string;
   description: string;
+  isEmergency: boolean;
+  emergencyFeeAmountCents?: number | null;
 }
 
 export function renderNewTicketEmail(p: NewTicketEmailParams): { subject: string; html: string; text: string } {
+  const feeDollars = p.emergencyFeeAmountCents
+    ? (p.emergencyFeeAmountCents / 100).toFixed(0)
+    : null;
+
+  const banner = p.isEmergency
+    ? `
+<div style="background:${COLORS.signalRed};color:${COLORS.parchmentWarm};padding:14px 18px;margin:0 0 20px 0;font-family:${FONT_MONO};font-size:13px;letter-spacing:0.08em;text-transform:uppercase;">
+  ⚠ EMERGENCY — Outside business hours.${feeDollars ? ` Client acknowledged $${feeDollars} fee.` : ""}
+</div>
+`.trim()
+    : "";
+
   const body = `
+${banner}
 ${sectionLabel("NEW DISPATCH FILED")}
 ${headline(escape(p.ticketTitle))}
 ${lede(`From <strong style="color:${COLORS.signalRed};">${escape(p.clientName)}</strong> for ${escape(p.siteDisplayName)}.`)}
@@ -310,11 +325,17 @@ ${button({ href: p.ticketUrl, label: "Open the ticket →" })}
 
   const html = shell({
     title: `New ticket: ${p.ticketTitle}`,
-    preheader: `${p.clientName} filed a new ${p.category.toLowerCase()} ticket for ${p.siteDisplayName}.`,
+    preheader: p.isEmergency
+      ? `EMERGENCY — ${p.clientName} filed an after-hours ${p.category.toLowerCase()} ticket for ${p.siteDisplayName}.`
+      : `${p.clientName} filed a new ${p.category.toLowerCase()} ticket for ${p.siteDisplayName}.`,
     body,
   });
 
-  const text = `New ticket filed: ${p.ticketTitle}
+  const textBanner = p.isEmergency
+    ? `*** EMERGENCY — outside business hours${feeDollars ? `, $${feeDollars} fee acknowledged` : ""} ***\n\n`
+    : "";
+
+  const text = `${textBanner}New ticket filed: ${p.ticketTitle}
 
 From: ${p.clientName} (${p.clientEmail})
 Site: ${p.siteDisplayName} — ${p.siteUrl}
@@ -325,11 +346,11 @@ Ticket: ${p.ticketNumber}
 
 Open it here: ${p.ticketUrl}${plainTextFooter()}`;
 
-  return {
-    subject: `[${p.category}] ${p.ticketTitle} — ${p.siteDisplayName}`,
-    html,
-    text,
-  };
+  const subject = p.isEmergency
+    ? `[EMERGENCY] [${p.category}] ${p.ticketTitle} — ${p.siteDisplayName}`
+    : `[${p.category}] ${p.ticketTitle} — ${p.siteDisplayName}`;
+
+  return { subject, html, text };
 }
 
 /* ============================================

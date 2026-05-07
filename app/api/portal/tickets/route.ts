@@ -112,6 +112,8 @@ export async function POST(req: Request) {
         siteDisplayName: site.displayName,
         siteUrl: site.url,
         description: ticket.description,
+        isEmergency: ticket.isEmergency,
+        emergencyFeeAmountCents: ticket.emergencyFeeAmountCents,
       });
     } catch (err) {
       console.error("[ticket] new-ticket email failed:", err);
