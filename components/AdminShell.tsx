@@ -63,10 +63,10 @@ export function AdminShell({
 
       {/* Sub-nav bar — distinct admin styling: dark band */}
       <div className="bg-ink text-parchment-warm">
-        <div className="max-w-6xl mx-auto px-5 md:px-10 py-2.5 flex items-center justify-between gap-3">
-          <div className="flex items-baseline gap-2 min-w-0">
+        <div className="max-w-6xl mx-auto px-5 md:px-10 py-2.5 flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-3">
+          <div className="flex items-baseline justify-center md:justify-start gap-2 min-w-0">
             <span className="font-mono text-[0.55rem] uppercase tracking-widest text-signal-red">
-              EDITOR
+              ADMIN
             </span>
             <span className="text-ink-fade">·</span>
             <span className="font-mono text-[0.6rem] uppercase tracking-widest text-parchment-warm/70 truncate">
@@ -74,26 +74,35 @@ export function AdminShell({
             </span>
           </div>
 
-          <nav className="flex items-center gap-3 md:gap-5 -mx-1 overflow-x-auto">
-            {ADMIN_NAV.map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                onClick={() => onNavigate?.(item.key)}
-                className={[
-                  "font-mono text-[0.6rem] uppercase tracking-widest pb-0.5 transition-colors whitespace-nowrap",
-                  activeNav === item.key
-                    ? "text-parchment-warm border-b-2 border-signal-red"
-                    : "text-parchment-warm/60 hover:text-parchment-warm",
-                ].join(" ")}
-              >
-                {item.label}
-                {item.key === "inquiries" && inquiryCount > 0 && (
-                  <span className="ml-1.5 inline-block min-w-[1.1rem] px-1 py-px text-center bg-signal-red text-parchment-warm font-mono text-[0.55rem] leading-none">
-                    {inquiryCount}
+          <nav className="flex items-center justify-center md:justify-start gap-3 md:gap-5 -mx-1 overflow-x-auto">
+            {ADMIN_NAV.map((item, idx) => (
+              <span key={item.key} className="flex items-center gap-3 md:gap-5">
+                {idx > 0 && (
+                  <span
+                    aria-hidden="true"
+                    className="text-ink-fade font-mono text-[0.6rem] pb-0.5 self-stretch flex items-center leading-none"
+                  >
+                    •
                   </span>
                 )}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigate?.(item.key)}
+                  className={[
+                    "font-mono text-[0.6rem] uppercase tracking-widest pb-0.5 transition-colors whitespace-nowrap",
+                    activeNav === item.key
+                      ? "text-parchment-warm border-b-2 border-signal-red"
+                      : "text-parchment-warm/60 hover:text-parchment-warm",
+                  ].join(" ")}
+                >
+                  {item.label}
+                  {item.key === "inquiries" && inquiryCount > 0 && (
+                    <span className="ml-1.5 inline-block min-w-[1.1rem] px-1 py-px text-center bg-signal-red text-parchment-warm font-mono text-[0.55rem] leading-none">
+                      {inquiryCount}
+                    </span>
+                  )}
+                </button>
+              </span>
             ))}
           </nav>
         </div>
