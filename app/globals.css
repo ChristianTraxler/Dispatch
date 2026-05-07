@@ -31,6 +31,11 @@ body,
   min-height: 100vh;
 }
 
+html,
+body {
+  overflow-x: clip;
+}
+
 body {
   background-image:
     radial-gradient(circle at 12% 18%, rgba(201, 192, 171, 0.08) 0px, transparent 1px),
