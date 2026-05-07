@@ -44,7 +44,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
         timezone,
         hours,
         oooEnabled,
-        oooUntil: oooUntil ? new Date(oooUntil + "T23:59:59Z") : null,
+        oooUntil: oooUntil ? new Date(oooUntil + "T23:59:59") : null,
         oooMessage: oooMessage || null,
       },
       false,
@@ -268,6 +268,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
             <textarea
               value={oooMessage}
               onChange={(e) => setOooMessage(e.target.value.slice(0, 280))}
+              maxLength={280}
               rows={2}
               placeholder="On vacation — back Mon May 18."
               className="w-full font-display text-base border border-rule bg-parchment px-3 py-2"
