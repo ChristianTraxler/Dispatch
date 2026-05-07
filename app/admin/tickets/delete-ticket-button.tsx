@@ -30,9 +30,9 @@ export function DeleteTicketButton({ id, label }: Props) {
         } catch {
           // body wasn't JSON; keep the HTTP status fallback
         }
-        // 404 means it's already gone — refresh so the row disappears.
-        if (res.status === 404) router.refresh();
         window.alert(`Couldn't delete ticket: ${detail}`);
+        // 404 means it's already gone — refresh so the stale row disappears.
+        if (res.status === 404) router.refresh();
         return;
       }
       router.refresh();
@@ -50,7 +50,7 @@ export function DeleteTicketButton({ id, label }: Props) {
       onClick={onClick}
       disabled={pending}
       aria-label={`Delete ticket ${label}`}
-      className="shrink-0 px-3 py-2 -mr-2 text-ink-mute hover:text-signal-red disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      className="shrink-0 px-3 py-2 -mr-2 text-ink-mute hover:text-signal-red disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-1"
       title="Delete ticket (testing)"
     >
       <svg
