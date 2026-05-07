@@ -6,6 +6,7 @@ import { ChatThread, type ChatMessage, type ChatAttachment } from "@/components/
 import { useTicketChannel } from "@/lib/realtime/use-ticket-channel";
 import { useAdminPresence } from "@/lib/realtime/use-presence";
 import { useUnreadCount } from "@/lib/realtime/use-unread-count";
+import { AdminAvailabilityLine } from "@/components/AdminAvailabilityLine";
 
 type LauncherState =
   | { kind: "collapsed" }
@@ -329,6 +330,7 @@ export function QuickChatLauncher({
 
       {state.kind === "open" && (
         <>
+          <AdminAvailabilityLine />
           {state.messages.length === 0 && !state.ended && (
             <div className="px-4 py-3 bg-parchment-deep/40 border-b border-rule-soft font-display italic text-ink-mute text-sm">
               This is a quick chat. If it turns into something we need to track, either of us can promote it to a ticket.
