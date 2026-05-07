@@ -2,10 +2,12 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { PortalShell, type PortalUser } from "@/components/PortalShell";
+import { BusinessHoursPill } from "@/components/BusinessHoursPill";
 import {
   AdminPresenceProvider,
   useClientPresenceTracker,
 } from "@/lib/realtime/use-presence";
+import { AdminStatusProvider } from "@/lib/realtime/use-admin-status";
 
 function deriveActiveNav(pathname: string): "dashboard" | "sites" | "account" {
   if (pathname.startsWith("/portal/sites")) return "sites";
@@ -50,6 +52,7 @@ function PortalShellInner({
   return (
     <PortalShell
       user={user}
+      availabilityPill={<BusinessHoursPill />}
       activeNav={deriveActiveNav(pathname)}
       onNavigate={onNavigate}
     >
@@ -67,7 +70,9 @@ export function PortalShellClient({
 }) {
   return (
     <AdminPresenceProvider>
-      <PortalShellInner user={user}>{children}</PortalShellInner>
+      <AdminStatusProvider>
+        <PortalShellInner user={user}>{children}</PortalShellInner>
+      </AdminStatusProvider>
     </AdminPresenceProvider>
   );
 }
