@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { ticketNumber } from "@/lib/ticket";
 import { StatusPill } from "@/components/StatusPill";
 import { RefreshTicketsOnChange } from "./refresh-on-change";
+import { DeleteTicketButton } from "./delete-ticket-button";
 
 function formatRelative(value: Date): string {
   const diff = Date.now() - value.getTime();
@@ -59,10 +60,10 @@ export default async function AdminTicketsPage() {
         <div className="rule-thin pt-4">
           <ul className="divide-y divide-rule-soft">
             {tickets.map((t) => (
-              <li key={t.id}>
+              <li key={t.id} className="flex items-stretch">
                 <Link
                   href={`/admin/ticket/${t.id}`}
-                  className="block py-4 hover:bg-parchment-warm/40 transition-colors px-2"
+                  className="block flex-1 min-w-0 py-4 hover:bg-parchment-warm/40 transition-colors px-2"
                 >
                   <div className="flex flex-col md:flex-row md:items-center md:gap-6">
                     <div className="flex-1 min-w-0">
@@ -84,6 +85,12 @@ export default async function AdminTicketsPage() {
                     </div>
                   </div>
                 </Link>
+                <div className="flex items-center pl-2">
+                  <DeleteTicketButton
+                    id={t.id}
+                    label={ticketNumber(t.id, t.createdAt)}
+                  />
+                </div>
               </li>
             ))}
           </ul>
