@@ -127,7 +127,7 @@ export function InquiryRow({ row, onDelete }: Props) {
         type="button"
         onClick={commitDelete}
         disabled={busy}
-        className="text-signal-red hover:underline disabled:opacity-50 disabled:cursor-wait"
+        className="text-signal-red hover:underline disabled:opacity-50 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-1"
         aria-label="Confirm delete"
       >
         ✓
@@ -135,7 +135,7 @@ export function InquiryRow({ row, onDelete }: Props) {
       <button
         type="button"
         onClick={cancelConfirm}
-        className="text-ink-mute hover:text-ink"
+        className="text-ink-mute hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-1"
         aria-label="Cancel delete"
       >
         ✗
@@ -170,7 +170,7 @@ export function InquiryRow({ row, onDelete }: Props) {
         <button
           type="button"
           onClick={startConfirm}
-          className="text-ink-mute hover:text-signal-red opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0 p-1 -m-1"
+          className="text-ink-mute hover:text-signal-red opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0 p-1 -m-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-1"
           aria-label="Delete inquiry"
         >
           <TrashIcon />
