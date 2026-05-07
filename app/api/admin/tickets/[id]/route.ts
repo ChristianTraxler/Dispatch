@@ -92,3 +92,39 @@ export async function PATCH(
 
   return NextResponse.json({ ticket: updated });
 }
+
+export async function DELETE(
+  _req: Request,
+  context: { params: Promise<{ id: string }> },
+) {
+  try {
+    await requireAdmin();
+  } catch (e) {
+    if (e instanceof AuthRequiredError || e instanceof AdminRequiredError) {
+      return NextResponse.json({ error: e.message }, { status: e.status });
+    }
+    throw e;
+  }
+
+  const { id } = await context.params;
+  const ticket = await prisma.ticket.findUnique({
+    where: { id },
+    select: { id: true, isInquiry: true },
+  });
+  if (!ticket) {
+    return NextResponse.json({ error: "Inquiry not found." }, { status: 404 });
+  }
+  if (!ticket.isInquiry) {
+    return NextResponse.json(
+      {
+        error:
+          "Endpoint scoped to inquiries; refusing to delete a tracked ticket.",
+      },
+      { status: 400 },
+    );
+  }
+
+  // Message rows are removed automatically by the onDelete: Cascade FK.
+  await prisma.ticket.delete({ where: { id } });
+  return NextResponse.json({ ok: true });
+}
