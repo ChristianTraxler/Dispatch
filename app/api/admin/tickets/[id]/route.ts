@@ -107,14 +107,22 @@ export async function DELETE(
   }
 
   const { id } = await context.params;
-  const ticket = await prisma.ticket.findUnique({
-    where: { id },
-    select: { id: true, isInquiry: true },
+  const { count } = await prisma.ticket.deleteMany({
+    where: { id, isInquiry: true },
   });
-  if (!ticket) {
-    return NextResponse.json({ error: "Inquiry not found." }, { status: 404 });
-  }
-  if (!ticket.isInquiry) {
+  if (count === 0) {
+    // Either not found, or it was a tracked ticket. One follow-up read
+    // disambiguates so the caller gets the right error.
+    const still = await prisma.ticket.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!still) {
+      return NextResponse.json(
+        { error: "Inquiry not found." },
+        { status: 404 },
+      );
+    }
     return NextResponse.json(
       {
         error:
@@ -123,8 +131,5 @@ export async function DELETE(
       { status: 400 },
     );
   }
-
-  // Message rows are removed automatically by the onDelete: Cascade FK.
-  await prisma.ticket.delete({ where: { id } });
   return NextResponse.json({ ok: true });
 }
