@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties } from "react";
+import { type CSSProperties, type ReactNode } from "react";
 import { StatusPill, type TicketStatus } from "./StatusPill";
 import { StatusTimeline, type TicketTimestamps } from "./StatusTimeline";
 import {
@@ -52,6 +52,8 @@ export interface TicketDetailPageProps {
   adminAvatarUrl?: string | null;
   /** Client display name (for avatar initials when no image set) */
   clientName?: string;
+  /** Optional element rendered just above the chat thread (e.g., admin availability line) */
+  availabilityLine?: ReactNode;
   className?: string;
   style?: CSSProperties;
 }
@@ -73,6 +75,7 @@ export function TicketDetailPage({
   clientAvatarUrl,
   adminAvatarUrl,
   clientName,
+  availabilityLine,
   className = "",
   style,
 }: TicketDetailPageProps) {
@@ -239,6 +242,7 @@ export function TicketDetailPage({
               {messages.length} message{messages.length === 1 ? "" : "s"}
             </span>
           </div>
+          {availabilityLine}
           <ChatThread
             messages={messages}
             viewerType={viewerType}

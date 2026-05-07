@@ -15,6 +15,7 @@ import {
   useTicketChannel,
   type RawMessageRow,
 } from "@/lib/realtime/use-ticket-channel";
+import { AdminAvailabilityLine } from "@/components/AdminAvailabilityLine";
 
 export function TicketDetailClient({
   ticket,
@@ -177,6 +178,7 @@ export function TicketDetailClient({
       clientAvatarUrl={clientAvatarUrl ?? null}
       adminAvatarUrl="/icon.png"
       clientName={myName}
+      availabilityLine={viewerType === "client" ? <AdminAvailabilityLine /> : null}
     />
   );
 }
