@@ -6,9 +6,13 @@ import { sendInviteEmail } from "@/lib/email";
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
+// Invite emails always go to external recipients, so the link must point at
+// the canonical production host even when the admin creates the invite from
+// localhost dev. Don't read NEXT_PUBLIC_APP_URL here.
+const INVITE_BASE_URL = "https://support.developerofcode.com";
+
 function inviteUrl(token: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  return `${base}/invite/${token}`;
+  return `${INVITE_BASE_URL}/invite/${token}`;
 }
 
 export async function GET() {

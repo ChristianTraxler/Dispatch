@@ -16,9 +16,12 @@ function deriveStatus(invite: {
   return "PENDING";
 }
 
+// Invite URLs displayed/copied here are meant to be sent to external
+// recipients, so they always point at the canonical production host.
+const INVITE_BASE_URL = "https://support.developerofcode.com";
+
 function inviteUrl(token: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  return `${base}/invite/${token}`;
+  return `${INVITE_BASE_URL}/invite/${token}`;
 }
 
 export default async function AdminInvitesListPage() {
