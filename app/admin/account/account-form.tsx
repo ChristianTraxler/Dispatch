@@ -276,30 +276,30 @@ export function AccountForm({ initial }: { initial: InitialState }) {
             </span>
           </label>
 
-          <div className="flex flex-wrap items-end gap-3">
-            <label className="block">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-1">
-                Return on (optional — auto-resumes)
-              </span>
+          <div>
+            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-1">
+              Return on (optional — auto-resumes; time defaults to end of day)
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
               <input
                 type="date"
                 value={oooUntil}
                 onChange={(e) => setOooUntil(e.target.value)}
+                aria-label="Return date"
                 className="font-mono text-sm border border-rule bg-parchment px-2 py-1"
               />
-            </label>
-            <label className="block">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-1">
-                At (optional — defaults to end of day)
+              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                at
               </span>
               <input
                 type="time"
                 value={oooUntilTime}
                 onChange={(e) => setOooUntilTime(e.target.value)}
                 disabled={!oooUntil}
+                aria-label="Return time"
                 className="font-mono text-sm border border-rule bg-parchment px-2 py-1 disabled:opacity-50"
               />
-            </label>
+            </div>
           </div>
 
           <label className="block">
