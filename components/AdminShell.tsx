@@ -75,7 +75,7 @@ export function AdminShell({
             </span>
           </div>
 
-          <nav className="flex items-center justify-center md:justify-start gap-3 md:gap-5 -mx-1 overflow-x-auto">
+          <nav className="flex items-center justify-center md:justify-start gap-3 md:gap-5 overflow-x-auto">
             {ADMIN_NAV.map((item, idx) => (
               <span key={item.key} className="flex items-center gap-3 md:gap-5">
                 {idx > 0 && (

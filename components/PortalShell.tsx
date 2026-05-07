@@ -74,7 +74,7 @@ export function PortalShell({
           </div>
 
           {/* Nav links */}
-          <nav className="flex items-center gap-4 md:gap-6 -mx-1 overflow-x-auto">
+          <nav className="flex items-center gap-4 md:gap-6 overflow-x-auto">
             {NAV_ITEMS.map((item) => (
               <button
                 key={item.key}
