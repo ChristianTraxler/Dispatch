@@ -399,7 +399,7 @@ export function PullToRefresh({ children }: Props) {
   return (
     <>
       <div
-        aria-hidden
+        aria-hidden="true"
         className="fixed left-1/2 z-40 pointer-events-none"
         style={{
           top: 0,
@@ -622,7 +622,7 @@ export function PullToRefresh({ children }: Props) {
   return (
     <>
       <div
-        aria-hidden
+        aria-hidden="true"
         className="fixed left-1/2 z-40 pointer-events-none"
         style={{
           top: 0,
@@ -903,7 +903,7 @@ export function PullToRefresh({ children }: Props) {
   return (
     <>
       <div
-        aria-hidden
+        aria-hidden="true"
         className="fixed left-1/2 z-40 pointer-events-none"
         style={{
           top: 0,
