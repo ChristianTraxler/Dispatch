@@ -9,7 +9,7 @@ interface InitialState {
   timezone: string;
   hours: WeeklyHours;
   oooEnabled: boolean;
-  oooUntil: string; // YYYY-MM-DD or ""
+  oooUntilIso: string; // raw ISO timestamp or ""
   oooMessage: string;
 }
 
@@ -24,14 +24,40 @@ const COMMON_TIMEZONES = [
   "Europe/London", "Europe/Paris", "Europe/Berlin", "UTC",
 ];
 
+// Derive YYYY-MM-DD and HH:mm in the browser's local timezone from a UTC ISO.
+// If the saved time is exactly 23:59 (the end-of-day default), surface "" for
+// the time field so the placeholder shows.
+function deriveDateTime(iso: string): { date: string; time: string } {
+  if (!iso) return { date: "", time: "" };
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return { date: "", time: "" };
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mi = String(d.getMinutes()).padStart(2, "0");
+  const time = hh === "23" && mi === "59" ? "" : `${hh}:${mi}`;
+  return { date: `${yyyy}-${mm}-${dd}`, time };
+}
+
+function buildLocalIso(date: string, time: string): string | null {
+  if (!date) return null;
+  const localTime = time ? `${time}:00` : "23:59:59";
+  const d = new Date(`${date}T${localTime}`);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
 export function AccountForm({ initial }: { initial: InitialState }) {
   const router = useRouter();
   const { push: pushToast } = useToast();
 
+  const initialDateTime = deriveDateTime(initial.oooUntilIso);
+
   const [hours, setHours] = useState<WeeklyHours>(initial.hours);
   const [timezone, setTimezone] = useState<string>(initial.timezone);
   const [oooEnabled, setOooEnabled] = useState<boolean>(initial.oooEnabled);
-  const [oooUntil, setOooUntil] = useState<string>(initial.oooUntil);
+  const [oooUntil, setOooUntil] = useState<string>(initialDateTime.date);
+  const [oooUntilTime, setOooUntilTime] = useState<string>(initialDateTime.time);
   const [oooMessage, setOooMessage] = useState<string>(initial.oooMessage);
 
   const [savingHours, setSavingHours] = useState(false);
@@ -39,18 +65,19 @@ export function AccountForm({ initial }: { initial: InitialState }) {
 
   // Live preview using current edits, computed against right-now.
   const preview = useMemo(() => {
+    const cutoffIso = buildLocalIso(oooUntil, oooUntilTime);
     return computeAvailability(
       {
         timezone,
         hours,
         oooEnabled,
-        oooUntil: oooUntil ? new Date(oooUntil + "T23:59:59") : null,
+        oooUntil: cutoffIso ? new Date(cutoffIso) : null,
         oooMessage: oooMessage || null,
       },
       false,
       new Date(),
     );
-  }, [timezone, hours, oooEnabled, oooUntil, oooMessage]);
+  }, [timezone, hours, oooEnabled, oooUntil, oooUntilTime, oooMessage]);
 
   async function saveHours() {
     setSavingHours(true);
@@ -80,7 +107,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           oooEnabled,
-          oooUntil: oooUntil ? new Date(oooUntil + "T23:59:59").toISOString() : null,
+          oooUntil: buildLocalIso(oooUntil, oooUntilTime),
           oooMessage: oooMessage.trim() || null,
         }),
       });
@@ -249,17 +276,31 @@ export function AccountForm({ initial }: { initial: InitialState }) {
             </span>
           </label>
 
-          <label className="block">
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-1">
-              Return on (optional — auto-resumes)
-            </span>
-            <input
-              type="date"
-              value={oooUntil}
-              onChange={(e) => setOooUntil(e.target.value)}
-              className="font-mono text-sm border border-rule bg-parchment px-2 py-1"
-            />
-          </label>
+          <div className="flex flex-wrap items-end gap-3">
+            <label className="block">
+              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-1">
+                Return on (optional — auto-resumes)
+              </span>
+              <input
+                type="date"
+                value={oooUntil}
+                onChange={(e) => setOooUntil(e.target.value)}
+                className="font-mono text-sm border border-rule bg-parchment px-2 py-1"
+              />
+            </label>
+            <label className="block">
+              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-1">
+                At (optional — defaults to end of day)
+              </span>
+              <input
+                type="time"
+                value={oooUntilTime}
+                onChange={(e) => setOooUntilTime(e.target.value)}
+                disabled={!oooUntil}
+                className="font-mono text-sm border border-rule bg-parchment px-2 py-1 disabled:opacity-50"
+              />
+            </label>
+          </div>
 
           <label className="block">
             <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-1">

@@ -23,7 +23,7 @@ export default async function AccountPage() {
     timezone: row?.timezone ?? "America/New_York",
     hours: ((row?.hours as WeeklyHours | undefined) ?? DEFAULT_HOURS),
     oooEnabled: row?.oooEnabled ?? false,
-    oooUntil: row?.oooUntil?.toISOString().slice(0, 10) ?? "",
+    oooUntilIso: row?.oooUntil?.toISOString() ?? "",
     oooMessage: row?.oooMessage ?? "",
   };
 
