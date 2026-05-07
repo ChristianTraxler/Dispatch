@@ -51,6 +51,11 @@ export function useRealtimeRefresh({
         )
         .subscribe();
 
+      if (cancelled) {
+        supabase.removeChannel(channel);
+        return;
+      }
+
       cleanup = () => supabase.removeChannel(channel);
     })();
 
