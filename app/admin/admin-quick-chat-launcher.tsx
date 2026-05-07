@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { ChatThread, type ChatMessage, type ChatAttachment } from "@/components/ChatThread";
 import { Avatar } from "@/components/Avatar";
+import { PresenceDot } from "@/components/PresenceDot";
 import { useTicketChannel } from "@/lib/realtime/use-ticket-channel";
 import { useClientsPresence } from "@/lib/realtime/use-presence";
 import { useUnreadCount } from "@/lib/realtime/use-unread-count";
@@ -15,6 +16,7 @@ interface ClientRow {
   email: string;
   avatarUrl: string | null;
   hasActiveInquiry: boolean;
+  ticketId: string | null;
   unreadCount: number;
   latestMessage: {
     body: string;
@@ -47,6 +49,7 @@ export function AdminQuickChatLauncher() {
   const [busy, setBusy] = useState(false);
   const [clients, setClients] = useState<ClientRow[]>([]);
   const [filter, setFilter] = useState("");
+  const [typingClientIds, setTypingClientIds] = useState<Set<string>>(() => new Set());
 
   const ticketIdRef = useRef<string | null>(null);
   useEffect(() => {
@@ -126,6 +129,106 @@ export function AdminQuickChatLauncher() {
       cleanup?.();
     };
   }, [pickerOpen, refreshClients]);
+
+  // While the picker is open, listen for `typing` broadcasts on each active
+  // inquiry's ticket channel so we can render a per-row "typing…" indicator
+  // without having to open the chat. We auto-clear after 4s in case the
+  // client's "stop typing" broadcast is dropped.
+  const activeTicketPairsKey = clients
+    .filter((c) => c.ticketId)
+    .map((c) => `${c.id}:${c.ticketId}`)
+    .sort()
+    .join("|");
+  useEffect(() => {
+    if (!pickerOpen) return;
+    if (!activeTicketPairsKey) return;
+
+    const pairs = activeTicketPairsKey
+      .split("|")
+      .map((s) => {
+        const [clientId, ticketId] = s.split(":");
+        return { clientId, ticketId };
+      });
+
+    const supabase = getSupabaseBrowserClient();
+    const timers = new Map<string, ReturnType<typeof setTimeout>>();
+    let cancelled = false;
+    let cleanup: (() => void) | undefined;
+
+    const clearClient = (clientId: string) => {
+      setTypingClientIds((prev) => {
+        if (!prev.has(clientId)) return prev;
+        const next = new Set(prev);
+        next.delete(clientId);
+        return next;
+      });
+      const t = timers.get(clientId);
+      if (t) {
+        clearTimeout(t);
+        timers.delete(clientId);
+      }
+    };
+
+    (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (cancelled) return;
+      if (session) supabase.realtime.setAuth(session.access_token);
+
+      const channels = pairs.map(({ clientId, ticketId }) =>
+        supabase
+          .channel(`ticket:${ticketId}`, {
+            config: { broadcast: { self: false } },
+          })
+          .on(
+            "broadcast",
+            { event: "typing" },
+            ({
+              payload,
+            }: {
+              payload: { from: "CLIENT" | "ADMIN"; isTyping: boolean };
+            }) => {
+              if (!payload || payload.from !== "CLIENT") return;
+              if (payload.isTyping) {
+                setTypingClientIds((prev) => {
+                  if (prev.has(clientId)) return prev;
+                  const next = new Set(prev);
+                  next.add(clientId);
+                  return next;
+                });
+                const existing = timers.get(clientId);
+                if (existing) clearTimeout(existing);
+                timers.set(
+                  clientId,
+                  setTimeout(() => clearClient(clientId), 4000),
+                );
+              } else {
+                clearClient(clientId);
+              }
+            },
+          )
+          .subscribe(),
+      );
+
+      if (cancelled) {
+        channels.forEach((c) => supabase.removeChannel(c));
+        return;
+      }
+
+      cleanup = () => {
+        timers.forEach((t) => clearTimeout(t));
+        timers.clear();
+        channels.forEach((c) => supabase.removeChannel(c));
+      };
+    })();
+
+    return () => {
+      cancelled = true;
+      cleanup?.();
+      setTypingClientIds(new Set());
+    };
+  }, [pickerOpen, activeTicketPairsKey]);
 
   const pickClient = useCallback(async (clientId: string) => {
     setState({ kind: "loading", clientId });
@@ -440,6 +543,7 @@ export function AdminQuickChatLauncher() {
                   const preview = last
                     ? `${last.senderType === "ADMIN" ? "You: " : ""}${last.body.trim()}`
                     : "";
+                  const isTyping = typingClientIds.has(c.id);
                   return (
                     <li key={c.id}>
                       <button
@@ -455,13 +559,46 @@ export function AdminQuickChatLauncher() {
                           <Avatar src={c.avatarUrl} name={c.name} size={32} tone="client" />
                           <div className="min-w-0 flex-1">
                             <p
-                              className={`font-display text-base text-ink truncate ${
+                              className={`font-display text-base text-ink flex items-center gap-2 ${
                                 c.unreadCount > 0 ? "font-medium" : ""
                               }`}
                             >
-                              {c.name}
+                              <span className="truncate">{c.name}</span>
+                              {onlineClients.has(c.id) && (
+                                <PresenceDot status="online" pulse={false} />
+                              )}
                             </p>
-                            {showPreview ? (
+                            {isTyping ? (
+                              <p
+                                className="flex items-baseline gap-1.5 font-display italic text-sm text-signal-red"
+                                aria-live="polite"
+                              >
+                                <span>typing</span>
+                                <span
+                                  className="inline-flex items-end gap-[2px] not-italic pb-[3px]"
+                                  aria-hidden="true"
+                                >
+                                  <span
+                                    className="block w-[3px] h-[3px] rounded-full bg-signal-red"
+                                    style={{ animation: "typing-bounce 1.2s ease-in-out infinite" }}
+                                  />
+                                  <span
+                                    className="block w-[3px] h-[3px] rounded-full bg-signal-red"
+                                    style={{
+                                      animation: "typing-bounce 1.2s ease-in-out infinite",
+                                      animationDelay: "0.15s",
+                                    }}
+                                  />
+                                  <span
+                                    className="block w-[3px] h-[3px] rounded-full bg-signal-red"
+                                    style={{
+                                      animation: "typing-bounce 1.2s ease-in-out infinite",
+                                      animationDelay: "0.3s",
+                                    }}
+                                  />
+                                </span>
+                              </p>
+                            ) : showPreview ? (
                               <p
                                 className={`text-sm truncate ${
                                   c.unreadCount > 0
@@ -486,8 +623,8 @@ export function AdminQuickChatLauncher() {
                               {c.unreadCount > 99 ? "99+" : c.unreadCount}
                             </span>
                           ) : c.hasActiveInquiry ? (
-                            <span className="font-mono text-[0.55rem] uppercase tracking-widest text-signal-red shrink-0">
-                              Active
+                            <span className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute shrink-0">
+                              Open
                             </span>
                           ) : null}
                         </div>

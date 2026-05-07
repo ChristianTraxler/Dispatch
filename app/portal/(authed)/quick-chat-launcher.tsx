@@ -148,7 +148,7 @@ export function QuickChatLauncher({
   const adminOnline = useAdminPresence();
 
   const activeTicketId = state.kind === "open" ? state.ticketId : "";
-  const { otherPartyOnline: ticketChannelOnline } = useTicketChannel({
+  const { otherPartyOnline: ticketChannelOnline, broadcastTyping } = useTicketChannel({
     ticketId: activeTicketId,
     viewerSide: "CLIENT",
     onMessageInsert: (row) => {
@@ -348,6 +348,7 @@ export function QuickChatLauncher({
               otherPartyName="Christian"
               otherPartyOnline={adminOnline || ticketChannelOnline}
               onSendMessage={state.ended ? undefined : sendMessage}
+              onTypingChange={state.ended ? undefined : broadcastTyping}
               clientAvatarUrl={clientAvatarUrl ?? null}
               adminAvatarUrl={adminAvatarUrl ?? null}
               className="h-full"

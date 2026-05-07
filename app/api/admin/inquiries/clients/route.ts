@@ -75,6 +75,7 @@ export async function GET() {
         email: c.email,
         avatarUrl: avatarUrls[i],
         hasActiveInquiry: Boolean(ticket),
+        ticketId: ticket?.id ?? null,
         unreadCount,
         latestMessage: lastMsg
           ? {
