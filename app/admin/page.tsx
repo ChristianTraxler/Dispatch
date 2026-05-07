@@ -82,7 +82,7 @@ export default async function AdminLedgerPage() {
       </div>
 
       {/* Recent tickets */}
-      <div className="grid lg:grid-cols-[2fr_1fr] gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 items-start">
         <section>
           <div className="flex items-center gap-3 mb-4">
             <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red shrink-0">

@@ -195,7 +195,7 @@ export function TicketDetailPage({
       )}
 
       {/* Two-column: original report + chat */}
-      <div className="grid lg:grid-cols-[1fr_2fr] gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-8 items-start">
         {/* Original report — sidebar */}
         <aside className="lg:sticky lg:top-4">
           <div className="flex items-center gap-3 mb-3">
