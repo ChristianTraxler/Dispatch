@@ -12,6 +12,8 @@ interface InitialState {
   oooFromIso: string;  // raw ISO timestamp or ""
   oooUntilIso: string; // raw ISO timestamp or ""
   oooMessage: string;
+  holidays: string[];
+  emergencyFeeCents: number;
 }
 
 const WEEKDAY_LABELS: Array<[keyof WeeklyHours, string]> = [
@@ -73,6 +75,13 @@ export function AccountForm({ initial }: { initial: InitialState }) {
   const [savingHours, setSavingHours] = useState(false);
   const [savingOoo, setSavingOoo] = useState(false);
 
+  const [holidays, setHolidays] = useState<string[]>(initial.holidays);
+  const [feeDollars, setFeeDollars] = useState<string>(
+    (initial.emergencyFeeCents / 100).toFixed(0),
+  );
+  const [savingHolidays, setSavingHolidays] = useState(false);
+  const [savingFee, setSavingFee] = useState(false);
+
   // Live preview using current edits, computed against right-now.
   const preview = useMemo(() => {
     const fromIso = buildLocalIso(oooFrom, oooFromTime, "start");
@@ -85,12 +94,12 @@ export function AccountForm({ initial }: { initial: InitialState }) {
         oooFrom: fromIso ? new Date(fromIso) : null,
         oooUntil: cutoffIso ? new Date(cutoffIso) : null,
         oooMessage: oooMessage || null,
-        holidays: [], // wired up in Task 6 once the form holds holiday state
+        holidays,
       },
       false,
       new Date(),
     );
-  }, [timezone, hours, oooEnabled, oooFrom, oooFromTime, oooUntil, oooUntilTime, oooMessage]);
+  }, [timezone, hours, oooEnabled, oooFrom, oooFromTime, oooUntil, oooUntilTime, oooMessage, holidays]);
 
   async function saveHours() {
     setSavingHours(true);
@@ -134,6 +143,56 @@ export function AccountForm({ initial }: { initial: InitialState }) {
       router.refresh();
     } finally {
       setSavingOoo(false);
+    }
+  }
+
+  async function saveHolidays() {
+    setSavingHolidays(true);
+    try {
+      const cleaned = Array.from(
+        new Set(holidays.filter((s) => /^\d{4}-\d{2}-\d{2}$/.test(s))),
+      ).sort();
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ holidays: cleaned }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        pushToast({ kind: "error", title: "Save failed", detail: data.error ?? "Couldn't save holidays." });
+        return;
+      }
+      setHolidays(cleaned);
+      pushToast({ kind: "info", title: "Holidays saved" });
+      router.refresh();
+    } finally {
+      setSavingHolidays(false);
+    }
+  }
+
+  async function saveFee() {
+    setSavingFee(true);
+    try {
+      const dollars = Number(feeDollars);
+      if (!Number.isFinite(dollars) || dollars < 0 || !Number.isInteger(dollars)) {
+        pushToast({ kind: "error", title: "Invalid fee", detail: "Whole dollars only, not negative." });
+        return;
+      }
+      const cents = dollars * 100;
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ emergencyFeeCents: cents }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        pushToast({ kind: "error", title: "Save failed", detail: data.error ?? "Couldn't save fee." });
+        return;
+      }
+      pushToast({ kind: "info", title: "Emergency fee saved" });
+      router.refresh();
+    } finally {
+      setSavingFee(false);
     }
   }
 
@@ -365,6 +424,108 @@ export function AccountForm({ initial }: { initial: InitialState }) {
             className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-parchment-warm transition-colors disabled:opacity-50"
           >
             {savingOoo ? "Saving…" : "Save OOO"}
+          </button>
+        </div>
+      </section>
+
+      {/* Holidays */}
+      <section>
+        <div className="flex items-center gap-3 mb-4">
+          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">§</span>
+          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+            Holidays
+          </span>
+          <span className="h-px flex-1 bg-rule-soft" />
+        </div>
+        <p className="font-display italic text-ink-mute mb-4">
+          Days that count as outside business hours, in your timezone.
+        </p>
+
+        <div className="border border-rule p-4 space-y-3">
+          {holidays.length === 0 ? (
+            <p className="font-mono text-[0.7rem] uppercase tracking-widest text-ink-fade">
+              No holidays added.
+            </p>
+          ) : (
+            holidays.map((d, i) => (
+              <div key={`${d}-${i}`} className="flex items-center gap-3">
+                <input
+                  type="date"
+                  value={d}
+                  onChange={(e) =>
+                    setHolidays((arr) => arr.map((x, j) => (j === i ? e.target.value : x)))
+                  }
+                  className="font-mono text-sm border border-rule bg-parchment px-2 py-1"
+                  aria-label={`Holiday ${i + 1}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setHolidays((arr) => arr.filter((_, j) => j !== i))}
+                  className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-signal-red"
+                >
+                  Remove
+                </button>
+              </div>
+            ))
+          )}
+          <button
+            type="button"
+            onClick={() => setHolidays((arr) => [...arr, ""])}
+            className="font-mono text-[0.7rem] uppercase tracking-widest border border-rule text-ink-soft px-3 py-1 hover:border-ink"
+          >
+            + Add holiday
+          </button>
+        </div>
+
+        <div className="flex justify-end mt-4">
+          <button
+            type="button"
+            onClick={saveHolidays}
+            disabled={savingHolidays}
+            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-parchment-warm transition-colors disabled:opacity-50"
+          >
+            {savingHolidays ? "Saving…" : "Save holidays"}
+          </button>
+        </div>
+      </section>
+
+      {/* Emergency Fee */}
+      <section>
+        <div className="flex items-center gap-3 mb-4">
+          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">§</span>
+          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+            Emergency Fee
+          </span>
+          <span className="h-px flex-1 bg-rule-soft" />
+        </div>
+        <p className="font-display italic text-ink-mute mb-4">
+          Charged when a client opts into Emergency Fix outside business hours.
+        </p>
+
+        <div className="border border-rule p-4 flex items-center gap-3">
+          <span className="font-display text-2xl text-ink">$</span>
+          <input
+            type="number"
+            min="0"
+            step="1"
+            value={feeDollars}
+            onChange={(e) => setFeeDollars(e.target.value)}
+            className="font-mono text-lg border border-rule bg-parchment px-2 py-1 w-28"
+            aria-label="Emergency fee in dollars"
+          />
+          <span className="font-mono text-[0.7rem] uppercase tracking-widest text-ink-mute">
+            per emergency filing
+          </span>
+        </div>
+
+        <div className="flex justify-end mt-4">
+          <button
+            type="button"
+            onClick={saveFee}
+            disabled={savingFee}
+            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-parchment-warm transition-colors disabled:opacity-50"
+          >
+            {savingFee ? "Saving…" : "Save fee"}
           </button>
         </div>
       </section>
