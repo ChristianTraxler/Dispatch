@@ -9,6 +9,7 @@ interface InitialState {
   timezone: string;
   hours: WeeklyHours;
   oooEnabled: boolean;
+  oooFromIso: string;  // raw ISO timestamp or ""
   oooUntilIso: string; // raw ISO timestamp or ""
   oooMessage: string;
 }
@@ -25,9 +26,11 @@ const COMMON_TIMEZONES = [
 ];
 
 // Derive YYYY-MM-DD and HH:mm in the browser's local timezone from a UTC ISO.
-// If the saved time is exactly 23:59 (the end-of-day default), surface "" for
-// the time field so the placeholder shows.
-function deriveDateTime(iso: string): { date: string; time: string } {
+// Surface "" for the time when it equals the helper's "default" sentinel
+// (00:00 for starts, 23:59 for ends) so the placeholder shows in the input.
+type TimeKind = "start" | "end";
+
+function deriveDateTime(iso: string, kind: TimeKind): { date: string; time: string } {
   if (!iso) return { date: "", time: "" };
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return { date: "", time: "" };
@@ -36,13 +39,17 @@ function deriveDateTime(iso: string): { date: string; time: string } {
   const dd = String(d.getDate()).padStart(2, "0");
   const hh = String(d.getHours()).padStart(2, "0");
   const mi = String(d.getMinutes()).padStart(2, "0");
-  const time = hh === "23" && mi === "59" ? "" : `${hh}:${mi}`;
+  const isDefault =
+    (kind === "start" && hh === "00" && mi === "00") ||
+    (kind === "end" && hh === "23" && mi === "59");
+  const time = isDefault ? "" : `${hh}:${mi}`;
   return { date: `${yyyy}-${mm}-${dd}`, time };
 }
 
-function buildLocalIso(date: string, time: string): string | null {
+function buildLocalIso(date: string, time: string, kind: TimeKind): string | null {
   if (!date) return null;
-  const localTime = time ? `${time}:00` : "23:59:59";
+  const fallback = kind === "start" ? "00:00:00" : "23:59:59";
+  const localTime = time ? `${time}:00` : fallback;
   const d = new Date(`${date}T${localTime}`);
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
@@ -51,13 +58,16 @@ export function AccountForm({ initial }: { initial: InitialState }) {
   const router = useRouter();
   const { push: pushToast } = useToast();
 
-  const initialDateTime = deriveDateTime(initial.oooUntilIso);
+  const initialFrom = deriveDateTime(initial.oooFromIso, "start");
+  const initialUntil = deriveDateTime(initial.oooUntilIso, "end");
 
   const [hours, setHours] = useState<WeeklyHours>(initial.hours);
   const [timezone, setTimezone] = useState<string>(initial.timezone);
   const [oooEnabled, setOooEnabled] = useState<boolean>(initial.oooEnabled);
-  const [oooUntil, setOooUntil] = useState<string>(initialDateTime.date);
-  const [oooUntilTime, setOooUntilTime] = useState<string>(initialDateTime.time);
+  const [oooFrom, setOooFrom] = useState<string>(initialFrom.date);
+  const [oooFromTime, setOooFromTime] = useState<string>(initialFrom.time);
+  const [oooUntil, setOooUntil] = useState<string>(initialUntil.date);
+  const [oooUntilTime, setOooUntilTime] = useState<string>(initialUntil.time);
   const [oooMessage, setOooMessage] = useState<string>(initial.oooMessage);
 
   const [savingHours, setSavingHours] = useState(false);
@@ -65,19 +75,21 @@ export function AccountForm({ initial }: { initial: InitialState }) {
 
   // Live preview using current edits, computed against right-now.
   const preview = useMemo(() => {
-    const cutoffIso = buildLocalIso(oooUntil, oooUntilTime);
+    const fromIso = buildLocalIso(oooFrom, oooFromTime, "start");
+    const cutoffIso = buildLocalIso(oooUntil, oooUntilTime, "end");
     return computeAvailability(
       {
         timezone,
         hours,
         oooEnabled,
+        oooFrom: fromIso ? new Date(fromIso) : null,
         oooUntil: cutoffIso ? new Date(cutoffIso) : null,
         oooMessage: oooMessage || null,
       },
       false,
       new Date(),
     );
-  }, [timezone, hours, oooEnabled, oooUntil, oooUntilTime, oooMessage]);
+  }, [timezone, hours, oooEnabled, oooFrom, oooFromTime, oooUntil, oooUntilTime, oooMessage]);
 
   async function saveHours() {
     setSavingHours(true);
@@ -107,7 +119,8 @@ export function AccountForm({ initial }: { initial: InitialState }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           oooEnabled,
-          oooUntil: buildLocalIso(oooUntil, oooUntilTime),
+          oooFrom: buildLocalIso(oooFrom, oooFromTime, "start"),
+          oooUntil: buildLocalIso(oooUntil, oooUntilTime, "end"),
           oooMessage: oooMessage.trim() || null,
         }),
       });
@@ -275,6 +288,32 @@ export function AccountForm({ initial }: { initial: InitialState }) {
               {oooEnabled ? "Out of office is ON" : "Out of office is off"}
             </span>
           </label>
+
+          <div>
+            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-1">
+              Starts on (optional — leave blank to start now; time defaults to start of day)
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="date"
+                value={oooFrom}
+                onChange={(e) => setOooFrom(e.target.value)}
+                aria-label="Start date"
+                className="font-mono text-sm border border-rule bg-parchment px-2 py-1"
+              />
+              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                at
+              </span>
+              <input
+                type="time"
+                value={oooFromTime}
+                onChange={(e) => setOooFromTime(e.target.value)}
+                disabled={!oooFrom}
+                aria-label="Start time"
+                className="font-mono text-sm border border-rule bg-parchment px-2 py-1 disabled:opacity-50"
+              />
+            </div>
+          </div>
 
           <div>
             <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-1">

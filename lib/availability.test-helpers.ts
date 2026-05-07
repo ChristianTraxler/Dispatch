@@ -20,6 +20,7 @@ function settings(over: Partial<AdminSettingsInput> = {}): AdminSettingsInput {
     timezone: "America/New_York",
     hours: STD_HOURS,
     oooEnabled: false,
+    oooFrom: null,
     oooUntil: null,
     oooMessage: null,
     ...over,
@@ -69,6 +70,35 @@ const cases: Case[] = [
         new Date("2026-05-12T14:00:00Z"),
       );
       assertEq(r.state, "available");
+    },
+  },
+  {
+    name: "ooo: oooFrom in the future → not yet OOO, falls through to schedule",
+    fn: () => {
+      const r = computeAvailability(
+        settings({
+          oooEnabled: true,
+          oooFrom: new Date("2026-05-20T13:00:00Z"), // 9am ET on May 20
+        }),
+        false,
+        new Date("2026-05-12T14:00:00Z"), // Tue 10am ET, before window
+      );
+      assertEq(r.state, "available");
+    },
+  },
+  {
+    name: "ooo: now inside [oooFrom, oooUntil) window → ooo active",
+    fn: () => {
+      const r = computeAvailability(
+        settings({
+          oooEnabled: true,
+          oooFrom: new Date("2026-05-10T00:00:00Z"),
+          oooUntil: new Date("2026-05-20T00:00:00Z"),
+        }),
+        true, // even if presence is online, OOO wins inside the window
+        new Date("2026-05-12T14:00:00Z"),
+      );
+      assertEq(r.state, "ooo");
     },
   },
   {

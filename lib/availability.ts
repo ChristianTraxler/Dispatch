@@ -16,6 +16,7 @@ export interface AdminSettingsInput {
   timezone: string;
   hours: WeeklyHours;
   oooEnabled: boolean;
+  oooFrom: Date | null;
   oooUntil: Date | null;
   oooMessage: string | null;
 }
@@ -32,9 +33,10 @@ export function computeAvailability(
   adminOnline: boolean,
   now: Date,
 ): Availability {
-  // 1. OOO check
+  // 1. OOO check — active when toggle is on AND now is inside the optional window
   const oooActive =
     settings.oooEnabled &&
+    (!settings.oooFrom || now >= settings.oooFrom) &&
     (!settings.oooUntil || now < settings.oooUntil);
 
   if (oooActive) {

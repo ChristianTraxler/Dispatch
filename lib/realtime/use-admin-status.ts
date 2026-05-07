@@ -19,6 +19,7 @@ interface ApiResponse {
     timezone: string;
     hours: WeeklyHours;
     oooEnabled: boolean;
+    oooFrom: string | null;
     oooUntil: string | null;
     oooMessage: string | null;
   };
@@ -50,6 +51,7 @@ export function useAdminStatus(): Availability | null {
           timezone: data.settings.timezone,
           hours: data.settings.hours,
           oooEnabled: data.settings.oooEnabled,
+          oooFrom: data.settings.oooFrom ? new Date(data.settings.oooFrom) : null,
           oooUntil: data.settings.oooUntil ? new Date(data.settings.oooUntil) : null,
           oooMessage: data.settings.oooMessage,
         });

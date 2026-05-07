@@ -22,6 +22,7 @@ export async function GET() {
     timezone: row.timezone,
     hours: row.hours,
     oooEnabled: row.oooEnabled,
+    oooFrom: row.oooFrom?.toISOString() ?? null,
     oooUntil: row.oooUntil?.toISOString() ?? null,
     oooMessage: row.oooMessage,
   });
@@ -31,6 +32,7 @@ interface PatchBody {
   timezone?: string;
   hours?: WeeklyHours;
   oooEnabled?: boolean;
+  oooFrom?: string | null;
   oooUntil?: string | null;
   oooMessage?: string | null;
 }
@@ -88,6 +90,15 @@ export async function PATCH(req: Request) {
     if (typeof body.oooEnabled !== "boolean") return NextResponse.json({ error: "Invalid oooEnabled." }, { status: 400 });
     data.oooEnabled = body.oooEnabled;
   }
+  if (body.oooFrom !== undefined) {
+    if (body.oooFrom === null) {
+      data.oooFrom = null;
+    } else {
+      const d = new Date(body.oooFrom);
+      if (Number.isNaN(d.getTime())) return NextResponse.json({ error: "Invalid oooFrom." }, { status: 400 });
+      data.oooFrom = d;
+    }
+  }
   if (body.oooUntil !== undefined) {
     if (body.oooUntil === null) {
       data.oooUntil = null;
@@ -96,6 +107,9 @@ export async function PATCH(req: Request) {
       if (Number.isNaN(d.getTime())) return NextResponse.json({ error: "Invalid oooUntil." }, { status: 400 });
       data.oooUntil = d;
     }
+  }
+  if (data.oooFrom instanceof Date && data.oooUntil instanceof Date && data.oooFrom >= data.oooUntil) {
+    return NextResponse.json({ error: "oooFrom must be before oooUntil." }, { status: 400 });
   }
   if (body.oooMessage !== undefined) {
     if (body.oooMessage !== null && typeof body.oooMessage !== "string") {
@@ -119,6 +133,7 @@ export async function PATCH(req: Request) {
       timezone: (data.timezone as string | undefined) ?? "America/New_York",
       hours: (data.hours as object | undefined) ?? {},
       oooEnabled: (data.oooEnabled as boolean | undefined) ?? false,
+      oooFrom: (data.oooFrom as Date | null | undefined) ?? null,
       oooUntil: (data.oooUntil as Date | null | undefined) ?? null,
       oooMessage: (data.oooMessage as string | null | undefined) ?? null,
     },
@@ -149,6 +164,7 @@ export async function PATCH(req: Request) {
     timezone: updated.timezone,
     hours: updated.hours,
     oooEnabled: updated.oooEnabled,
+    oooFrom: updated.oooFrom?.toISOString() ?? null,
     oooUntil: updated.oooUntil?.toISOString() ?? null,
     oooMessage: updated.oooMessage,
   });

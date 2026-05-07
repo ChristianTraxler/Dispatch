@@ -30,6 +30,7 @@ export async function GET() {
     timezone: row?.timezone ?? "America/New_York",
     hours: (row?.hours as WeeklyHours | undefined) ?? DEFAULT_HOURS,
     oooEnabled: row?.oooEnabled ?? false,
+    oooFrom: row?.oooFrom ?? null,
     oooUntil: row?.oooUntil ?? null,
     oooMessage: row?.oooMessage ?? null,
   };
@@ -49,6 +50,7 @@ function serializeSettings(s: AdminSettingsInput) {
     timezone: s.timezone,
     hours: s.hours,
     oooEnabled: s.oooEnabled,
+    oooFrom: s.oooFrom ? s.oooFrom.toISOString() : null,
     oooUntil: s.oooUntil ? s.oooUntil.toISOString() : null,
     oooMessage: s.oooMessage,
   };
