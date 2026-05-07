@@ -121,13 +121,15 @@ export function InquiryRow({ row, onDelete }: Props) {
   };
 
   const metaSlot = confirming ? (
-    <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute flex items-center gap-3 shrink-0">
-      <span>Delete?</span>
+    <div className="flex items-center gap-1 shrink-0">
+      <span className="font-mono text-[0.7rem] uppercase tracking-widest text-ink-mute mr-1">
+        Delete?
+      </span>
       <button
         type="button"
         onClick={commitDelete}
         disabled={busy}
-        className="text-signal-red hover:underline disabled:opacity-50 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-1"
+        className="inline-flex items-center justify-center min-w-[32px] min-h-[32px] text-sm leading-none text-signal-red hover:bg-signal-red/10 active:bg-signal-red/20 rounded disabled:opacity-50 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-1 transition-colors"
         aria-label="Confirm delete"
       >
         ✓
@@ -135,7 +137,7 @@ export function InquiryRow({ row, onDelete }: Props) {
       <button
         type="button"
         onClick={cancelConfirm}
-        className="text-ink-mute hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-1"
+        className="inline-flex items-center justify-center min-w-[32px] min-h-[32px] text-sm leading-none text-ink-mute hover:bg-ink/5 hover:text-ink active:bg-ink/10 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-1 transition-colors"
         aria-label="Cancel delete"
       >
         ✗
