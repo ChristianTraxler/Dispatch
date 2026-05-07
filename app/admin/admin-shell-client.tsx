@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { AdminShell } from "@/components/AdminShell";
 import { ToastProvider, useToast } from "@/components/Toast";
@@ -35,6 +35,19 @@ function AdminShellInner({ children }: { children: React.ReactNode }) {
     onLeave: (c) => pushToast({ kind: "signout", title: c.name, detail: "signed out" }),
   });
 
+  const [inquiryCount, setInquiryCount] = useState(0);
+  const refreshInquiryCount = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/inquiries/count", { cache: "no-store" });
+      if (res.ok) {
+        const data = (await res.json()) as { count: number };
+        setInquiryCount(data.count);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   useTicketsFeed({
     onInsert: (row) => {
       if (row.is_inquiry) {
@@ -58,30 +71,16 @@ function AdminShellInner({ children }: { children: React.ReactNode }) {
         detail: event.title || "(untitled)",
       });
     },
+    // Realtime keeps the Inquiries badge live; the 30s poll below is a
+    // backstop for missed events.
+    onAnyChange: refreshInquiryCount,
   });
 
-  const [inquiryCount, setInquiryCount] = useState(0);
   useEffect(() => {
-    let cancelled = false;
-    const refresh = async () => {
-      try {
-        const res = await fetch("/api/admin/inquiries/count", { cache: "no-store" });
-        if (cancelled) return;
-        if (res.ok) {
-          const data = (await res.json()) as { count: number };
-          setInquiryCount(data.count);
-        }
-      } catch {
-        /* ignore */
-      }
-    };
-    refresh();
-    const interval = setInterval(refresh, 30_000);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, []);
+    refreshInquiryCount();
+    const interval = setInterval(refreshInquiryCount, 30_000);
+    return () => clearInterval(interval);
+  }, [refreshInquiryCount]);
 
   async function onNavigate(
     target: "dashboard" | "inquiries" | "clients" | "invites" | "logout",

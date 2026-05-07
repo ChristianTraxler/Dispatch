@@ -22,22 +22,28 @@ export interface PromotionEvent {
 }
 
 /**
- * Subscribe to tickets-table INSERT and UPDATE events globally.
+ * Subscribe to tickets-table INSERT, UPDATE, and DELETE events globally.
  * - INSERT → onInsert (with raw row, including is_inquiry flag)
  * - UPDATE where is_inquiry flips true → false → onPromotion
+ * - onAnyChange (if provided) fires on every INSERT/UPDATE/DELETE — useful
+ *   for keeping derived counters/badges in sync without polling.
  */
 export function useTicketsFeed({
   onInsert,
   onPromotion,
+  onAnyChange,
 }: {
   onInsert: (row: RawTicketRow) => void;
   onPromotion?: (event: PromotionEvent) => void;
+  onAnyChange?: () => void;
 }) {
   const onInsertRef = useRef(onInsert);
   const onPromotionRef = useRef(onPromotion);
+  const onAnyChangeRef = useRef(onAnyChange);
   useEffect(() => {
     onInsertRef.current = onInsert;
     onPromotionRef.current = onPromotion;
+    onAnyChangeRef.current = onAnyChange;
   });
 
   useEffect(() => {
@@ -59,6 +65,7 @@ export function useTicketsFeed({
           { event: "INSERT", schema: "public", table: "tickets" },
           (payload: { new: RawTicketRow }) => {
             onInsertRef.current(payload.new);
+            onAnyChangeRef.current?.();
           },
         )
         .on(
@@ -72,6 +79,14 @@ export function useTicketsFeed({
             if (wasInquiry && !isInquiry && onPromotionRef.current) {
               onPromotionRef.current({ id: newRow.id, title: newRow.title });
             }
+            onAnyChangeRef.current?.();
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "tickets" },
+          () => {
+            onAnyChangeRef.current?.();
           },
         )
         .subscribe();
