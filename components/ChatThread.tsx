@@ -32,6 +32,10 @@ export interface ChatThreadProps {
   viewerType: ViewerType;
   /** Whether the other party is currently online */
   otherPartyOnline?: boolean;
+  /** Label shown when other party is online (default "Online") */
+  onlineLabel?: string;
+  /** Label shown when other party is offline (default "Offline") */
+  offlineLabel?: string;
   /** Whether the other party is currently typing (live, ephemeral) */
   otherPartyTyping?: boolean;
   /** Other party's display name (for header) */
@@ -74,6 +78,8 @@ export function ChatThread({
   messages,
   viewerType,
   otherPartyOnline = false,
+  onlineLabel = "Online",
+  offlineLabel = "Offline",
   otherPartyTyping = false,
   otherPartyName,
   onSendMessage,
@@ -233,7 +239,7 @@ export function ChatThread({
               aria-hidden="true"
             />
             <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
-              {otherPartyOnline ? "Currently viewing" : "Not currently viewing"}
+              {otherPartyOnline ? onlineLabel : offlineLabel}
             </span>
           </div>
         )}

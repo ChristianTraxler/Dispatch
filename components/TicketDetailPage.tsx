@@ -248,6 +248,8 @@ export function TicketDetailPage({
             viewerType={viewerType}
             otherPartyName={otherPartyName}
             otherPartyOnline={otherPartyOnline}
+            onlineLabel="Currently viewing"
+            offlineLabel="Not currently viewing"
             otherPartyTyping={otherPartyTyping}
             onSendMessage={onSendMessage as never}
             onTypingChange={onTypingChange}

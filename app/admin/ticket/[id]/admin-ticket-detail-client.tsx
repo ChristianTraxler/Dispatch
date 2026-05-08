@@ -247,6 +247,8 @@ export function AdminTicketDetailClient({
           viewerType="admin"
           otherPartyName={otherPartyName}
           otherPartyOnline={otherPartyOnline}
+          onlineLabel="Currently viewing"
+          offlineLabel="Not currently viewing"
           otherPartyTyping={otherPartyTyping}
           onSendMessage={inquiryEndedAt ? undefined : (onSendMessage as never)}
           onTypingChange={broadcastTyping}
