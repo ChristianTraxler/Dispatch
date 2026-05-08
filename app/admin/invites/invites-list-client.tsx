@@ -24,6 +24,13 @@ export function InvitesListClient({ invites }: { invites: AdminInvite[] }) {
     if (res.ok) router.refresh();
   }
 
+  async function onRenew(inviteId: string) {
+    const res = await fetch(`/api/admin/invites/${inviteId}/renew`, {
+      method: "POST",
+    });
+    if (res.ok) router.refresh();
+  }
+
   async function onCopyLink(url: string) {
     try {
       await navigator.clipboard.writeText(url);
@@ -37,6 +44,7 @@ export function InvitesListClient({ invites }: { invites: AdminInvite[] }) {
       invites={invites}
       onCreateInvite={onCreateInvite}
       onRevoke={onRevoke}
+      onRenew={onRenew}
       onCopyLink={onCopyLink}
     />
   );

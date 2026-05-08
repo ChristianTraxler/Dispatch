@@ -22,6 +22,7 @@ export interface AdminInvitesPageProps {
   invites: AdminInvite[];
   onCreateInvite?: () => void;
   onRevoke?: (inviteId: string) => void | Promise<void>;
+  onRenew?: (inviteId: string) => void | Promise<void>;
   onCopyLink?: (inviteUrl: string) => void;
   className?: string;
   style?: CSSProperties;
@@ -54,6 +55,7 @@ export function AdminInvitesPage({
   invites,
   onCreateInvite,
   onRevoke,
+  onRenew,
   onCopyLink,
   className = "",
   style,
@@ -138,6 +140,7 @@ export function AdminInvitesPage({
               invite={invite}
               onCopyLink={onCopyLink}
               onRevoke={onRevoke}
+              onRenew={onRenew}
             />
           ))}
         </div>
@@ -150,15 +153,19 @@ function InviteRow({
   invite,
   onCopyLink,
   onRevoke,
+  onRenew,
 }: {
   invite: AdminInvite;
   onCopyLink?: (url: string) => void;
   onRevoke?: (id: string) => void | Promise<void>;
+  onRenew?: (id: string) => void | Promise<void>;
 }) {
   const [revoking, setRevoking] = useState(false);
+  const [renewing, setRenewing] = useState(false);
   const color = STATUS_COLORS[invite.status];
   const canRevoke = invite.status === "PENDING";
   const canCopy = invite.status === "PENDING";
+  const canRenew = invite.status === "EXPIRED";
 
   return (
     <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6 px-2 md:px-3 py-4 border-b border-ruleSoft hover:bg-parchment-warm transition-colors">
@@ -213,6 +220,23 @@ function InviteRow({
             className="btn-ghost"
           >
             ↳ Copy link
+          </button>
+        )}
+        {canRenew && (
+          <button
+            type="button"
+            disabled={renewing}
+            onClick={async () => {
+              setRenewing(true);
+              try {
+                await onRenew?.(invite.id);
+              } finally {
+                setRenewing(false);
+              }
+            }}
+            className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-green transition-colors px-2"
+          >
+            {renewing ? "Renewing…" : "↻ Renew"}
           </button>
         )}
         {canRevoke && (
