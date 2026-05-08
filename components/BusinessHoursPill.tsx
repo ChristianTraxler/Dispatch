@@ -83,6 +83,8 @@ export function BusinessHoursPill() {
   const status = useAdminStatus();
   const settings = useAdminSettings();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [visible, setVisible] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -105,6 +107,28 @@ export function BusinessHoursPill() {
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
+
+  // Mount on open; unmount happens after the fade-out via onTransitionEnd.
+  useEffect(() => {
+    if (open) setMounted(true);
+    else setVisible(false);
+  }, [open]);
+
+  // After mount commits + paints, double-rAF before flipping visible so the
+  // browser registers the closed-state styles as the transition's starting
+  // frame. A single rAF inside the same effect that sets `mounted` can fire
+  // before paint and skip the entry animation entirely.
+  useEffect(() => {
+    if (!mounted || !open) return;
+    let id2 = 0;
+    const id1 = requestAnimationFrame(() => {
+      id2 = requestAnimationFrame(() => setVisible(true));
+    });
+    return () => {
+      cancelAnimationFrame(id1);
+      if (id2) cancelAnimationFrame(id2);
+    };
+  }, [mounted, open]);
 
   if (!status || !settings) return null;
 
@@ -167,17 +191,24 @@ export function BusinessHoursPill() {
           width="8"
           height="8"
           viewBox="0 0 8 8"
-          className={`text-ink-fade transition-transform ${open ? "rotate-180" : ""}`}
+          className={`text-ink-fade transition-transform duration-[280ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${open ? "rotate-180" : ""}`}
         >
           <path d="M1 2.5l3 3 3-3" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
         </svg>
       </button>
 
-      {open && (
+      {mounted && (
         <div
           role="dialog"
           aria-label="Business hours"
-          className="absolute right-0 top-[calc(100%+6px)] z-50 w-[260px] border border-rule bg-parchment-warm shadow-[0_14px_40px_-18px_rgba(15,15,15,0.35)]"
+          onTransitionEnd={(e) => {
+            if (!open && e.propertyName === "opacity") setMounted(false);
+          }}
+          className={`absolute right-0 top-[calc(100%+6px)] z-50 w-[260px] origin-top-right border border-rule bg-parchment-warm shadow-[0_14px_40px_-18px_rgba(15,15,15,0.35)] transition ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+            visible
+              ? "opacity-100 translate-y-0 scale-100 duration-[340ms]"
+              : "opacity-0 -translate-y-2 scale-[0.96] pointer-events-none duration-[200ms]"
+          }`}
         >
           <div className="flex items-center gap-2 px-3 py-2 border-b border-rule-soft">
             <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">§</span>

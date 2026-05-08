@@ -788,13 +788,8 @@ export function PullToRefresh({ children }: Props) {
   const [displayed, setDisplayed] = useState(0);
   const [phase, setPhase] = useState<Phase>("idle");
 
-  const displayedRef = useRef(0);
   const phaseRef = useRef<Phase>("idle");
   const timerRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    displayedRef.current = displayed;
-  }, [displayed]);
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -803,9 +798,19 @@ export function PullToRefresh({ children }: Props) {
   useEffect(() => {
     let tracking = false;
     let startY = 0;
+    let currentDisplayed = 0;
+
+    const clearTimer = () => {
+      if (timerRef.current != null) {
+        window.clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
 
     const reset = () => {
       tracking = false;
+      currentDisplayed = 0;
+      clearTimer();
       setPhase("idle");
       setDisplayed(0);
     };
@@ -837,24 +842,28 @@ export function PullToRefresh({ children }: Props) {
         return;
       }
       e.preventDefault();
+      const next = Math.min(delta * RESISTANCE, MAX_PULL_PX);
+      currentDisplayed = next;
       setPhase("pulling");
-      setDisplayed(Math.min(delta * RESISTANCE, MAX_PULL_PX));
+      setDisplayed(next);
     };
 
     const onTouchEnd = () => {
       if (!tracking) return;
       tracking = false;
 
-      const final = displayedRef.current;
+      const final = currentDisplayed;
 
       if (final >= HARD_THRESHOLD_PX) {
         setPhase("reloading");
+        currentDisplayed = RESTING_PULL_PX;
         setDisplayed(RESTING_PULL_PX);
         timerRef.current = window.setTimeout(() => {
           window.location.reload();
         }, HARD_HOLD_MS);
       } else if (final >= SOFT_THRESHOLD_PX) {
         setPhase("refreshing");
+        currentDisplayed = RESTING_PULL_PX;
         setDisplayed(RESTING_PULL_PX);
         router.refresh();
         timerRef.current = window.setTimeout(() => {
