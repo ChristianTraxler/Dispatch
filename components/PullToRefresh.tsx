@@ -186,7 +186,7 @@ export function PullToRefresh({ children }: Props) {
         className="fixed left-1/2 z-40 pointer-events-none"
         style={{
           top: 0,
-          transform: `translate(-50%, calc(-100% + ${displayed}px))`,
+          transform: `translate(-50%, calc(-100% - 16px + ${displayed}px))`,
           transition,
         }}
       >
