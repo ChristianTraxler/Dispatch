@@ -76,7 +76,10 @@ export async function POST(req: Request) {
     holidays: settingsRow?.holidays ?? [],
   };
   const serverIsAfterHours = isAfterHours(settings, new Date());
-  const finalIsEmergency = payload.isEmergency === true && serverIsAfterHours;
+  const finalIsEmergency =
+    payload.isEmergency === true &&
+    serverIsAfterHours &&
+    !(settingsRow?.outOfTown ?? false);
   const feeSnapshotCents = finalIsEmergency ? settingsRow?.emergencyFeeCents ?? 5000 : null;
 
   const ticket = await prisma.ticket.create({
