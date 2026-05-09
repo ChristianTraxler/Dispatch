@@ -40,13 +40,15 @@ export async function GET() {
   const now = new Date();
   const availability = computeAvailability(settings, false, now);
   const afterHours = isAfterHours(settings, now);
+  const outOfTown = row?.outOfTown ?? false;
+  const emergencyAvailable = afterHours && !outOfTown;
   const emergencyFeeCents = row?.emergencyFeeCents ?? 5000;
 
   return NextResponse.json(
     {
       ...availability,
       settings: serializeSettings(settings),
-      isAfterHours: afterHours,
+      emergencyAvailable,
       emergencyFeeCents,
     },
     {
