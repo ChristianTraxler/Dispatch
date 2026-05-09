@@ -760,15 +760,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "startDate must be on or before endDate." }, { status: 400 });
   }
 
-  const label =
-    body.label === undefined || body.label === null
-      ? null
-      : typeof body.label === "string"
-        ? body.label.trim().slice(0, 80) || null
-        : null;
   if (body.label !== undefined && body.label !== null && typeof body.label !== "string") {
     return NextResponse.json({ error: "Invalid label." }, { status: 400 });
   }
+  const label =
+    body.label === undefined || body.label === null
+      ? null
+      : (body.label.trim().slice(0, 80) || null);
 
   const settings = await prisma.adminSettings.findUnique({ where: { id: "global" } });
   const tz = settings?.timezone ?? "America/New_York";
@@ -1650,45 +1648,9 @@ git commit -m "feat(admin): VacationCalendar inline two-month picker"
 - Modify: `app/admin/account/page.tsx`
 - Modify: `app/admin/account/account-form.tsx`
 
-- [ ] **Step 1: Server-fetch upcoming vacations in the page**
+- [ ] **Step 1: Replace `app/admin/account/page.tsx` with the version below**
 
-In `app/admin/account/page.tsx`, after the `prisma.adminSettings.findUnique` call, add:
-
-```ts
-const upcomingVacations = await prisma.vacation.findMany({
-  where: {
-    endDate: { gte: new Date(`${row?.timezone ?? "America/New_York"}T00:00:00Z`.replace(/^.+T/, `${new Date().toISOString().slice(0, 10)}T`)) },
-  },
-  orderBy: { startDate: "asc" },
-});
-```
-
-That's a smell — clearer to compute today properly. Replace it with:
-
-```ts
-import { todayInTimezone, formatYmd } from "@/lib/vacation-helpers";
-
-// ... inside the component:
-
-const tz = row?.timezone ?? "America/New_York";
-const todayYmd = todayInTimezone(tz);
-const upcomingVacations = await prisma.vacation.findMany({
-  where: { endDate: { gte: new Date(`${todayYmd}T00:00:00Z`) } },
-  orderBy: { startDate: "asc" },
-});
-
-const initial = {
-  // ...existing fields...
-  vacations: upcomingVacations.map((v) => ({
-    id: v.id,
-    label: v.label,
-    startDate: formatYmd(v.startDate.getUTCFullYear(), v.startDate.getUTCMonth() + 1, v.startDate.getUTCDate()),
-    endDate: formatYmd(v.endDate.getUTCFullYear(), v.endDate.getUTCMonth() + 1, v.endDate.getUTCDate()),
-  })),
-};
-```
-
-The full page should look like (final form):
+Replace the entire file contents with this final form:
 
 ```tsx
 import { prisma } from "@/lib/prisma";
