@@ -22,12 +22,13 @@ export interface Vacation {
 interface Props {
   initial: Vacation[];
   timezone: string;
-  /** Fires after saving a vacation whose range includes today, so the parent
-   *  can flip its Out-of-Town toggle to ON without waiting for a reload. */
-  onActiveVacationCreated?: () => void;
+  /** Fires whenever a vacation save/delete causes the server to flip the
+   *  outOfTown flag, so the parent's local toggle reflects reality without
+   *  waiting for a reload. */
+  onOutOfTownChange?: (value: boolean) => void;
 }
 
-export function VacationCalendar({ initial, timezone, onActiveVacationCreated }: Props) {
+export function VacationCalendar({ initial, timezone, onOutOfTownChange }: Props) {
   const router = useRouter();
   const { push: pushToast } = useToast();
 
@@ -109,7 +110,7 @@ export function VacationCalendar({ initial, timezone, onActiveVacationCreated }:
       // If this vacation includes today, the server flipped outOfTown=true.
       // Notify the parent so its toggle reflects reality without a reload.
       if (created.startDate <= today && today <= created.endDate) {
-        onActiveVacationCreated?.();
+        onOutOfTownChange?.(true);
       }
       setLabel("");
       clearSelection();
@@ -128,6 +129,16 @@ export function VacationCalendar({ initial, timezone, onActiveVacationCreated }:
         const data = await res.json().catch(() => ({}));
         pushToast({ kind: "error", title: "Couldn't delete", detail: (data as { error?: string }).error ?? "Unknown error." });
         return;
+      }
+      // Mirror the server-side maybe-flip-off: if the deleted vacation was
+      // currently active AND no OTHER vacation is currently active, the server
+      // flipped outOfTown=false. Inform the parent so the toggle follows.
+      const target = vacations.find((v) => v.id === id);
+      if (target && target.startDate <= today && today <= target.endDate) {
+        const otherActive = vacations.some(
+          (v) => v.id !== id && v.startDate <= today && today <= v.endDate,
+        );
+        if (!otherActive) onOutOfTownChange?.(false);
       }
       setVacations((arr) => arr.filter((v) => v.id !== id));
       pushToast({ kind: "info", title: "Vacation removed" });

@@ -483,7 +483,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
       <VacationCalendar
         initial={initial.vacations}
         timezone={timezone}
-        onActiveVacationCreated={() => setOutOfTown(true)}
+        onOutOfTownChange={setOutOfTown}
       />
 
       {/* Out of Town (silent — clients see no change) */}
