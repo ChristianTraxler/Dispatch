@@ -36,26 +36,31 @@ function resend(): Resend {
 
 const FROM = process.env.RESEND_FROM ?? "Dispatch <support@developerofcode.com>";
 
+// Resend's SDK returns { data, error } instead of throwing on send failures.
+// Wrap every send so a non-null `error` becomes a thrown exception — otherwise
+// callers (e.g. the cron try/catch) can't distinguish "sent" from "silently rejected".
+async function send(opts: { to: string; subject: string; html: string; text: string }) {
+  const { data, error } = await resend().emails.send({
+    from: FROM,
+    to: opts.to,
+    subject: opts.subject,
+    html: opts.html,
+    text: opts.text,
+  });
+  if (error) {
+    throw new Error(`Resend send failed [${error.name}]: ${error.message}`);
+  }
+  return data;
+}
+
 export async function sendInviteEmail(params: InviteEmailParams) {
   const { subject, html, text } = renderInviteEmail(params);
-  return resend().emails.send({
-    from: FROM,
-    to: params.email,
-    subject,
-    html,
-    text,
-  });
+  return send({ to: params.email, subject, html, text });
 }
 
 export async function sendInviteReminderEmail(params: InviteReminderEmailParams) {
   const { subject, html, text } = renderInviteReminderEmail(params);
-  return resend().emails.send({
-    from: FROM,
-    to: params.email,
-    subject,
-    html,
-    text,
-  });
+  return send({ to: params.email, subject, html, text });
 }
 
 export async function sendNewTicketEmail(
@@ -63,13 +68,7 @@ export async function sendNewTicketEmail(
   params: NewTicketEmailParams,
 ) {
   const { subject, html, text } = renderNewTicketEmail(params);
-  return resend().emails.send({
-    from: FROM,
-    to,
-    subject,
-    html,
-    text,
-  });
+  return send({ to, subject, html, text });
 }
 
 export async function sendAwaitingConfirmationEmail(
@@ -77,7 +76,7 @@ export async function sendAwaitingConfirmationEmail(
   params: AwaitingConfirmationEmailParams,
 ) {
   const { subject, html, text } = renderAwaitingConfirmationEmail(params);
-  return resend().emails.send({ from: FROM, to, subject, html, text });
+  return send({ to, subject, html, text });
 }
 
 export async function sendTicketReopenedEmail(
@@ -85,7 +84,7 @@ export async function sendTicketReopenedEmail(
   params: TicketReopenedEmailParams,
 ) {
   const { subject, html, text } = renderTicketReopenedEmail(params);
-  return resend().emails.send({ from: FROM, to, subject, html, text });
+  return send({ to, subject, html, text });
 }
 
 // ─── chat-message notifications ─────────────────────────────────────────────
@@ -112,7 +111,7 @@ export async function sendNewMessageToAdminEmail(
 ) {
   if (!shouldNotify(to, ticketId)) return null;
   const { subject, html, text } = renderNewMessageToAdminEmail(params);
-  return resend().emails.send({ from: FROM, to, subject, html, text });
+  return send({ to, subject, html, text });
 }
 
 export async function sendNewMessageToClientEmail(
@@ -122,7 +121,7 @@ export async function sendNewMessageToClientEmail(
 ) {
   if (!shouldNotify(to, ticketId)) return null;
   const { subject, html, text } = renderNewMessageToClientEmail(params);
-  return resend().emails.send({ from: FROM, to, subject, html, text });
+  return send({ to, subject, html, text });
 }
 
 export async function sendInquiryTranscriptEmail(
@@ -130,7 +129,7 @@ export async function sendInquiryTranscriptEmail(
   params: InquiryTranscriptEmailParams,
 ) {
   const { subject, html, text } = renderInquiryTranscriptEmail(params);
-  return resend().emails.send({ from: FROM, to, subject, html, text });
+  return send({ to, subject, html, text });
 }
 
 export async function sendWaitingInquiryEmail(
@@ -138,5 +137,5 @@ export async function sendWaitingInquiryEmail(
   params: WaitingInquiryEmailParams,
 ) {
   const { subject, html, text } = renderWaitingInquiryEmail(params);
-  return resend().emails.send({ from: FROM, to, subject, html, text });
+  return send({ to, subject, html, text });
 }
