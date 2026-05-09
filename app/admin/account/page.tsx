@@ -28,6 +28,7 @@ export default async function AccountPage() {
     oooMessage: row?.oooMessage ?? "",
     holidays: row?.holidays ?? [],
     emergencyFeeCents: row?.emergencyFeeCents ?? 5000,
+    outOfTown: row?.outOfTown ?? false,
   };
 
   return (

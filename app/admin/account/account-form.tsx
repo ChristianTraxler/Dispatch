@@ -14,6 +14,7 @@ interface InitialState {
   oooMessage: string;
   holidays: string[];
   emergencyFeeCents: number;
+  outOfTown: boolean;
 }
 
 const WEEKDAY_LABELS: Array<[keyof WeeklyHours, string]> = [
@@ -71,9 +72,11 @@ export function AccountForm({ initial }: { initial: InitialState }) {
   const [oooUntil, setOooUntil] = useState<string>(initialUntil.date);
   const [oooUntilTime, setOooUntilTime] = useState<string>(initialUntil.time);
   const [oooMessage, setOooMessage] = useState<string>(initial.oooMessage);
+  const [outOfTown, setOutOfTown] = useState<boolean>(initial.outOfTown);
 
   const [savingHours, setSavingHours] = useState(false);
   const [savingOoo, setSavingOoo] = useState(false);
+  const [savingOutOfTown, setSavingOutOfTown] = useState(false);
 
   const [holidays, setHolidays] = useState<string[]>(initial.holidays);
   const [feeDollars, setFeeDollars] = useState<string>(
@@ -143,6 +146,26 @@ export function AccountForm({ initial }: { initial: InitialState }) {
       router.refresh();
     } finally {
       setSavingOoo(false);
+    }
+  }
+
+  async function saveOutOfTown() {
+    setSavingOutOfTown(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ outOfTown }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        pushToast({ kind: "error", title: "Save failed", detail: data.error ?? "Couldn't save out-of-town." });
+        return;
+      }
+      pushToast({ kind: "info", title: outOfTown ? "Out of town is ON" : "Out of town is off" });
+      router.refresh();
+    } finally {
+      setSavingOutOfTown(false);
     }
   }
 
@@ -450,6 +473,56 @@ export function AccountForm({ initial }: { initial: InitialState }) {
             className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-parchment-warm transition-colors disabled:opacity-50"
           >
             {savingOoo ? "Saving…" : "Save OOO"}
+          </button>
+        </div>
+      </section>
+
+      {/* Out of Town (silent — clients see no change) */}
+      <section>
+        <div className="flex items-center gap-3 mb-4">
+          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">§</span>
+          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+            Out of Town
+          </span>
+          <span className="h-px flex-1 bg-rule-soft" />
+        </div>
+
+        <div className="border border-rule p-4 space-y-3">
+          <label className="flex items-center gap-3">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={outOfTown}
+              onClick={() => setOutOfTown((v) => !v)}
+              className={`w-12 h-6 rounded-full transition-colors relative ${
+                outOfTown ? "bg-signal-red" : "bg-ink-fade/40"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-parchment-warm transition-transform ${
+                  outOfTown ? "translate-x-6" : ""
+                }`}
+              />
+            </button>
+            <span className="font-mono text-[0.7rem] uppercase tracking-widest text-ink">
+              {outOfTown ? "Out of town is ON" : "Out of town is off"}
+            </span>
+          </label>
+          <p className="font-display italic text-ink-mute">
+            When on, clients won&rsquo;t see the Emergency Fix option after hours.
+            Their portal looks normal &mdash; no indication you&rsquo;re away.
+            Use this when traveling.
+          </p>
+        </div>
+
+        <div className="flex justify-end mt-4">
+          <button
+            type="button"
+            onClick={saveOutOfTown}
+            disabled={savingOutOfTown}
+            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-parchment-warm transition-colors disabled:opacity-50"
+          >
+            {savingOutOfTown ? "Saving…" : "Save out-of-town"}
           </button>
         </div>
       </section>
