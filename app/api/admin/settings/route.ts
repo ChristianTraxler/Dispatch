@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin, AuthRequiredError, AdminRequiredError } from "@/lib/auth/admin-guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { WeeklyHours } from "@/lib/availability";
+import { todayInTimezone } from "@/lib/vacation-helpers";
 
 export const dynamic = "force-dynamic";
 
@@ -181,21 +182,39 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "No fields to update." }, { status: 400 });
   }
 
-  const updated = await prisma.adminSettings.upsert({
-    where: { id: "global" },
-    update: data,
-    create: {
-      id: "global",
-      timezone: (data.timezone as string | undefined) ?? "America/New_York",
-      hours: (data.hours as object | undefined) ?? {},
-      oooEnabled: (data.oooEnabled as boolean | undefined) ?? false,
-      oooFrom: (data.oooFrom as Date | null | undefined) ?? null,
-      oooUntil: (data.oooUntil as Date | null | undefined) ?? null,
-      oooMessage: (data.oooMessage as string | null | undefined) ?? null,
-      holidays: (data.holidays as string[] | undefined) ?? [],
-      emergencyFeeCents: (data.emergencyFeeCents as number | undefined) ?? 5000,
-      outOfTown: (data.outOfTown as boolean | undefined) ?? false,
-    },
+  const willTurnOffOutOfTown = body.outOfTown === false;
+
+  const updated = await prisma.$transaction(async (tx) => {
+    const u = await tx.adminSettings.upsert({
+      where: { id: "global" },
+      update: data,
+      create: {
+        id: "global",
+        timezone: (data.timezone as string | undefined) ?? "America/New_York",
+        hours: (data.hours as object | undefined) ?? {},
+        oooEnabled: (data.oooEnabled as boolean | undefined) ?? false,
+        oooFrom: (data.oooFrom as Date | null | undefined) ?? null,
+        oooUntil: (data.oooUntil as Date | null | undefined) ?? null,
+        oooMessage: (data.oooMessage as string | null | undefined) ?? null,
+        holidays: (data.holidays as string[] | undefined) ?? [],
+        emergencyFeeCents: (data.emergencyFeeCents as number | undefined) ?? 5000,
+        outOfTown: (data.outOfTown as boolean | undefined) ?? false,
+      },
+    });
+
+    if (willTurnOffOutOfTown) {
+      const today = todayInTimezone(u.timezone);
+      await tx.vacation.deleteMany({
+        where: {
+          AND: [
+            { startDate: { lte: new Date(`${today}T00:00:00Z`) } },
+            { endDate:   { gte: new Date(`${today}T00:00:00Z`) } },
+          ],
+        },
+      });
+    }
+
+    return u;
   });
 
   // Broadcast so any open chat widget refreshes immediately.
