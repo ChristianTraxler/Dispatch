@@ -38,7 +38,10 @@ export async function POST(
   // Keep the same token so the link in the recipient's email still works.
   const updated = await prisma.invite.update({
     where: { id },
-    data: { expiresAt: new Date(Date.now() + SEVEN_DAYS_MS) },
+    data: {
+      expiresAt: new Date(Date.now() + SEVEN_DAYS_MS),
+      reminderSentAt: null,
+    },
   });
   return NextResponse.json({ invite: updated });
 }
