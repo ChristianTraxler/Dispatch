@@ -704,6 +704,69 @@ Reply here: ${p.ticketUrl}${plainTextFooter()}`;
 }
 
 /* ============================================
+   9. INVITE EXPIRY REMINDER
+   ============================================ */
+export interface InviteReminderEmailParams {
+  recipientName?: string;
+  email: string;
+  siteDisplayName: string;
+  inviteUrl: string;
+  expiresAt: Date | string;
+}
+
+export function renderInviteReminderEmail(p: InviteReminderEmailParams): { subject: string; html: string; text: string } {
+  const expiresAt = typeof p.expiresAt === "string" ? new Date(p.expiresAt) : p.expiresAt;
+  const expiresStr = expiresAt.toLocaleString("en-US", {
+    month: "long",
+    day: "2-digit",
+    year: "numeric",
+  });
+
+  const greeting = p.recipientName ? `Hi ${escape(p.recipientName)},` : "Hi there,";
+
+  const body = `
+${sectionLabel("REMINDER")}
+${headline(`Your invite expires in<br><span style="color:${COLORS.signalRed};font-style:italic;">2 days</span>`)}
+${lede(`Your account for ${escape(p.siteDisplayName)} is still waiting on you.`)}
+
+${bodyText(greeting)}
+${bodyText(`Quick nudge — the Dispatch invite I sent you for ${escape(p.siteDisplayName)} expires on ${expiresStr}. The original link still works; click below whenever you're ready to set it up.`)}
+
+${dataTable(`
+${dataRow("Site", `<strong style="font-weight:500;">${escape(p.siteDisplayName)}</strong>`)}
+${dataRow("Email", `<span style="font-family:${FONT_MONO};font-size:13px;">${escape(p.email)}</span>`)}
+${dataRow("Expires", expiresStr)}
+`)}
+
+${button({ href: p.inviteUrl, label: "Set up your account →" })}
+
+${bodyText(`Already set it up? You can ignore this — these reminders stop once you redeem the invite.`)}
+
+${bodyText(`— Christian`)}
+  `.trim();
+
+  const subject = `Reminder: your Dispatch invite for ${p.siteDisplayName} expires in 2 days`;
+
+  const html = shell({
+    title: subject,
+    preheader: `Your invite for ${p.siteDisplayName} expires ${expiresStr}.`,
+    body,
+  });
+
+  const text = `${greeting.replace("&nbsp;", " ")}
+
+Quick reminder — your Dispatch invite for ${p.siteDisplayName} expires on ${expiresStr} (about 2 days from now). The original link still works:
+
+${p.inviteUrl}
+
+Already set it up? You can ignore this — reminders stop once you redeem.
+
+— Christian${plainTextFooter()}`;
+
+  return { subject, html, text };
+}
+
+/* ============================================
    EXPORTS
    ============================================ */
 export const dispatchEmails = {
@@ -715,4 +778,5 @@ export const dispatchEmails = {
   renderTicketReopenedEmail,
   renderInquiryTranscriptEmail,
   renderWaitingInquiryEmail,
+  renderInviteReminderEmail,
 };
