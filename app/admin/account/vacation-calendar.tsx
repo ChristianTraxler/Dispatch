@@ -98,7 +98,7 @@ export function VacationCalendar({ initial, timezone }: Props) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        pushToast({ kind: "error", title: "Couldn&apos;t add vacation", detail: (data as { error?: string }).error ?? "Unknown error." });
+        pushToast({ kind: "error", title: "Couldn't add vacation", detail: (data as { error?: string }).error ?? "Unknown error." });
         return;
       }
       const created = (await res.json()) as Vacation;
@@ -118,7 +118,7 @@ export function VacationCalendar({ initial, timezone }: Props) {
       const res = await fetch(`/api/admin/vacations/${id}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        pushToast({ kind: "error", title: "Couldn&apos;t delete", detail: (data as { error?: string }).error ?? "Unknown error." });
+        pushToast({ kind: "error", title: "Couldn't delete", detail: (data as { error?: string }).error ?? "Unknown error." });
         return;
       }
       setVacations((arr) => arr.filter((v) => v.id !== id));
