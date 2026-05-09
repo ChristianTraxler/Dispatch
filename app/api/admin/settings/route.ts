@@ -27,6 +27,7 @@ export async function GET() {
     oooMessage: row.oooMessage,
     holidays: row.holidays,
     emergencyFeeCents: row.emergencyFeeCents,
+    outOfTown: row.outOfTown,
   });
 }
 
@@ -39,6 +40,7 @@ interface PatchBody {
   oooMessage?: string | null;
   holidays?: string[];
   emergencyFeeCents?: number;
+  outOfTown?: boolean;
 }
 
 const HHMM = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
@@ -168,6 +170,12 @@ export async function PATCH(req: Request) {
     }
     data.emergencyFeeCents = body.emergencyFeeCents;
   }
+  if (body.outOfTown !== undefined) {
+    if (typeof body.outOfTown !== "boolean") {
+      return NextResponse.json({ error: "Invalid outOfTown." }, { status: 400 });
+    }
+    data.outOfTown = body.outOfTown;
+  }
 
   if (Object.keys(data).length === 0) {
     return NextResponse.json({ error: "No fields to update." }, { status: 400 });
@@ -186,6 +194,7 @@ export async function PATCH(req: Request) {
       oooMessage: (data.oooMessage as string | null | undefined) ?? null,
       holidays: (data.holidays as string[] | undefined) ?? [],
       emergencyFeeCents: (data.emergencyFeeCents as number | undefined) ?? 5000,
+      outOfTown: (data.outOfTown as boolean | undefined) ?? false,
     },
   });
 
@@ -219,5 +228,6 @@ export async function PATCH(req: Request) {
     oooMessage: updated.oooMessage,
     holidays: updated.holidays,
     emergencyFeeCents: updated.emergencyFeeCents,
+    outOfTown: updated.outOfTown,
   });
 }
