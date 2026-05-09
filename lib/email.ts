@@ -10,6 +10,7 @@ import {
   renderTicketReopenedEmail,
   renderInquiryTranscriptEmail,
   renderWaitingInquiryEmail,
+  renderInviteReminderEmail,
   type InviteEmailParams,
   type NewTicketEmailParams,
   type NewMessageToAdminEmailParams,
@@ -18,6 +19,7 @@ import {
   type TicketReopenedEmailParams,
   type InquiryTranscriptEmailParams,
   type WaitingInquiryEmailParams,
+  type InviteReminderEmailParams,
 } from "@/lib/email-templates";
 
 // Lazy-instantiate the Resend client so module evaluation doesn't blow up
@@ -36,6 +38,17 @@ const FROM = process.env.RESEND_FROM ?? "Dispatch <support@developerofcode.com>"
 
 export async function sendInviteEmail(params: InviteEmailParams) {
   const { subject, html, text } = renderInviteEmail(params);
+  return resend().emails.send({
+    from: FROM,
+    to: params.email,
+    subject,
+    html,
+    text,
+  });
+}
+
+export async function sendInviteReminderEmail(params: InviteReminderEmailParams) {
+  const { subject, html, text } = renderInviteReminderEmail(params);
   return resend().emails.send({
     from: FROM,
     to: params.email,
