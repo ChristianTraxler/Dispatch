@@ -153,3 +153,17 @@ model AdminSettings {
 
   @@map("admin_settings")
 }
+
+/// One scheduled vacation. start_date and end_date are calendar dates in the
+/// admin's timezone (no time-of-day, no UTC math). end_date is INCLUSIVE —
+/// the day after end_date is when outOfTown flips back off.
+model Vacation {
+  id        String   @id @default(cuid())
+  label     String?
+  startDate DateTime @db.Date  @map("start_date")
+  endDate   DateTime @db.Date  @map("end_date")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([startDate, endDate])
+  @@map("vacations")
+}
