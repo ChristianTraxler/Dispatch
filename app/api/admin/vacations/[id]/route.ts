@@ -1,5 +1,6 @@
 import "server-only";
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
   requireAdmin,
@@ -65,28 +66,36 @@ export async function DELETE(
   const targetWasActive = targetStart <= today && today <= targetEnd;
 
   let flipNeeded = false;
-  await prisma.$transaction(async (tx) => {
-    await tx.vacation.delete({ where: { id } });
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.vacation.delete({ where: { id } });
 
-    if (targetWasActive && settings?.outOfTown === true) {
-      // Is any OTHER vacation currently active?
-      const otherActive = await tx.vacation.findFirst({
-        where: {
-          AND: [
-            { startDate: { lte: new Date(`${today}T00:00:00Z`) } },
-            { endDate:   { gte: new Date(`${today}T00:00:00Z`) } },
-          ],
-        },
-      });
-      if (!otherActive) {
-        await tx.adminSettings.update({
-          where: { id: "global" },
-          data: { outOfTown: false },
+      if (targetWasActive && settings?.outOfTown === true) {
+        // Is any OTHER vacation currently active?
+        const otherActive = await tx.vacation.findFirst({
+          where: {
+            AND: [
+              { startDate: { lte: new Date(`${today}T00:00:00Z`) } },
+              { endDate:   { gte: new Date(`${today}T00:00:00Z`) } },
+            ],
+          },
         });
-        flipNeeded = true;
+        if (!otherActive) {
+          await tx.adminSettings.update({
+            where: { id: "global" },
+            data: { outOfTown: false },
+          });
+          flipNeeded = true;
+        }
       }
+    });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025") {
+      // Race: another request deleted the same row. Treat as success.
+      return NextResponse.json({ ok: true });
     }
-  });
+    throw err;
+  }
 
   if (flipNeeded) {
     await broadcastSettingsChanged();
