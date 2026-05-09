@@ -4,6 +4,7 @@ import { useState, useEffect, type CSSProperties } from "react";
 import { AttachmentDropzone, type UploadedAttachment } from "./AttachmentDropzone";
 import { uploadFile } from "@/lib/upload-client";
 import { EmergencyFixModal } from "./EmergencyFixModal";
+import { useEmergencyState } from "@/lib/realtime/use-admin-status";
 
 export interface NewTicketSite {
   id: string;
@@ -29,10 +30,6 @@ export interface NewTicketPageProps {
   onCancel?: () => void;
   className?: string;
   style?: CSSProperties;
-  /** When true on first render, the Emergency button is visible immediately. */
-  initialIsAfterHours?: boolean;
-  /** Default fee in cents while the first /api/availability response is in flight. */
-  initialEmergencyFeeCents?: number;
 }
 
 const CATEGORIES = [
@@ -50,8 +47,6 @@ export function NewTicketPage({
   onCancel,
   className = "",
   style,
-  initialIsAfterHours = false,
-  initialEmergencyFeeCents = 5000,
 }: NewTicketPageProps) {
   const [siteId, setSiteId] = useState(defaultSiteId ?? sites[0]?.id ?? "");
   const [title, setTitle] = useState("");
@@ -60,40 +55,23 @@ export function NewTicketPage({
   const [attachments, setAttachments] = useState<UploadedAttachment[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
-  const [isAfterHours, setIsAfterHours] = useState<boolean>(initialIsAfterHours);
-  const [feeCents, setFeeCents] = useState<number>(initialEmergencyFeeCents);
+  // Real-time emergency state from the AdminStatusProvider — refetches on the
+  // shared `settings-changed` broadcast, so flipping admin "Out of town"
+  // updates the button visibility on connected portals immediately.
+  const emergency = useEmergencyState();
+  const emergencyAvailable = emergency?.available ?? false;
+  const feeCents = emergency?.feeCents ?? 5000;
+
   const [isEmergency, setIsEmergency] = useState<boolean>(false);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [resumedNotice, setResumedNotice] = useState<boolean>(false);
 
   useEffect(() => {
-    let cancelled = false;
-    async function tick() {
-      try {
-        const res = await fetch("/api/availability", { cache: "no-store" });
-        if (!res.ok) return;
-        const data = (await res.json()) as { isAfterHours?: boolean; emergencyFeeCents?: number };
-        if (cancelled) return;
-        if (typeof data.isAfterHours === "boolean") setIsAfterHours(data.isAfterHours);
-        if (typeof data.emergencyFeeCents === "number") setFeeCents(data.emergencyFeeCents);
-      } catch {
-        // Network blip — keep last known state.
-      }
-    }
-    tick();
-    const id = setInterval(tick, 60_000);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!isAfterHours && isEmergency) {
+    if (!emergencyAvailable && isEmergency) {
       setIsEmergency(false);
       setResumedNotice(true);
     }
-  }, [isAfterHours, isEmergency]);
+  }, [emergencyAvailable, isEmergency]);
 
   function dismissResumedNotice() {
     if (resumedNotice) setResumedNotice(false);
@@ -287,7 +265,7 @@ export function NewTicketPage({
         </div>
 
         {/* Emergency Fix (only after hours) */}
-        {isAfterHours ? (
+        {emergencyAvailable ? (
           <div className="pt-2">
             {resumedNotice ? (
               <p className="font-mono text-[0.7rem] uppercase tracking-widest text-ink-mute mb-3">
