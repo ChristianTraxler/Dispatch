@@ -11,6 +11,10 @@
     {
       "path": "/api/admin/cron/remind-expiring-invites",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/admin/cron/process-vacations",
+      "schedule": "5 5 * * *"
     }
   ]
 }
