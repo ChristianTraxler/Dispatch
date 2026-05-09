@@ -33,9 +33,12 @@ const cases: Case[] = [
       // 2026-03-08 04:05Z = 2026-03-07 23:05 EST (DST starts at 02:00 local)
       const r = todayInTimezone("America/New_York", new Date("2026-03-08T04:05:00Z"));
       assertEq(r, "2026-03-07");
-      // 2026-03-08 06:05Z = 2026-03-08 02:05 EDT
+      // 2026-03-08 06:05Z = 2026-03-08 01:05 EST (DST flip is at 07:00Z = 02:00 local → 03:00 local)
       const r2 = todayInTimezone("America/New_York", new Date("2026-03-08T06:05:00Z"));
       assertEq(r2, "2026-03-08");
+      // 2026-03-08 08:05Z = 2026-03-08 04:05 EDT (after the spring-forward boundary)
+      const r3 = todayInTimezone("America/New_York", new Date("2026-03-08T08:05:00Z"));
+      assertEq(r3, "2026-03-08");
     },
   },
   {
