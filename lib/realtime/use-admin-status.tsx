@@ -30,11 +30,19 @@ interface ApiResponse {
     oooMessage: string | null;
     holidays: string[];
   };
+  emergencyAvailable: boolean;
+  emergencyFeeCents: number;
+}
+
+interface EmergencyState {
+  available: boolean;
+  feeCents: number;
 }
 
 interface AdminStatusValue {
   availability: Availability;
   settings: AdminSettingsInput;
+  emergency: EmergencyState;
 }
 
 const AdminStatusContext = createContext<AdminStatusValue | null>(null);
@@ -54,6 +62,7 @@ const AdminStatusContext = createContext<AdminStatusValue | null>(null);
  */
 export function AdminStatusProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<AdminSettingsInput | null>(null);
+  const [emergency, setEmergency] = useState<EmergencyState | null>(null);
   const [now, setNow] = useState<Date>(new Date());
   const adminOnline = useAdminPresence();
 
@@ -74,6 +83,10 @@ export function AdminStatusProvider({ children }: { children: ReactNode }) {
           oooUntil: data.settings.oooUntil ? new Date(data.settings.oooUntil) : null,
           oooMessage: data.settings.oooMessage,
           holidays: data.settings.holidays,
+        });
+        setEmergency({
+          available: data.emergencyAvailable,
+          feeCents: data.emergencyFeeCents,
         });
       } catch {
         // ignore; will retry on tick
@@ -109,8 +122,8 @@ export function AdminStatusProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(id);
   }, []);
 
-  const value: AdminStatusValue | null = settings
-    ? { availability: computeAvailability(settings, adminOnline, now), settings }
+  const value: AdminStatusValue | null = settings && emergency
+    ? { availability: computeAvailability(settings, adminOnline, now), settings, emergency }
     : null;
 
   return (
@@ -128,4 +141,15 @@ export function useAdminStatus(): Availability | null {
 /** Raw settings (timezone, hours, OOO, holidays). Null while loading. */
 export function useAdminSettings(): AdminSettingsInput | null {
   return useContext(AdminStatusContext)?.settings ?? null;
+}
+
+/**
+ * Coalesced emergency state: whether the emergency-fix path is currently
+ * offered to the client and the fee that would apply. Null while loading.
+ * Refetches in real time on the `settings-changed` broadcast — flipping the
+ * admin "Out of town" toggle (or any settings change) updates connected
+ * portals without a manual refresh.
+ */
+export function useEmergencyState(): EmergencyState | null {
+  return useContext(AdminStatusContext)?.emergency ?? null;
 }
