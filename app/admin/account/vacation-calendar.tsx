@@ -122,6 +122,20 @@ export function VacationCalendar({ initial, timezone, onOutOfTownChange }: Props
   }
 
   async function deleteVacation(id: string) {
+    const target = vacations.find((v) => v.id === id);
+    if (!target) return;
+    const isActive = target.startDate <= today && today <= target.endDate;
+    const otherActive = vacations.some(
+      (v) => v.id !== id && v.startDate <= today && today <= v.endDate,
+    );
+    const labelText = target.label?.trim() || "this vacation";
+    const dateText = formatDateRange(target.startDate, target.endDate);
+    const willFlipOff = isActive && !otherActive;
+    const message = willFlipOff
+      ? `Remove ${labelText} (${dateText})? Out-of-Town will turn off.`
+      : `Remove ${labelText} (${dateText})?`;
+    if (!window.confirm(message)) return;
+
     setDeletingId(id);
     try {
       const res = await fetch(`/api/admin/vacations/${id}`, { method: "DELETE" });
@@ -130,16 +144,9 @@ export function VacationCalendar({ initial, timezone, onOutOfTownChange }: Props
         pushToast({ kind: "error", title: "Couldn't delete", detail: (data as { error?: string }).error ?? "Unknown error." });
         return;
       }
-      // Mirror the server-side maybe-flip-off: if the deleted vacation was
-      // currently active AND no OTHER vacation is currently active, the server
-      // flipped outOfTown=false. Inform the parent so the toggle follows.
-      const target = vacations.find((v) => v.id === id);
-      if (target && target.startDate <= today && today <= target.endDate) {
-        const otherActive = vacations.some(
-          (v) => v.id !== id && v.startDate <= today && today <= v.endDate,
-        );
-        if (!otherActive) onOutOfTownChange?.(false);
-      }
+      // Mirror the server-side maybe-flip-off: when we know the deletion just
+      // turned off Out-of-Town, inform the parent so the toggle follows.
+      if (willFlipOff) onOutOfTownChange?.(false);
       setVacations((arr) => arr.filter((v) => v.id !== id));
       pushToast({ kind: "info", title: "Vacation removed" });
       router.refresh();
@@ -190,6 +197,8 @@ export function VacationCalendar({ initial, timezone, onOutOfTownChange }: Props
             grid={buildMonthGrid(month1.y, month1.m, today)}
             scheduledRanges={ranges}
             previewRange={previewRange}
+            pendingStart={pendingStart}
+            pendingEnd={pendingEnd}
             onDayClick={handleDayClick}
             onDayHover={setHoveredDay}
           />
@@ -198,6 +207,8 @@ export function VacationCalendar({ initial, timezone, onOutOfTownChange }: Props
             grid={buildMonthGrid(month2.y, month2.m, today)}
             scheduledRanges={ranges}
             previewRange={previewRange}
+            pendingStart={pendingStart}
+            pendingEnd={pendingEnd}
             onDayClick={handleDayClick}
             onDayHover={setHoveredDay}
           />
@@ -289,12 +300,14 @@ interface MonthGridProps {
   grid: MonthCell[][];
   scheduledRanges: DateRange[];
   previewRange: DateRange | null;
+  pendingStart: string | null;
+  pendingEnd: string | null;
   onDayClick: (day: MonthCell) => void;
   onDayHover: (date: string | null) => void;
 }
 
 function MonthGrid({
-  ymTitle, grid, scheduledRanges, previewRange, onDayClick, onDayHover,
+  ymTitle, grid, scheduledRanges, previewRange, pendingStart, pendingEnd, onDayClick, onDayHover,
 }: MonthGridProps) {
   const dayHeaders = ["S", "M", "T", "W", "T", "F", "S"];
   return (
@@ -323,12 +336,15 @@ function MonthGrid({
           else if (inPreview) cls += " bg-signal-red text-parchment-warm";
           else cls += " text-ink hover:bg-signal-red/10 cursor-pointer";
           if (cell.isToday && !inPreview) cls += " ring-1 ring-signal-red";
+          const isSelectedEndpoint = cell.date === pendingStart || cell.date === pendingEnd;
           return (
             <button
               key={cell.date}
               type="button"
               aria-label={ariaForDay(cell.date)}
               aria-disabled={disabled}
+              aria-pressed={isSelectedEndpoint || undefined}
+              data-in-range={inPreview ? "true" : undefined}
               tabIndex={disabled ? -1 : 0}
               onClick={() => !disabled && onDayClick(cell)}
               onMouseEnter={() => !disabled && onDayHover(cell.date)}
