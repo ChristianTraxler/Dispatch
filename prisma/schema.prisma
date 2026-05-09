@@ -148,6 +148,7 @@ model AdminSettings {
   oooMessage  String?                           @map("ooo_message")
   holidays           String[] @default([])
   emergencyFeeCents  Int      @default(5000) @map("emergency_fee_cents")
+  outOfTown          Boolean  @default(false) @map("out_of_town")
   updatedAt   DateTime  @updatedAt              @map("updated_at")
 
   @@map("admin_settings")
