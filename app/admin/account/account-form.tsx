@@ -479,6 +479,13 @@ export function AccountForm({ initial }: { initial: InitialState }) {
         </div>
       </section>
 
+      {/* Vacations */}
+      <VacationCalendar
+        initial={initial.vacations}
+        timezone={timezone}
+        onActiveVacationCreated={() => setOutOfTown(true)}
+      />
+
       {/* Out of Town (silent — clients see no change) */}
       <section>
         <div className="flex items-center gap-3 mb-4">
@@ -528,9 +535,6 @@ export function AccountForm({ initial }: { initial: InitialState }) {
           </button>
         </div>
       </section>
-
-      {/* Vacations */}
-      <VacationCalendar initial={initial.vacations} timezone={timezone} />
 
       {/* Holidays */}
       <section>

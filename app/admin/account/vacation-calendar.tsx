@@ -22,9 +22,12 @@ export interface Vacation {
 interface Props {
   initial: Vacation[];
   timezone: string;
+  /** Fires after saving a vacation whose range includes today, so the parent
+   *  can flip its Out-of-Town toggle to ON without waiting for a reload. */
+  onActiveVacationCreated?: () => void;
 }
 
-export function VacationCalendar({ initial, timezone }: Props) {
+export function VacationCalendar({ initial, timezone, onActiveVacationCreated }: Props) {
   const router = useRouter();
   const { push: pushToast } = useToast();
 
@@ -103,6 +106,11 @@ export function VacationCalendar({ initial, timezone }: Props) {
       }
       const created = (await res.json()) as Vacation;
       setVacations((arr) => [...arr, created].sort((a, b) => a.startDate.localeCompare(b.startDate)));
+      // If this vacation includes today, the server flipped outOfTown=true.
+      // Notify the parent so its toggle reflects reality without a reload.
+      if (created.startDate <= today && today <= created.endDate) {
+        onActiveVacationCreated?.();
+      }
       setLabel("");
       clearSelection();
       pushToast({ kind: "info", title: "Vacation added" });
