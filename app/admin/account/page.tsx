@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/admin-guard";
 import { AccountForm } from "./account-form";
 import type { WeeklyHours } from "@/lib/availability";
+import { todayInTimezone, formatYmd } from "@/lib/vacation-helpers";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +20,15 @@ export default async function AccountPage() {
   await requireAdmin();
   const row = await prisma.adminSettings.findUnique({ where: { id: "global" } });
 
+  const tz = row?.timezone ?? "America/New_York";
+  const todayYmd = todayInTimezone(tz);
+  const upcomingVacations = await prisma.vacation.findMany({
+    where: { endDate: { gte: new Date(`${todayYmd}T00:00:00Z`) } },
+    orderBy: { startDate: "asc" },
+  });
+
   const initial = {
-    timezone: row?.timezone ?? "America/New_York",
+    timezone: tz,
     hours: ((row?.hours as WeeklyHours | undefined) ?? DEFAULT_HOURS),
     oooEnabled: row?.oooEnabled ?? false,
     oooFromIso: row?.oooFrom?.toISOString() ?? "",
@@ -29,6 +37,12 @@ export default async function AccountPage() {
     holidays: row?.holidays ?? [],
     emergencyFeeCents: row?.emergencyFeeCents ?? 5000,
     outOfTown: row?.outOfTown ?? false,
+    vacations: upcomingVacations.map((v) => ({
+      id: v.id,
+      label: v.label,
+      startDate: formatYmd(v.startDate.getUTCFullYear(), v.startDate.getUTCMonth() + 1, v.startDate.getUTCDate()),
+      endDate: formatYmd(v.endDate.getUTCFullYear(), v.endDate.getUTCMonth() + 1, v.endDate.getUTCDate()),
+    })),
   };
 
   return (

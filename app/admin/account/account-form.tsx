@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { computeAvailability, type WeeklyHours } from "@/lib/availability";
+import { VacationCalendar, type Vacation } from "./vacation-calendar";
 
 interface InitialState {
   timezone: string;
@@ -15,6 +16,7 @@ interface InitialState {
   holidays: string[];
   emergencyFeeCents: number;
   outOfTown: boolean;
+  vacations: Vacation[];
 }
 
 const WEEKDAY_LABELS: Array<[keyof WeeklyHours, string]> = [
@@ -526,6 +528,9 @@ export function AccountForm({ initial }: { initial: InitialState }) {
           </button>
         </div>
       </section>
+
+      {/* Vacations */}
+      <VacationCalendar initial={initial.vacations} timezone={timezone} />
 
       {/* Holidays */}
       <section>
