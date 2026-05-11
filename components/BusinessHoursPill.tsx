@@ -142,9 +142,14 @@ export function BusinessHoursPill() {
   // Inline secondary text — what shows after the status label.
   // When OOO and there's no custom message, we leave this blank so the pill
   // doesn't read "OUT OF OFFICE · OUT OF OFFICE".
+  // When out-of-town we mirror the chat widget's "back May 13" so the pill
+  // doesn't contradict itself with "OFFLINE · Today 9 AM – 5 PM ET" while
+  // the admin is actually away.
   let inlineDetail: string;
   if (status.state === "ooo") {
     inlineDetail = status.detail || "";
+  } else if (settings.outOfTown) {
+    inlineDetail = status.detail;
   } else if (isHoliday) {
     inlineDetail = "Closed today (holiday)";
   } else if (!todayHours?.enabled) {

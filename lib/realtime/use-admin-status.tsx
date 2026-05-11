@@ -28,6 +28,8 @@ interface ApiResponse {
     oooFrom: string | null;
     oooUntil: string | null;
     oooMessage: string | null;
+    outOfTown: boolean;
+    outOfTownUntil: string | null;
     holidays: string[];
   };
   emergencyAvailable: boolean;
@@ -82,6 +84,8 @@ export function AdminStatusProvider({ children }: { children: ReactNode }) {
           oooFrom: data.settings.oooFrom ? new Date(data.settings.oooFrom) : null,
           oooUntil: data.settings.oooUntil ? new Date(data.settings.oooUntil) : null,
           oooMessage: data.settings.oooMessage,
+          outOfTown: data.settings.outOfTown,
+          outOfTownUntil: data.settings.outOfTownUntil,
           holidays: data.settings.holidays,
         });
         setEmergency({

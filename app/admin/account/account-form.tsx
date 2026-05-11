@@ -99,6 +99,10 @@ export function AccountForm({ initial }: { initial: InitialState }) {
         oooFrom: fromIso ? new Date(fromIso) : null,
         oooUntil: cutoffIso ? new Date(cutoffIso) : null,
         oooMessage: oooMessage || null,
+        // The admin form's preview pane only previews schedule + OOO edits.
+        // Out-of-town is its own toggle/section, surfaced elsewhere.
+        outOfTown: false,
+        outOfTownUntil: null,
         holidays,
       },
       false,

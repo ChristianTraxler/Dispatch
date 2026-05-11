@@ -23,6 +23,8 @@ function settings(over: Partial<AdminSettingsInput> = {}): AdminSettingsInput {
     oooFrom: null,
     oooUntil: null,
     oooMessage: null,
+    outOfTown: false,
+    outOfTownUntil: null,
     holidays: [],
     ...over,
   };
@@ -160,6 +162,49 @@ const cases: Case[] = [
       );
       assertEq(r.state, "offline");
       assertEq(r.nextOpenAt, "2026-05-12T13:00:00.000Z");
+    },
+  },
+  {
+    name: "out-of-town: with return date → state offline, detail back <date>, nextOpenAt null",
+    fn: () => {
+      const r = computeAvailability(
+        settings({ outOfTown: true, outOfTownUntil: "2026-05-13" }),
+        true, // even with presence/within-hours, out-of-town overrides
+        new Date("2026-05-11T14:00:00Z"),
+      );
+      assertEq(r.state, "offline");
+      assertEq(r.label, "Offline");
+      assertEq(r.detail, "back May 13");
+      assertEq(r.nextOpenAt, null);
+    },
+  },
+  {
+    name: "out-of-town: without return date → 'currently unavailable'",
+    fn: () => {
+      const r = computeAvailability(
+        settings({ outOfTown: true, outOfTownUntil: null }),
+        false,
+        new Date("2026-05-11T14:00:00Z"),
+      );
+      assertEq(r.state, "offline");
+      assertEq(r.detail, "currently unavailable");
+      assertEq(r.nextOpenAt, null);
+    },
+  },
+  {
+    name: "out-of-town: OOO still wins when both are active",
+    fn: () => {
+      const r = computeAvailability(
+        settings({
+          outOfTown: true,
+          outOfTownUntil: "2026-05-13",
+          oooEnabled: true,
+          oooMessage: "On break.",
+        }),
+        false,
+        new Date("2026-05-11T14:00:00Z"),
+      );
+      assertEq(r.state, "ooo");
     },
   },
   {

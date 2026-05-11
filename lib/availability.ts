@@ -19,6 +19,11 @@ export interface AdminSettingsInput {
   oooFrom: Date | null;
   oooUntil: Date | null;
   oooMessage: string | null;
+  outOfTown: boolean;
+  // YYYY-MM-DD calendar date (admin TZ) the admin is back. Used to render
+  // "back May 13" when out of town. Null when no scheduled vacation underlies
+  // the current out-of-town state (manual toggle).
+  outOfTownUntil: string | null;
   holidays: string[]; // YYYY-MM-DD list, in `timezone`
 }
 
@@ -53,7 +58,24 @@ export function computeAvailability(
     };
   }
 
-  // 2. Online (live presence)
+  // 2. Out of town — manual toggle or active scheduled vacation. Presented to
+  //    customers as plain "Offline" so they never see *why* (no "vacation" or
+  //    "out of town" copy leaks). When a return date is known we surface it
+  //    as "back May 13" via `detail`; `nextOpenAt` is intentionally null so
+  //    the client-side renderer doesn't override the date with a "back Mon
+  //    9:00 AM" weekday-time string.
+  if (settings.outOfTown) {
+    return {
+      state: "offline",
+      label: "Offline",
+      detail: settings.outOfTownUntil
+        ? `back ${formatYmdShort(settings.outOfTownUntil)}`
+        : "currently unavailable",
+      nextOpenAt: null,
+    };
+  }
+
+  // 3. Online (live presence)
   if (adminOnline) {
     return {
       state: "online",
@@ -186,5 +208,20 @@ function utcInstantForLocal(
 function formatBackAt(instant: Date, tz: string): string {
   return new Intl.DateTimeFormat("en-US", {
     timeZone: tz, weekday: "short", hour: "numeric", minute: "2-digit",
+  }).format(instant);
+}
+
+// Formats a YYYY-MM-DD calendar date as e.g. "May 13". Uses UTC parts to
+// avoid the viewer's timezone shifting the day — the input is already a
+// calendar date in admin's timezone and shouldn't be re-zoned.
+function formatYmdShort(ymd: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+  if (!m) return ymd;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+  const instant = new Date(Date.UTC(y, mo - 1, d));
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "UTC", month: "short", day: "numeric",
   }).format(instant);
 }

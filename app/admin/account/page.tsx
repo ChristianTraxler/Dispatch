@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/auth/admin-guard";
 import { AccountForm } from "./account-form";
 import type { WeeklyHours } from "@/lib/availability";
 import { todayInTimezone, formatYmd } from "@/lib/vacation-helpers";
+import { reconcileVacationFlip, broadcastSettingsChanged } from "@/lib/vacation-reconcile";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,13 @@ const DEFAULT_HOURS: WeeklyHours = {
 
 export default async function AccountPage() {
   await requireAdmin();
+  // Reconcile before reading so the Out-of-Town toggle reflects truth even
+  // if the daily cron missed a tick (e.g., right after midnight on a
+  // vacation start day, before 05:05 UTC).
+  const recon = await reconcileVacationFlip();
+  if (recon.flipped) {
+    await broadcastSettingsChanged();
+  }
   const row = await prisma.adminSettings.findUnique({ where: { id: "global" } });
 
   const tz = row?.timezone ?? "America/New_York";

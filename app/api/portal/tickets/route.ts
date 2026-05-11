@@ -73,6 +73,8 @@ export async function POST(req: Request) {
     oooFrom: settingsRow?.oooFrom ?? null,
     oooUntil: settingsRow?.oooUntil ?? null,
     oooMessage: settingsRow?.oooMessage ?? null,
+    outOfTown: settingsRow?.outOfTown ?? false,
+    outOfTownUntil: null,
     holidays: settingsRow?.holidays ?? [],
   };
   const serverIsAfterHours = isAfterHours(settings, new Date());
