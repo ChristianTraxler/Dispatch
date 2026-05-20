@@ -30,6 +30,7 @@ export interface AdminClientsPageProps {
   clients: AdminClient[];
   onMessageClient?: (clientId: string) => void;
   onViewSiteTickets?: (siteId: string) => void;
+  onUpdateEmail?: (clientId: string, newEmail: string) => Promise<{ ok: boolean; error?: string }>;
   className?: string;
   style?: CSSProperties;
 }
@@ -57,6 +58,7 @@ export function AdminClientsPage({
   clients,
   onMessageClient,
   onViewSiteTickets,
+  onUpdateEmail,
   className = "",
   style,
 }: AdminClientsPageProps) {
@@ -113,6 +115,7 @@ export function AdminClientsPage({
             client={client}
             onMessage={() => onMessageClient?.(client.id)}
             onViewSiteTickets={onViewSiteTickets}
+            onUpdateEmail={onUpdateEmail}
           />
         ))}
       </div>
@@ -157,12 +160,39 @@ function ClientCard({
   client,
   onMessage,
   onViewSiteTickets,
+  onUpdateEmail,
 }: {
   client: AdminClient;
   onMessage: () => void;
   onViewSiteTickets?: (siteId: string) => void;
+  onUpdateEmail?: (clientId: string, newEmail: string) => Promise<{ ok: boolean; error?: string }>;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [draftEmail, setDraftEmail] = useState(client.email);
+  const [emailBusy, setEmailBusy] = useState(false);
+  const [emailErr, setEmailErr] = useState<string | null>(null);
+
+  async function handleSaveEmail() {
+    if (!onUpdateEmail) return;
+    setEmailErr(null);
+    const trimmed = draftEmail.trim().toLowerCase();
+    if (trimmed === client.email.toLowerCase()) {
+      setEditingEmail(false);
+      return;
+    }
+    if (!confirm(`Change ${client.name}'s email to ${trimmed}? They will be signed out of all sessions.`)) {
+      return;
+    }
+    setEmailBusy(true);
+    const result = await onUpdateEmail(client.id, trimmed);
+    setEmailBusy(false);
+    if (!result.ok) {
+      setEmailErr(result.error ?? "Could not update email.");
+      return;
+    }
+    setEditingEmail(false);
+  }
 
   const totalTickets = client.sites.reduce((s, st) => s + st.totalTickets, 0);
   const openTickets = client.sites.reduce((s, st) => s + st.openTickets, 0);
@@ -191,7 +221,71 @@ function ClientCard({
               />
             </h2>
             <div className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-mute mt-0.5">
-              {client.email}
+              {editingEmail ? (
+                <span className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="email"
+                    value={draftEmail}
+                    onChange={(e) => setDraftEmail(e.target.value)}
+                    className="font-mono text-[0.65rem] uppercase tracking-wider text-ink-soft bg-parchment border border-rule px-2 py-1 min-w-[220px]"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") {
+                        setEditingEmail(false);
+                        setDraftEmail(client.email);
+                        setEmailErr(null);
+                      }
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        void handleSaveEmail();
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void handleSaveEmail()}
+                    disabled={emailBusy}
+                    className="font-mono text-[0.55rem] uppercase tracking-widest text-signal-red hover:underline disabled:opacity-50"
+                  >
+                    {emailBusy ? "Saving…" : "Save"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingEmail(false);
+                      setDraftEmail(client.email);
+                      setEmailErr(null);
+                    }}
+                    disabled={emailBusy}
+                    className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute hover:text-signal-red"
+                  >
+                    Cancel
+                  </button>
+                </span>
+              ) : (
+                <span className="flex flex-wrap items-center gap-2">
+                  <span>{client.email}</span>
+                  {onUpdateEmail && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingEmail(true);
+                        setDraftEmail(client.email);
+                        setEmailErr(null);
+                      }}
+                      className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-fade hover:text-signal-red transition-colors"
+                      aria-label={`Edit email for ${client.name}`}
+                    >
+                      Edit
+                    </button>
+                  )}
+                </span>
+              )}
+              {emailErr && (
+                <span className="block normal-case tracking-normal text-signal-redDeep mt-1">
+                  {emailErr}
+                </span>
+              )}
             </div>
             <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-fade mt-1">
               Joined {formatDate(client.joinedAt)}

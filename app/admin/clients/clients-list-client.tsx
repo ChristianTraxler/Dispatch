@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AdminClientsPage,
@@ -12,26 +12,45 @@ export function ClientsListClient({ initial }: { initial: AdminClient[] }) {
   const router = useRouter();
   const online = useClientsPresence();
 
+  // Local override map so a successful email edit shows immediately without
+  // waiting for router.refresh() to round-trip the server.
+  const [emailOverrides, setEmailOverrides] = useState<Record<string, string>>({});
+
   const clients = useMemo<AdminClient[]>(
     () =>
       initial.map((c) => ({
         ...c,
+        email: emailOverrides[c.id] ?? c.email,
         isOnline: online.has(c.id),
       })),
-    [initial, online],
+    [initial, online, emailOverrides],
   );
+
+  async function onUpdateEmail(clientId: string, newEmail: string) {
+    const res = await fetch(`/api/admin/clients/${clientId}/email`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ newEmail }),
+    });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      return { ok: false as const, error: body.error ?? "Update failed." };
+    }
+    setEmailOverrides((prev) => ({ ...prev, [clientId]: newEmail }));
+    router.refresh();
+    return { ok: true as const };
+  }
 
   return (
     <AdminClientsPage
       clients={clients}
       onMessageClient={(id) => {
-        // No "DM the client" inbox yet — for now, scroll the admin to the
-        // client's most recent ticket as a stand-in. Phase 11+ may flesh this out.
         router.push(`/admin/clients#${id}`);
       }}
       onViewSiteTickets={(siteId) =>
         router.push(`/admin/tickets?site=${encodeURIComponent(siteId)}`)
       }
+      onUpdateEmail={onUpdateEmail}
     />
   );
 }

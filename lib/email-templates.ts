@@ -836,6 +836,220 @@ Open admin: ${p.adminUrl}${plainTextFooter()}`;
 }
 
 /* ============================================
+   11. EMAIL CHANGE — VERIFY (to new address)
+   ============================================ */
+export interface EmailChangeVerifyEmailParams {
+  newEmail: string;
+  oldEmail: string;
+  verifyUrl: string;
+  expiresAt: Date | string;
+}
+
+export function renderEmailChangeVerifyEmail(
+  p: EmailChangeVerifyEmailParams,
+): { subject: string; html: string; text: string } {
+  const expiresAt = typeof p.expiresAt === "string" ? new Date(p.expiresAt) : p.expiresAt;
+  const expiresStr = expiresAt.toLocaleString("en-US", {
+    month: "short",
+    day: "2-digit",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  const body = `
+${sectionLabel("VERIFY NEW EMAIL")}
+${headline(`Confirm this address`)}
+${lede(`Someone signed in as <strong>${escape(p.oldEmail)}</strong> asked to change their Dispatch login to this email.`)}
+
+${bodyText(`To finish the change, click the button below. The link expires at ${expiresStr}.`)}
+
+${button({ href: p.verifyUrl, label: "Verify this email →" })}
+
+${bodyText(`<span style="font-size:13px;">Or copy this link: <br><span style="font-family:Menlo,monospace;font-size:12px;word-break:break-all;">${escape(p.verifyUrl)}</span></span>`)}
+
+${bodyText(`<strong>If you didn't request this</strong>, you can safely ignore this email — nothing will change.`)}
+
+${bodyText(`— Christian`)}
+  `.trim();
+
+  const html = shell({
+    title: "Verify your new Dispatch email",
+    preheader: `Confirm this address as your new Dispatch login. Expires ${expiresStr}.`,
+    body,
+  });
+
+  const text = `Someone signed in as ${p.oldEmail} asked to change their Dispatch login to this email.
+
+To finish the change, open this link before ${expiresStr}:
+
+${p.verifyUrl}
+
+If you didn't request this, ignore this email — nothing will change.
+
+— Christian${plainTextFooter()}`;
+
+  return {
+    subject: "Verify your new Dispatch email",
+    html,
+    text,
+  };
+}
+
+/* ============================================
+   12. EMAIL CHANGE — REQUESTED (to old address)
+   ============================================ */
+export interface EmailChangeRequestedEmailParams {
+  oldEmail: string;
+  newEmail: string;
+}
+
+export function renderEmailChangeRequestedEmail(
+  p: EmailChangeRequestedEmailParams,
+): { subject: string; html: string; text: string } {
+  const body = `
+${sectionLabel("EMAIL CHANGE REQUESTED")}
+${headline(`Heads up`)}
+${lede(`We received a request to change your Dispatch login.`)}
+
+${dataTable(`
+${dataRow("From", `<span style="font-family:Menlo,monospace;font-size:13px;">${escape(p.oldEmail)}</span>`)}
+${dataRow("To", `<span style="font-family:Menlo,monospace;font-size:13px;">${escape(p.newEmail)}</span>`)}
+`)}
+
+${bodyText(`We sent a verification link to the new address. The change won't take effect until that link is clicked.`)}
+
+${bodyText(`<strong>If this wasn't you:</strong> sign in to Dispatch and cancel the pending change from your Account page, or reply to this email so we can lock the account.`)}
+
+${bodyText(`— Christian`)}
+  `.trim();
+
+  const html = shell({
+    title: "Email change requested on your Dispatch account",
+    preheader: `A request was made to change your login from ${p.oldEmail} to ${p.newEmail}.`,
+    body,
+  });
+
+  const text = `We received a request to change your Dispatch login from ${p.oldEmail} to ${p.newEmail}.
+
+We sent a verification link to the new address. The change won't take effect until that link is clicked.
+
+If this wasn't you: sign in to Dispatch and cancel the pending change from your Account page, or reply to this email.
+
+— Christian${plainTextFooter()}`;
+
+  return {
+    subject: "Email change requested on your Dispatch account",
+    html,
+    text,
+  };
+}
+
+/* ============================================
+   13. EMAIL CHANGE — COMPLETED (to old address)
+   ============================================ */
+export interface EmailChangeCompletedEmailParams {
+  oldEmail: string;
+  newEmail: string;
+  changedAt: Date | string;
+}
+
+export function renderEmailChangeCompletedEmail(
+  p: EmailChangeCompletedEmailParams,
+): { subject: string; html: string; text: string } {
+  const changedAt = typeof p.changedAt === "string" ? new Date(p.changedAt) : p.changedAt;
+  const dateStr = changedAt.toLocaleString("en-US", {
+    month: "long",
+    day: "2-digit",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  const body = `
+${sectionLabel("EMAIL CHANGED")}
+${headline(`Your login was updated`)}
+${lede(`Your Dispatch account email was changed.`)}
+
+${dataTable(`
+${dataRow("New email", `<span style="font-family:Menlo,monospace;font-size:13px;">${escape(p.newEmail)}</span>`)}
+${dataRow("Changed", dateStr)}
+`)}
+
+${bodyText(`You've been signed out of all sessions. Use the new address to sign in from here on.`)}
+
+${bodyText(`<strong>If this wasn't you</strong>, reply to this email immediately — we can revert the change.`)}
+
+${bodyText(`— Christian`)}
+  `.trim();
+
+  const html = shell({
+    title: "Your Dispatch email was changed",
+    preheader: `Your Dispatch login was changed to ${p.newEmail} on ${dateStr}.`,
+    body,
+  });
+
+  const text = `Your Dispatch account email was changed to ${p.newEmail} on ${dateStr}.
+
+You've been signed out of all sessions. Use the new address to sign in from here on.
+
+If this wasn't you, reply to this email immediately — we can revert the change.
+
+— Christian${plainTextFooter()}`;
+
+  return {
+    subject: "Your Dispatch email was changed",
+    html,
+    text,
+  };
+}
+
+/* ============================================
+   14. EMAIL CHANGE — UPDATED BY ADMIN (to new address)
+   ============================================ */
+export interface EmailChangeByAdminEmailParams {
+  newEmail: string;
+  loginUrl: string;
+}
+
+export function renderEmailChangeByAdminEmail(
+  p: EmailChangeByAdminEmailParams,
+): { subject: string; html: string; text: string } {
+  const body = `
+${sectionLabel("EMAIL UPDATED")}
+${headline(`Your login was changed`)}
+${lede(`Your Dispatch login was updated by an administrator to this email.`)}
+
+${bodyText(`You've been signed out of all sessions. Use this address to sign in from here on.`)}
+
+${button({ href: p.loginUrl, label: "Sign in →" })}
+
+${bodyText(`If you didn't expect this change, reply to this email and we'll sort it out.`)}
+
+${bodyText(`— Christian`)}
+  `.trim();
+
+  const html = shell({
+    title: "Your Dispatch login was updated",
+    preheader: `Your Dispatch login was updated by an administrator to ${p.newEmail}.`,
+    body,
+  });
+
+  const text = `Your Dispatch login was updated by an administrator to ${p.newEmail}.
+
+You've been signed out of all sessions. Sign in here: ${p.loginUrl}
+
+If you didn't expect this change, reply to this email.
+
+— Christian${plainTextFooter()}`;
+
+  return {
+    subject: "Your Dispatch login was updated",
+    html,
+    text,
+  };
+}
+
+/* ============================================
    EXPORTS
    ============================================ */
 export const dispatchEmails = {
@@ -849,4 +1063,8 @@ export const dispatchEmails = {
   renderWaitingInquiryEmail,
   renderInviteReminderEmail,
   renderInviteRedeemedEmail,
+  renderEmailChangeVerifyEmail,
+  renderEmailChangeRequestedEmail,
+  renderEmailChangeCompletedEmail,
+  renderEmailChangeByAdminEmail,
 };

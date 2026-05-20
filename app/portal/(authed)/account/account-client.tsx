@@ -8,10 +8,12 @@ export function AccountClient({
   name: initialName,
   email,
   avatarUrl: initialAvatarUrl,
+  initialPending,
 }: {
   name: string;
   email: string;
   avatarUrl: string | null;
+  initialPending: { newEmail: string; expiresAt: string } | null;
 }) {
   const router = useRouter();
 
@@ -76,6 +78,66 @@ export function AccountClient({
   const [confirmPwd, setConfirmPwd] = useState("");
   const [pwdSaving, setPwdSaving] = useState(false);
   const [pwdMsg, setPwdMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+
+  // ─── Email change ──────────────────────────────────────────────────────
+  const [pending, setPending] = useState<{ newEmail: string; expiresAt: string } | null>(
+    initialPending,
+  );
+  const [emailFormOpen, setEmailFormOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [confirmNewEmail, setConfirmNewEmail] = useState("");
+  const [emailPwd, setEmailPwd] = useState("");
+  const [emailBusy, setEmailBusy] = useState(false);
+  const [emailMsg, setEmailMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+
+  async function onRequestEmailChange() {
+    setEmailMsg(null);
+
+    if (newEmail.trim().toLowerCase() !== confirmNewEmail.trim().toLowerCase()) {
+      setEmailMsg({ kind: "err", text: "New emails don't match." });
+      return;
+    }
+    if (newEmail.trim().toLowerCase() === email.toLowerCase()) {
+      setEmailMsg({ kind: "err", text: "That's already your current email." });
+      return;
+    }
+
+    setEmailBusy(true);
+    const res = await fetch("/api/portal/account/email/request", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        newEmail: newEmail.trim().toLowerCase(),
+        currentPassword: emailPwd,
+      }),
+    });
+    setEmailBusy(false);
+
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      setEmailMsg({ kind: "err", text: body.error ?? "Could not send verification." });
+      return;
+    }
+    const data = (await res.json()) as { newEmail: string; expiresAt: string };
+    setPending({ newEmail: data.newEmail, expiresAt: data.expiresAt });
+    setEmailFormOpen(false);
+    setNewEmail("");
+    setConfirmNewEmail("");
+    setEmailPwd("");
+  }
+
+  async function onCancelPendingEmail() {
+    if (!confirm("Cancel the pending email change?")) return;
+    setEmailBusy(true);
+    setEmailMsg(null);
+    const res = await fetch("/api/portal/account/email/cancel", { method: "POST" });
+    setEmailBusy(false);
+    if (!res.ok) {
+      setEmailMsg({ kind: "err", text: "Could not cancel. Try again." });
+      return;
+    }
+    setPending(null);
+  }
 
   async function onSaveName(e: React.FormEvent) {
     e.preventDefault();
@@ -147,11 +209,7 @@ export function AccountClient({
           Your record
         </h1>
         <p className="font-display italic text-ink-mute">
-          Email is set by your invitation and can&rsquo;t be changed here. Contact{" "}
-          <a href="mailto:hello@developerofcode.com" className="text-signal-red hover:underline">
-            hello@developerofcode.com
-          </a>{" "}
-          if you need it updated.
+          Your record on the desk.
         </p>
       </div>
 
@@ -218,9 +276,134 @@ export function AccountClient({
           <label className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-1">
             Email
           </label>
-          <div className="font-mono text-sm text-ink-soft py-2 border-b border-rule-soft">
-            {email}
+          <div className="flex items-center justify-between py-2 border-b border-rule-soft gap-3">
+            <span className="font-mono text-sm text-ink-soft">{email}</span>
+            {!pending && !emailFormOpen && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEmailFormOpen(true);
+                  setEmailMsg(null);
+                }}
+                className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors"
+              >
+                Change email
+              </button>
+            )}
           </div>
+
+          {pending && (
+            <div className="mt-3 border-l-[3px] border-signal-red bg-signal-red/5 px-4 py-3">
+              <p className="font-display text-sm text-ink-soft">
+                Check <strong>{pending.newEmail}</strong> for a verification link.
+                It expires{" "}
+                {new Date(pending.expiresAt).toLocaleString("en-US", {
+                  month: "short",
+                  day: "2-digit",
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
+                .
+              </p>
+              <button
+                type="button"
+                onClick={onCancelPendingEmail}
+                disabled={emailBusy}
+                className="mt-2 font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors disabled:opacity-50"
+              >
+                {emailBusy ? "Cancelling…" : "Cancel pending change"}
+              </button>
+            </div>
+          )}
+
+          {!pending && emailFormOpen && (
+            <div className="mt-4 space-y-4 border-l-[3px] border-rule pl-4">
+              <div>
+                <label
+                  htmlFor="newEmail"
+                  className="block font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mb-1"
+                >
+                  New email
+                </label>
+                <input
+                  id="newEmail"
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  required
+                  className="input-line"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="confirmNewEmail"
+                  className="block font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mb-1"
+                >
+                  Confirm new email
+                </label>
+                <input
+                  id="confirmNewEmail"
+                  type="email"
+                  value={confirmNewEmail}
+                  onChange={(e) => setConfirmNewEmail(e.target.value)}
+                  required
+                  className="input-line"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="emailPwd"
+                  className="block font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mb-1"
+                >
+                  Current password
+                </label>
+                <input
+                  id="emailPwd"
+                  type="password"
+                  value={emailPwd}
+                  onChange={(e) => setEmailPwd(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                  className="input-line"
+                />
+              </div>
+              {emailMsg && (
+                <div
+                  role={emailMsg.kind === "err" ? "alert" : "status"}
+                  className={`border-l-[3px] px-4 py-3 font-mono text-xs uppercase tracking-wider ${
+                    emailMsg.kind === "err"
+                      ? "border-signal-red bg-signal-red/5 text-signal-redDeep"
+                      : "border-signal-green bg-signal-green/5 text-signal-green"
+                  }`}
+                >
+                  {emailMsg.text}
+                </div>
+              )}
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmailFormOpen(false);
+                    setNewEmail("");
+                    setConfirmNewEmail("");
+                    setEmailPwd("");
+                    setEmailMsg(null);
+                  }}
+                  className="px-3 py-2 font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={onRequestEmailChange}
+                  disabled={emailBusy}
+                  className="btn-dispatch"
+                >
+                  {emailBusy ? "Sending…" : "Send verification"}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div>
