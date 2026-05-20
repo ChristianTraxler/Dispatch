@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAuthUser } from "@/lib/auth/client-session";
+import { sendInviteRedeemedEmail } from "@/lib/email";
 
 export async function POST(
-  _req: Request,
+  req: Request,
   context: { params: Promise<{ token: string }> },
 ) {
   const { token } = await context.params;
@@ -78,6 +79,26 @@ export async function POST(
       { error: "Could not attach the site. Try again." },
       { status: 500 },
     );
+  }
+
+  // Notify the admin that an existing client redeemed an invite. Don't fail the merge.
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (adminEmail) {
+    try {
+      const appUrl =
+        process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+      await sendInviteRedeemedEmail(adminEmail, {
+        kind: "merge",
+        clientName: account.name,
+        clientEmail: account.email,
+        siteDisplayName: invite.siteDisplayName,
+        siteUrl: invite.siteUrl,
+        adminUrl: `${appUrl}/admin/clients`,
+        redeemedAt: new Date(),
+      });
+    } catch (err) {
+      console.error("[merge] invite-redeemed email failed:", err);
+    }
   }
 
   return NextResponse.json({ ok: true });

@@ -11,6 +11,7 @@ import {
   renderInquiryTranscriptEmail,
   renderWaitingInquiryEmail,
   renderInviteReminderEmail,
+  renderInviteRedeemedEmail,
   type InviteEmailParams,
   type NewTicketEmailParams,
   type NewMessageToAdminEmailParams,
@@ -20,6 +21,7 @@ import {
   type InquiryTranscriptEmailParams,
   type WaitingInquiryEmailParams,
   type InviteReminderEmailParams,
+  type InviteRedeemedEmailParams,
 } from "@/lib/email-templates";
 
 // Lazy-instantiate the Resend client so module evaluation doesn't blow up
@@ -61,6 +63,14 @@ export async function sendInviteEmail(params: InviteEmailParams) {
 export async function sendInviteReminderEmail(params: InviteReminderEmailParams) {
   const { subject, html, text } = renderInviteReminderEmail(params);
   return send({ to: params.email, subject, html, text });
+}
+
+export async function sendInviteRedeemedEmail(
+  to: string,
+  params: InviteRedeemedEmailParams,
+) {
+  const { subject, html, text } = renderInviteRedeemedEmail(params);
+  return send({ to, subject, html, text });
 }
 
 export async function sendNewTicketEmail(

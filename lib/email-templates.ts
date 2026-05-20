@@ -767,6 +767,75 @@ Already set it up? You can ignore this — reminders stop once you redeem.
 }
 
 /* ============================================
+   10. INVITE REDEEMED (to admin)
+   ============================================ */
+export interface InviteRedeemedEmailParams {
+  kind: "signup" | "merge";
+  clientName: string;
+  clientEmail: string;
+  siteDisplayName: string;
+  siteUrl: string;
+  adminUrl: string;
+  redeemedAt: Date | string;
+}
+
+export function renderInviteRedeemedEmail(p: InviteRedeemedEmailParams): { subject: string; html: string; text: string } {
+  const redeemedAt = typeof p.redeemedAt === "string" ? new Date(p.redeemedAt) : p.redeemedAt;
+  const redeemedStr = redeemedAt.toLocaleString("en-US", {
+    month: "long",
+    day: "2-digit",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  const isSignup = p.kind === "signup";
+  const label = isSignup ? "NEW CLIENT" : "SITE ADDED";
+  const headlineHtml = isSignup
+    ? `<span style="color:${COLORS.signalGreen};">${escape(p.clientName)}</span><br>just signed up.`
+    : `<span style="color:${COLORS.signalGreen};">${escape(p.clientName)}</span><br>added another site.`;
+  const ledeText = isSignup
+    ? `Your invite was redeemed — they've created an account and their first site is on file.`
+    : `Your invite was redeemed — they've attached <strong>${escape(p.siteDisplayName)}</strong> to their existing account.`;
+  const subject = isSignup
+    ? `New client signup: ${p.clientName}`
+    : `Invite redeemed: ${p.clientName} added ${p.siteDisplayName}`;
+  const preheader = isSignup
+    ? `${p.clientName} (${p.clientEmail}) just signed up for ${p.siteDisplayName}.`
+    : `${p.clientName} attached ${p.siteDisplayName} to their account.`;
+
+  const body = `
+${sectionLabel(label)}
+${headline(headlineHtml)}
+${lede(ledeText)}
+
+${dataTable(`
+${dataRow("Name", escape(p.clientName))}
+${dataRow("Email", `<span style="font-family:${FONT_MONO};font-size:13px;">${escape(p.clientEmail)}</span>`)}
+${dataRow("Site", escape(p.siteDisplayName))}
+${dataRow("URL", `<span style="font-family:${FONT_MONO};font-size:13px;">${escape(p.siteUrl)}</span>`)}
+${dataRow("Redeemed", redeemedStr)}
+`)}
+
+${button({ href: p.adminUrl, label: "Open admin →" })}
+  `.trim();
+
+  const html = shell({ title: subject, preheader, body });
+
+  const text = `${p.clientName} (${p.clientEmail}) ${isSignup ? "just signed up" : `attached "${p.siteDisplayName}" to their account`}.
+
+Name: ${p.clientName}
+Email: ${p.clientEmail}
+Site: ${p.siteDisplayName}
+URL: ${p.siteUrl}
+Redeemed: ${redeemedStr}
+
+Open admin: ${p.adminUrl}${plainTextFooter()}`;
+
+  return { subject, html, text };
+}
+
+/* ============================================
    EXPORTS
    ============================================ */
 export const dispatchEmails = {
@@ -779,4 +848,5 @@ export const dispatchEmails = {
   renderInquiryTranscriptEmail,
   renderWaitingInquiryEmail,
   renderInviteReminderEmail,
+  renderInviteRedeemedEmail,
 };

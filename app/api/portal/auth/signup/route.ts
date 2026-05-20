@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { sendInviteRedeemedEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   let payload: { token?: string; name?: string; password?: string };
@@ -103,6 +104,26 @@ export async function POST(req: Request) {
       { error: "Could not finish signup. Try again." },
       { status: 500 },
     );
+  }
+
+  // Notify the admin that a new client signed up. Don't fail the signup if email hiccups.
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (adminEmail) {
+    try {
+      const appUrl =
+        process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+      await sendInviteRedeemedEmail(adminEmail, {
+        kind: "signup",
+        clientName: name,
+        clientEmail: emailNorm,
+        siteDisplayName: invite.siteDisplayName,
+        siteUrl: invite.siteUrl,
+        adminUrl: `${appUrl}/admin/clients`,
+        redeemedAt: new Date(),
+      });
+    } catch (err) {
+      console.error("[signup] invite-redeemed email failed:", err);
+    }
   }
 
   // Sign the user in — sets the session cookie on the response.
