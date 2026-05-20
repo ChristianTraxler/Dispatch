@@ -11,6 +11,10 @@ import {
   renderInquiryTranscriptEmail,
   renderWaitingInquiryEmail,
   renderInviteReminderEmail,
+  renderEmailChangeVerifyEmail,
+  renderEmailChangeRequestedEmail,
+  renderEmailChangeCompletedEmail,
+  renderEmailChangeByAdminEmail,
   type InviteEmailParams,
   type NewTicketEmailParams,
   type NewMessageToAdminEmailParams,
@@ -20,6 +24,10 @@ import {
   type InquiryTranscriptEmailParams,
   type WaitingInquiryEmailParams,
   type InviteReminderEmailParams,
+  type EmailChangeVerifyEmailParams,
+  type EmailChangeRequestedEmailParams,
+  type EmailChangeCompletedEmailParams,
+  type EmailChangeByAdminEmailParams,
 } from "@/lib/email-templates";
 
 // Lazy-instantiate the Resend client so module evaluation doesn't blow up
@@ -137,5 +145,37 @@ export async function sendWaitingInquiryEmail(
   params: WaitingInquiryEmailParams,
 ) {
   const { subject, html, text } = renderWaitingInquiryEmail(params);
+  return send({ to, subject, html, text });
+}
+
+export async function sendEmailChangeVerifyEmail(
+  to: string,
+  params: EmailChangeVerifyEmailParams,
+) {
+  const { subject, html, text } = renderEmailChangeVerifyEmail(params);
+  return send({ to, subject, html, text });
+}
+
+export async function sendEmailChangeRequestedEmail(
+  to: string,
+  params: EmailChangeRequestedEmailParams,
+) {
+  const { subject, html, text } = renderEmailChangeRequestedEmail(params);
+  return send({ to, subject, html, text });
+}
+
+export async function sendEmailChangeCompletedEmail(
+  to: string,
+  params: EmailChangeCompletedEmailParams,
+) {
+  const { subject, html, text } = renderEmailChangeCompletedEmail(params);
+  return send({ to, subject, html, text });
+}
+
+export async function sendEmailChangeByAdminEmail(
+  to: string,
+  params: EmailChangeByAdminEmailParams,
+) {
+  const { subject, html, text } = renderEmailChangeByAdminEmail(params);
   return send({ to, subject, html, text });
 }
