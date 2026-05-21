@@ -4,6 +4,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ticketNumber } from "@/lib/ticket";
 import { StatusPill } from "@/components/StatusPill";
+import { OutOfFreeWindowBadge } from "@/components/AdminClientDetail";
+import { isOutOfFreeWindow } from "@/lib/free-updates";
 import { RefreshTicketsOnChange } from "./refresh-on-change";
 import { DeleteTicketButton } from "./delete-ticket-button";
 
@@ -24,7 +26,7 @@ export default async function AdminTicketsPage() {
     where: { isInquiry: false },
     orderBy: { createdAt: "desc" },
     include: {
-      site: { select: { displayName: true, url: true } },
+      site: { select: { displayName: true, url: true, productionStartedAt: true } },
       clientAccount: { select: { name: true, email: true } },
     },
   });
@@ -73,8 +75,11 @@ export default async function AdminTicketsPage() {
                           {ticketNumber(t.id, t.createdAt)}
                         </span>
                       </div>
-                      <p className="font-display text-lg text-ink truncate">
-                        {t.title}
+                      <p className="font-display text-lg text-ink truncate flex items-center gap-2">
+                        <span className="truncate">{t.title}</span>
+                        {isOutOfFreeWindow(t.createdAt, t.site.productionStartedAt) && (
+                          <OutOfFreeWindowBadge />
+                        )}
                       </p>
                       <p className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mt-1">
                         {t.clientAccount.name} · {t.site.displayName}

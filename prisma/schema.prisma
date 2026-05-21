@@ -28,11 +28,12 @@ model ClientAccount {
 }
 
 model Site {
-  id              String   @id @default(cuid())
-  clientAccountId String   @map("client_account_id")
-  url             String
-  displayName     String   @map("display_name")
-  addedAt         DateTime @default(now()) @map("added_at")
+  id                  String    @id @default(cuid())
+  clientAccountId     String    @map("client_account_id")
+  url                 String
+  displayName         String    @map("display_name")
+  addedAt             DateTime  @default(now()) @map("added_at")
+  productionStartedAt DateTime? @map("production_started_at")
 
   clientAccount ClientAccount @relation(fields: [clientAccountId], references: [id], onDelete: Cascade)
   tickets       Ticket[]

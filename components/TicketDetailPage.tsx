@@ -54,6 +54,8 @@ export interface TicketDetailPageProps {
   clientName?: string;
   /** Optional element rendered just above the chat thread (e.g., admin availability line) */
   availabilityLine?: ReactNode;
+  /** Optional badge rendered in the header (e.g., "Out of free window" for admin) */
+  headerBadge?: ReactNode;
   className?: string;
   style?: CSSProperties;
 }
@@ -76,6 +78,7 @@ export function TicketDetailPage({
   adminAvatarUrl,
   clientName,
   availabilityLine,
+  headerBadge,
   className = "",
   style,
 }: TicketDetailPageProps) {
@@ -97,7 +100,7 @@ export function TicketDetailPage({
 
       {/* Header */}
       <header className="mb-8 rule-double pb-6">
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-3 mb-3 flex-wrap">
           <StatusPill status={ticket.status} />
           <span className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-fade">
             {ticket.ticketNumber}
@@ -106,6 +109,7 @@ export function TicketDetailPage({
           <span className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-mute">
             {ticket.category}
           </span>
+          {headerBadge}
         </div>
 
         <h1

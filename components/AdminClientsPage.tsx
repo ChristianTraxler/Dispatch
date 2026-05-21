@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type CSSProperties } from "react";
 import { PresenceDot } from "./PresenceDot";
 import { Avatar } from "./Avatar";
@@ -202,19 +203,30 @@ function ClientCard({
       <div className="flex flex-col md:flex-row md:items-center gap-4 px-4 md:px-5 py-4">
         {/* Identity */}
         <div className="flex items-start gap-4 flex-1 min-w-0">
-          <Avatar
-            src={client.avatarUrl ?? null}
-            name={client.name}
-            size={48}
-            tone="client"
-            className="mt-0.5"
-          />
+          <Link
+            href={`/admin/clients/${client.id}`}
+            className="shrink-0"
+            aria-label={`View details for ${client.name}`}
+          >
+            <Avatar
+              src={client.avatarUrl ?? null}
+              name={client.name}
+              size={48}
+              tone="client"
+              className="mt-0.5"
+            />
+          </Link>
           <div className="min-w-0">
             <h2
               className="flex items-center gap-2.5 font-display text-lg md:text-xl leading-tight"
               style={{ fontVariationSettings: '"opsz" 144' }}
             >
-              <span>{client.name}</span>
+              <Link
+                href={`/admin/clients/${client.id}`}
+                className="hover:text-signal-red transition-colors"
+              >
+                {client.name}
+              </Link>
               <PresenceDot
                 status={client.isOnline ? "online" : "offline"}
                 pulse={client.isOnline}

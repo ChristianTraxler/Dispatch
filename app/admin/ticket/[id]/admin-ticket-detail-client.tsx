@@ -8,6 +8,7 @@ import {
 } from "@/components/TicketDetailPage";
 import { ChatThread, type ChatAttachment, type ChatMessage } from "@/components/ChatThread";
 import { Avatar } from "@/components/Avatar";
+import { OutOfFreeWindowBadge } from "@/components/AdminClientDetail";
 import type { TicketStatus } from "@/components/StatusPill";
 import {
   useTicketChannel,
@@ -22,6 +23,7 @@ export function AdminTicketDetailClient({
   isInquiry = false,
   inquiryEndedAt = null,
   clientAvatarUrl = null,
+  outOfFreeWindow = false,
 }: {
   ticket: TicketDetail;
   ticketAttachments: ChatAttachment[];
@@ -30,6 +32,7 @@ export function AdminTicketDetailClient({
   isInquiry?: boolean;
   inquiryEndedAt?: string | null;
   clientAvatarUrl?: string | null;
+  outOfFreeWindow?: boolean;
 }) {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
@@ -273,6 +276,7 @@ export function AdminTicketDetailClient({
       onTypingChange={broadcastTyping}
       onStatusChange={onStatusChange}
       onBack={onBack}
+      headerBadge={outOfFreeWindow ? <OutOfFreeWindowBadge /> : null}
     />
   );
 }

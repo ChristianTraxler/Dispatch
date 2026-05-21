@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { ticketNumber } from "@/lib/ticket";
 import { hydrateAttachments, hydrateAvatarUrl } from "@/lib/storage";
+import { isOutOfFreeWindow } from "@/lib/free-updates";
 import type { ChatMessage } from "@/components/ChatThread";
 import type { TicketDetail } from "@/components/TicketDetailPage";
 import { AdminTicketDetailClient } from "./admin-ticket-detail-client";
@@ -16,7 +17,7 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
   const ticket = await prisma.ticket.findUnique({
     where: { id },
     include: {
-      site: { select: { url: true, displayName: true } },
+      site: { select: { url: true, displayName: true, productionStartedAt: true } },
       clientAccount: { select: { name: true, email: true, avatarPath: true } },
       messages: { orderBy: { createdAt: "asc" } },
     },
@@ -70,6 +71,10 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
 
   const ticketAttachments = await hydrateAttachments(ticket.attachments);
   const clientAvatarUrl = await hydrateAvatarUrl(ticket.clientAccount.avatarPath);
+  const outOfFreeWindow = isOutOfFreeWindow(
+    ticket.createdAt,
+    ticket.site.productionStartedAt,
+  );
 
   return (
     <AdminTicketDetailClient
@@ -80,6 +85,7 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
       isInquiry={isInquiry}
       inquiryEndedAt={inquiryEndedAt}
       clientAvatarUrl={clientAvatarUrl}
+      outOfFreeWindow={outOfFreeWindow}
     />
   );
 }
