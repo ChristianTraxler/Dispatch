@@ -136,6 +136,7 @@ enum TicketCategory {
   FEATURE
   QUESTION
   URGENT
+  UPDATE
 }
 
 /// Singleton row keyed by id="global". Stores admin-controlled availability

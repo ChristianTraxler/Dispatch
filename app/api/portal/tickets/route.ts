@@ -11,6 +11,7 @@ const VALID_CATEGORIES = new Set([
   "FEATURE",
   "QUESTION",
   "URGENT",
+  "UPDATE",
 ]);
 
 export async function POST(req: Request) {
@@ -90,7 +91,7 @@ export async function POST(req: Request) {
       siteId,
       title,
       description,
-      category: category as "BUG" | "CONTENT" | "FEATURE" | "QUESTION" | "URGENT",
+      category: category as "BUG" | "CONTENT" | "FEATURE" | "QUESTION" | "URGENT" | "UPDATE",
       status: "NEW",
       receivedAt: new Date(), // Stage 2 of the 6-stage timeline
       isEmergency: finalIsEmergency,

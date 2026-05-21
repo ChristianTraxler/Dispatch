@@ -17,6 +17,8 @@ export interface StatusTimelineProps {
   ticket: TicketTimestamps;
   /** Current ticket status. Drives which stage gets the active/pulse treatment. */
   status?: TicketStatus;
+  /** Ticket category. Tailors the wording of stages 4/5/6 to match the request type. */
+  category?: string;
   /** Force a specific orientation. By default: horizontal on desktop, vertical on mobile. */
   orientation?: "auto" | "horizontal" | "vertical";
   /** Whether to show timestamps under each label. Defaults to true. */
@@ -24,6 +26,21 @@ export interface StatusTimelineProps {
   className?: string;
   style?: CSSProperties;
 }
+
+// Per-category wording for the work-in-progress stages (Reviewing / Working / Done).
+// Stages 1-3 (Sent/Received/Viewed) are the same regardless of type.
+const WORK_LABELS_BY_CATEGORY: Record<
+  string,
+  { reviewing: string; working: string; done: string }
+> = {
+  BUG:      { reviewing: "Reviewing Errors",   working: "Fixing Errors",    done: "Errors Fixed" },
+  URGENT:   { reviewing: "Reviewing Issue",    working: "Fixing Issue",     done: "Issue Resolved" },
+  CONTENT:  { reviewing: "Reviewing Changes",  working: "Making Changes",   done: "Changes Made" },
+  UPDATE:   { reviewing: "Reviewing Update",   working: "Making Update",    done: "Update Complete" },
+  FEATURE:  { reviewing: "Reviewing Request",  working: "Building Feature", done: "Feature Added" },
+  QUESTION: { reviewing: "Reviewing Question", working: "Drafting Answer",  done: "Answered" },
+};
+const DEFAULT_WORK_LABELS = WORK_LABELS_BY_CATEGORY.BUG;
 
 // Map the canonical TicketStatus to which of the six visible stages should
 // be highlighted. Stages: 0=Sent 1=Received 2=Viewed 3=Reviewing 4=Fixing 5=Fixed.
@@ -69,18 +86,20 @@ function formatStamp(value: string | Date | null | undefined): string | null {
 export function StatusTimeline({
   ticket,
   status,
+  category,
   orientation = "auto",
   showTimestamps = true,
   className = "",
   style,
 }: StatusTimelineProps) {
+  const work = (category ? WORK_LABELS_BY_CATEGORY[category] : undefined) ?? DEFAULT_WORK_LABELS;
   const stages: Stage[] = [
     { key: "createdAt", label: "Sent", timestamp: ticket.createdAt },
     { key: "receivedAt", label: "Received", timestamp: ticket.receivedAt },
     { key: "firstViewedAt", label: "Viewed", timestamp: ticket.firstViewedAt },
-    { key: "reviewingStartedAt", label: "Reviewing Errors", timestamp: ticket.reviewingStartedAt },
-    { key: "fixingStartedAt", label: "Fixing Errors", timestamp: ticket.fixingStartedAt },
-    { key: "fixedAt", label: "Errors Fixed", timestamp: ticket.fixedAt },
+    { key: "reviewingStartedAt", label: work.reviewing, timestamp: ticket.reviewingStartedAt },
+    { key: "fixingStartedAt", label: work.working, timestamp: ticket.fixingStartedAt },
+    { key: "fixedAt", label: work.done, timestamp: ticket.fixedAt },
   ];
 
   // Prefer the explicit status (so backward transitions move the marker too).

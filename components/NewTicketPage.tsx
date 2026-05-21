@@ -35,6 +35,7 @@ export interface NewTicketPageProps {
 const CATEGORIES = [
   { value: "BUG", label: "Bug — something's broken" },
   { value: "CONTENT", label: "Content — text or image change" },
+  { value: "UPDATE", label: "Update — add or change something" },
   { value: "FEATURE", label: "Feature request" },
   { value: "QUESTION", label: "Question — not urgent" },
   { value: "URGENT", label: "Urgent — site is down" },
