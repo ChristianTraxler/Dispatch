@@ -12,7 +12,7 @@ const STATUS_CONFIG: Record<TicketStatus, { label: string; color: string }> = {
   NEW: { label: "New", color: "#1A1815" },
   REVIEWING: { label: "Reviewing", color: "#7A4E1F" },
   FIXING: { label: "Fixing", color: "#9E2614" },
-  AWAITING_CONFIRMATION: { label: "Awaiting Confirm", color: "#5B6B1F" },
+  AWAITING_CONFIRMATION: { label: "Awaiting Confirmation", color: "#5B6B1F" },
   CLOSED: { label: "Closed", color: "#2E7D3F" },
   REOPENED: { label: "Reopened", color: "#C8341A" },
 };
