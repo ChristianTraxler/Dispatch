@@ -5,6 +5,7 @@ import { AttachmentDropzone, type UploadedAttachment } from "./AttachmentDropzon
 import { uploadFile } from "@/lib/upload-client";
 import { EmergencyFixModal } from "./EmergencyFixModal";
 import { useEmergencyState } from "@/lib/realtime/use-admin-status";
+import { TICKET_CATEGORIES } from "@/lib/ticket-categories";
 
 export interface NewTicketSite {
   id: string;
@@ -32,14 +33,7 @@ export interface NewTicketPageProps {
   style?: CSSProperties;
 }
 
-const CATEGORIES = [
-  { value: "BUG", label: "Bug — something's broken" },
-  { value: "CONTENT", label: "Content — text or image change" },
-  { value: "UPDATE", label: "Update — add or change something" },
-  { value: "FEATURE", label: "Feature request" },
-  { value: "QUESTION", label: "Question — not urgent" },
-  { value: "URGENT", label: "Urgent — site is down" },
-];
+const CATEGORIES = TICKET_CATEGORIES;
 
 export function NewTicketPage({
   sites,

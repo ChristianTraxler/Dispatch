@@ -3,6 +3,7 @@
 import { type CSSProperties, type ReactNode } from "react";
 import { StatusPill, type TicketStatus } from "./StatusPill";
 import { StatusTimeline, type TicketTimestamps } from "./StatusTimeline";
+import { TICKET_CATEGORIES, categoryShortLabel } from "@/lib/ticket-categories";
 import {
   ChatThread,
   type ChatAttachment,
@@ -44,6 +45,8 @@ export interface TicketDetailPageProps {
   onReopen?: () => void | Promise<void>;
   /** Admin status change handler */
   onStatusChange?: (newStatus: TicketStatus) => void | Promise<void>;
+  /** Admin category (type) change handler */
+  onCategoryChange?: (newCategory: string) => void | Promise<void>;
   /** Back navigation */
   onBack?: () => void;
   /** Avatar for client-side messages (signed URL or null) */
@@ -73,6 +76,7 @@ export function TicketDetailPage({
   onConfirmFixed,
   onReopen,
   onStatusChange,
+  onCategoryChange,
   onBack,
   clientAvatarUrl,
   adminAvatarUrl,
@@ -107,7 +111,7 @@ export function TicketDetailPage({
           </span>
           <span className="text-ink-fade">·</span>
           <span className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-mute">
-            {ticket.category}
+            {categoryShortLabel(ticket.category)}
           </span>
           {headerBadge}
         </div>
@@ -195,6 +199,8 @@ export function TicketDetailPage({
         <AdminStatusChanger
           currentStatus={ticket.status}
           onChange={onStatusChange}
+          currentCategory={ticket.category}
+          onCategoryChange={onCategoryChange}
         />
       )}
 
@@ -273,9 +279,13 @@ export function TicketDetailPage({
 function AdminStatusChanger({
   currentStatus,
   onChange,
+  currentCategory,
+  onCategoryChange,
 }: {
   currentStatus: TicketStatus;
   onChange?: (s: TicketStatus) => void | Promise<void>;
+  currentCategory: string;
+  onCategoryChange?: (c: string) => void | Promise<void>;
 }) {
   const transitions: { status: TicketStatus; label: string }[] = [
     { status: "REVIEWING", label: "Mark Reviewing" },
@@ -294,6 +304,39 @@ function AdminStatusChanger({
           Currently: {currentStatus}
         </span>
       </div>
+
+      {/* Type changer — fix a mis-filed ticket so the progress wording and
+          queue grouping match what the work actually is. */}
+      {onCategoryChange && (
+        <div className="mb-4">
+          <label
+            htmlFor="admin-category"
+            className="block font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mb-2"
+          >
+            Type
+          </label>
+          <select
+            id="admin-category"
+            value={currentCategory}
+            onChange={(e) => onCategoryChange(e.target.value)}
+            className="input-line bg-transparent appearance-none cursor-pointer pr-8 max-w-sm"
+            style={{
+              backgroundImage:
+                "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'><path fill='%231A1815' d='M6 8L0 0h12L6 8z'/></svg>\")",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 4px center",
+              backgroundSize: "10px 7px",
+            }}
+          >
+            {TICKET_CATEGORIES.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-2">
         {transitions.map((t) => (
           <button

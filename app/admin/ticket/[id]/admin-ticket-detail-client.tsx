@@ -143,6 +143,21 @@ export function AdminTicketDetailClient({
     router.refresh();
   }
 
+  async function onCategoryChange(newCategory: string) {
+    if (newCategory === ticket.category) return;
+    const res = await fetch(`/api/admin/tickets/${ticket.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category: newCategory }),
+    });
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({}))) as { error?: string };
+      alert(err.error ?? "Could not change type.");
+      return;
+    }
+    router.refresh();
+  }
+
   function onBack() {
     router.push(isInquiry ? "/admin/inquiries" : "/admin/tickets");
   }
@@ -275,6 +290,7 @@ export function AdminTicketDetailClient({
       onSendMessage={onSendMessage as never}
       onTypingChange={broadcastTyping}
       onStatusChange={onStatusChange}
+      onCategoryChange={onCategoryChange}
       onBack={onBack}
       headerBadge={outOfFreeWindow ? <OutOfFreeWindowBadge /> : null}
     />

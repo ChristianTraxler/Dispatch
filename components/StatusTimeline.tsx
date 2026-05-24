@@ -36,7 +36,7 @@ const WORK_LABELS_BY_CATEGORY: Record<
   BUG:      { reviewing: "Reviewing Errors",   working: "Fixing Errors",    done: "Errors Fixed" },
   URGENT:   { reviewing: "Reviewing Issue",    working: "Fixing Issue",     done: "Issue Resolved" },
   CONTENT:  { reviewing: "Reviewing Changes",  working: "Making Changes",   done: "Changes Made" },
-  UPDATE:   { reviewing: "Reviewing Update",   working: "Making Update",    done: "Update Complete" },
+  UPDATE:   { reviewing: "Reviewing Update(s)", working: "Making Update(s)",  done: "Update(s) Complete" },
   FEATURE:  { reviewing: "Reviewing Request",  working: "Building Feature", done: "Feature Added" },
   QUESTION: { reviewing: "Reviewing Question", working: "Drafting Answer",  done: "Answered" },
 };

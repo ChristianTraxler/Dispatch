@@ -4,15 +4,7 @@ import { getCurrentClientAccount } from "@/lib/auth/client-session";
 import { sendNewTicketEmail } from "@/lib/email";
 import { ticketNumber } from "@/lib/ticket";
 import { isAfterHours, type AdminSettingsInput, type WeeklyHours } from "@/lib/availability";
-
-const VALID_CATEGORIES = new Set([
-  "BUG",
-  "CONTENT",
-  "FEATURE",
-  "QUESTION",
-  "URGENT",
-  "UPDATE",
-]);
+import { isTicketCategory, type TicketCategoryValue } from "@/lib/ticket-categories";
 
 export async function POST(req: Request) {
   const account = await getCurrentClientAccount();
@@ -45,7 +37,7 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  if (!VALID_CATEGORIES.has(category)) {
+  if (!isTicketCategory(category)) {
     return NextResponse.json({ error: "Invalid category." }, { status: 400 });
   }
   if (!account.sites.some((s) => s.id === siteId)) {
@@ -91,7 +83,7 @@ export async function POST(req: Request) {
       siteId,
       title,
       description,
-      category: category as "BUG" | "CONTENT" | "FEATURE" | "QUESTION" | "URGENT" | "UPDATE",
+      category: category as TicketCategoryValue,
       status: "NEW",
       receivedAt: new Date(), // Stage 2 of the 6-stage timeline
       isEmergency: finalIsEmergency,
