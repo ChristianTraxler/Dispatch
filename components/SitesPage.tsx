@@ -1,12 +1,15 @@
 "use client";
 
 import { type CSSProperties } from "react";
+import { freeWindowStatus } from "@/lib/free-updates";
+import { FreeWindowStatusLabel } from "./FreeWindowStatusLabel";
 
 export interface SiteWithStats {
   id: string;
   url: string;
   displayName: string;
   addedAt: string | Date;
+  productionStartedAt: string | null;
   totalTickets: number;
   openTickets: number;
 }
@@ -80,6 +83,13 @@ export function SitesPage({
               </a>
               <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade mt-2">
                 Added {formatDate(site.addedAt)}
+              </div>
+              <div className="mt-1">
+                <FreeWindowStatusLabel
+                  status={freeWindowStatus(
+                    site.productionStartedAt ? new Date(site.productionStartedAt) : null,
+                  )}
+                />
               </div>
             </div>
 

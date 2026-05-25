@@ -29,6 +29,7 @@ export default async function ClientSitesPage() {
     url: s.url,
     displayName: s.displayName,
     addedAt: s.addedAt.toISOString(),
+    productionStartedAt: s.productionStartedAt?.toISOString() ?? null,
     totalTickets: s._count.tickets,
     openTickets: s.tickets.length,
   }));
