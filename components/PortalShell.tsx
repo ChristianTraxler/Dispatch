@@ -21,15 +21,16 @@ export interface PortalShellProps {
    */
   availabilityPill?: ReactNode;
   /** Active nav item key */
-  activeNav?: "dashboard" | "sites" | "account";
+  activeNav?: "dashboard" | "sites" | "add-ons" | "account";
   /** Click handler for nav items — in production these are <Link> hrefs */
-  onNavigate?: (target: "dashboard" | "sites" | "account" | "logout" | "new-ticket") => void;
+  onNavigate?: (target: "dashboard" | "sites" | "add-ons" | "account" | "logout" | "new-ticket") => void;
   children: ReactNode;
 }
 
-const NAV_ITEMS: { key: "dashboard" | "sites" | "account"; label: string }[] = [
+const NAV_ITEMS: { key: "dashboard" | "sites" | "add-ons" | "account"; label: string }[] = [
   { key: "dashboard", label: "Tickets" },
   { key: "sites", label: "Sites" },
+  { key: "add-ons", label: "Add-Ons" },
   { key: "account", label: "Account" },
 ];
 

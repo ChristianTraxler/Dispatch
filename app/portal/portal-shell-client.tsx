@@ -9,8 +9,9 @@ import {
 } from "@/lib/realtime/use-presence";
 import { AdminStatusProvider } from "@/lib/realtime/use-admin-status";
 
-function deriveActiveNav(pathname: string): "dashboard" | "sites" | "account" {
+function deriveActiveNav(pathname: string): "dashboard" | "sites" | "add-ons" | "account" {
   if (pathname.startsWith("/portal/sites")) return "sites";
+  if (pathname.startsWith("/portal/add-ons")) return "add-ons";
   if (pathname.startsWith("/portal/account")) return "account";
   return "dashboard";
 }
@@ -33,7 +34,7 @@ function PortalShellInner({
   });
 
   async function onNavigate(
-    target: "dashboard" | "sites" | "account" | "logout" | "new-ticket",
+    target: "dashboard" | "sites" | "add-ons" | "account" | "logout" | "new-ticket",
   ) {
     if (target === "logout") {
       await fetch("/api/portal/auth/logout", { method: "POST" });
