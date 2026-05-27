@@ -75,6 +75,7 @@ model Ticket {
   status          TicketStatus   @default(NEW)
   attachments     Json?
   addOnId         String?        @map("add_on_id")
+  notionPageId    String?        @map("notion_page_id")
   isInquiry      Boolean   @default(false) @map("is_inquiry")
   inquiryEndedAt DateTime? @map("inquiry_ended_at")
   lastMessageAt  DateTime? @map("last_message_at")
