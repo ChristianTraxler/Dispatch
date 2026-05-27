@@ -53,6 +53,20 @@ export default async function AdminClientDetailPage({ params }: PageProps) {
     where: { ticket: { clientAccountId: id } },
   });
 
+  const [catalog, overrides, clientAddOns] = await Promise.all([
+    prisma.addOn.findMany({ orderBy: [{ sortOrder: "asc" }, { name: "asc" }] }),
+    prisma.addOnClientPrice.findMany({ where: { clientAccountId: id } }),
+    prisma.clientAddOn.findMany({
+      where: { clientAccountId: id },
+      include: {
+        addOn: true,
+        site: { select: { id: true, displayName: true } },
+        requestTicket: { select: { id: true, title: true, status: true } },
+      },
+      orderBy: { startedAt: "desc" },
+    }),
+  ]);
+
   const sites: AdminClientDetailSite[] = account.sites.map((s) => ({
     id: s.id,
     url: s.url,
@@ -101,6 +115,38 @@ export default async function AdminClientDetailPage({ params }: PageProps) {
     <ClientDetailClient
       initial={data}
       initialFreeWindowStatusBySite={freeWindowStatusBySite}
+      addOnsCatalog={catalog.map((a) => ({
+        id: a.id,
+        name: a.name,
+        kind: a.kind,
+        scope: a.scope,
+        priceCents: a.priceCents,
+        priceUnit: a.priceUnit,
+        isActive: a.isActive,
+      }))}
+      addOnsOverrides={overrides.map((o) => ({
+        addOnId: o.addOnId,
+        priceCents: o.priceCents,
+      }))}
+      addOnsActive={clientAddOns.map((r) => ({
+        id: r.id,
+        addOnId: r.addOnId,
+        addOnName: r.addOn.name,
+        kind: r.addOn.kind,
+        scope: r.addOn.scope,
+        priceUnit: r.addOn.priceUnit,
+        siteId: r.siteId,
+        siteName: r.site?.displayName ?? null,
+        status: r.status,
+        priceCents: r.priceCents,
+        startedAt: r.startedAt.toISOString(),
+        endedAt: r.endedAt?.toISOString() ?? null,
+        note: r.note,
+        requestTicket: r.requestTicket
+          ? { id: r.requestTicket.id, title: r.requestTicket.title, status: r.requestTicket.status }
+          : null,
+      }))}
+      addOnsClientSites={sites.map((s) => ({ id: s.id, displayName: s.displayName }))}
     />
   );
 }

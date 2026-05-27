@@ -8,13 +8,28 @@ import {
 } from "@/components/AdminClientDetail";
 import { useClientsPresence } from "@/lib/realtime/use-presence";
 import type { FreeWindowStatus } from "@/lib/free-updates";
+import {
+  AddOnsSection,
+  type ActiveRow,
+  type CatalogAddOn,
+  type ClientSite,
+  type Override,
+} from "./add-ons-section";
 
 export function ClientDetailClient({
   initial,
   initialFreeWindowStatusBySite,
+  addOnsCatalog,
+  addOnsOverrides,
+  addOnsActive,
+  addOnsClientSites,
 }: {
   initial: AdminClientDetailData;
   initialFreeWindowStatusBySite: Record<string, FreeWindowStatus>;
+  addOnsCatalog: CatalogAddOn[];
+  addOnsOverrides: Override[];
+  addOnsActive: ActiveRow[];
+  addOnsClientSites: ClientSite[];
 }) {
   const router = useRouter();
   const online = useClientsPresence();
@@ -70,12 +85,21 @@ export function ClientDetailClient({
   }
 
   return (
-    <AdminClientDetail
-      client={client}
-      freeWindowStatusBySite={initialFreeWindowStatusBySite}
-      onUpdateEmail={onUpdateEmail}
-      onMoveToProduction={onMoveToProduction}
-      onResetProduction={onResetProduction}
-    />
+    <>
+      <AdminClientDetail
+        client={client}
+        freeWindowStatusBySite={initialFreeWindowStatusBySite}
+        onUpdateEmail={onUpdateEmail}
+        onMoveToProduction={onMoveToProduction}
+        onResetProduction={onResetProduction}
+      />
+      <AddOnsSection
+        clientId={initial.id}
+        catalog={addOnsCatalog}
+        overrides={addOnsOverrides}
+        active={addOnsActive}
+        sites={addOnsClientSites}
+      />
+    </>
   );
 }
