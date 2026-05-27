@@ -7,21 +7,22 @@ import { PullToRefresh } from "./PullToRefresh";
 
 export interface AdminShellProps {
   /** Active nav item key */
-  activeNav?: "dashboard" | "inquiries" | "clients" | "invites" | "account";
+  activeNav?: "dashboard" | "inquiries" | "clients" | "invites" | "add-ons" | "account";
   /** How many clients are currently online (drives the live count badge) */
   onlineClientCount?: number;
   /** Active-inquiry count badge on the Inquiries nav item */
   inquiryCount?: number;
   /** Click handler for nav items */
-  onNavigate?: (target: "dashboard" | "inquiries" | "clients" | "invites" | "account" | "logout") => void;
+  onNavigate?: (target: "dashboard" | "inquiries" | "clients" | "invites" | "add-ons" | "account" | "logout") => void;
   children: ReactNode;
 }
 
-const ADMIN_NAV: { key: "dashboard" | "inquiries" | "clients" | "invites"; label: string }[] = [
+const ADMIN_NAV: { key: "dashboard" | "inquiries" | "clients" | "invites" | "add-ons"; label: string }[] = [
   { key: "dashboard", label: "Live Ledger" },
   { key: "inquiries", label: "Inquiries" },
   { key: "clients", label: "Clients" },
   { key: "invites", label: "Invites" },
+  { key: "add-ons", label: "Add-Ons" },
 ];
 
 export function AdminShell({

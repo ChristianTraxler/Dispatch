@@ -14,10 +14,11 @@ import { useTicketsFeed } from "@/lib/realtime/use-tickets-feed";
 
 function deriveActiveNav(
   pathname: string,
-): "dashboard" | "inquiries" | "clients" | "invites" | "account" {
+): "dashboard" | "inquiries" | "clients" | "invites" | "add-ons" | "account" {
   if (pathname.startsWith("/admin/inquiries")) return "inquiries";
   if (pathname.startsWith("/admin/clients")) return "clients";
   if (pathname.startsWith("/admin/invites")) return "invites";
+  if (pathname.startsWith("/admin/add-ons")) return "add-ons";
   if (pathname.startsWith("/admin/account")) return "account";
   return "dashboard";
 }
@@ -84,7 +85,7 @@ function AdminShellInner({ children }: { children: React.ReactNode }) {
   }, [refreshInquiryCount]);
 
   async function onNavigate(
-    target: "dashboard" | "inquiries" | "clients" | "invites" | "account" | "logout",
+    target: "dashboard" | "inquiries" | "clients" | "invites" | "add-ons" | "account" | "logout",
   ) {
     if (target === "logout") {
       await fetch("/api/portal/auth/logout", { method: "POST" });
