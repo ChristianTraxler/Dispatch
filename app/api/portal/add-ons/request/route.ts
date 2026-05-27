@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
 import { sendNewTicketEmail } from "@/lib/email";
 import { ticketNumber } from "@/lib/ticket";
+import { createNotionTicketPage } from "@/lib/notion";
 
 export const dynamic = "force-dynamic";
 
@@ -119,7 +120,7 @@ export async function POST(req: Request) {
       status: "NEW",
       addOnId: addOn.id,
     },
-    select: { id: true, title: true, description: true, category: true, createdAt: true },
+    select: { id: true, title: true, description: true, category: true, createdAt: true, status: true, isEmergency: true },
   });
 
   // Notify the admin. Mirror the new-ticket email so add-on requests don't go silent.
@@ -145,6 +146,13 @@ export async function POST(req: Request) {
       console.error("[add-on request] new-ticket email failed:", err);
     }
   }
+
+  void createNotionTicketPage({
+    ticket,
+    account: { name: account.name, email: account.email },
+    site: { displayName: site.displayName },
+    appUrl,
+  }).catch((err) => console.error("[notion] uncaught in add-ons/request:", err));
 
   return NextResponse.json({ ticketId: ticket.id }, { status: 201 });
 }
