@@ -173,11 +173,14 @@ export async function PATCH(req: Request, { params }: Ctx) {
     // Switching away from PERCENTAGE → clear percent field
     data.pricePercentBp = null;
   }
-  if (finalKind === "RECURRING" && finalUnit === "ONE_TIME") {
+  if (finalKind === "RECURRING" && (finalUnit === "ONE_TIME" || finalUnit === "ON_TOTAL_BUILD")) {
     return NextResponse.json({ error: "RECURRING add-ons must use PER_MONTH or PER_YEAR." }, { status: 400 });
   }
-  if (finalKind === "ONE_TIME" && finalUnit !== "ONE_TIME") {
-    return NextResponse.json({ error: "ONE_TIME add-ons must use ONE_TIME unit." }, { status: 400 });
+  if (finalKind === "ONE_TIME" && finalUnit !== "ONE_TIME" && finalUnit !== "ON_TOTAL_BUILD") {
+    return NextResponse.json({ error: "ONE_TIME add-ons must use ONE_TIME or ON_TOTAL_BUILD unit." }, { status: 400 });
+  }
+  if (finalUnit === "ON_TOTAL_BUILD" && finalType !== "PERCENTAGE") {
+    return NextResponse.json({ error: "ON_TOTAL_BUILD unit is only valid for PERCENTAGE add-ons." }, { status: 400 });
   }
 
   const addOn = await prisma.addOn.update({ where: { id }, data });

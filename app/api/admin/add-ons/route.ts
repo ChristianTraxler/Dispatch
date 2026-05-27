@@ -90,7 +90,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "scope must be PER_SITE or PER_CLIENT." }, { status: 400 });
   }
   if (!UNITS.has(priceUnit)) {
-    return NextResponse.json({ error: "priceUnit must be ONE_TIME, PER_MONTH, or PER_YEAR." }, { status: 400 });
+    return NextResponse.json({ error: "priceUnit must be ONE_TIME, PER_MONTH, PER_YEAR, or ON_TOTAL_BUILD." }, { status: 400 });
   }
   if (!PRICE_TYPES.has(priceType)) {
     return NextResponse.json({ error: "priceType must be FIXED, RANGE, or PERCENTAGE." }, { status: 400 });
@@ -113,11 +113,14 @@ export async function POST(req: Request) {
       }
     }
   }
-  if (kind === "RECURRING" && priceUnit === "ONE_TIME") {
+  if (kind === "RECURRING" && (priceUnit === "ONE_TIME" || priceUnit === "ON_TOTAL_BUILD")) {
     return NextResponse.json({ error: "RECURRING add-ons must use PER_MONTH or PER_YEAR." }, { status: 400 });
   }
-  if (kind === "ONE_TIME" && priceUnit !== "ONE_TIME") {
-    return NextResponse.json({ error: "ONE_TIME add-ons must use ONE_TIME unit." }, { status: 400 });
+  if (kind === "ONE_TIME" && priceUnit !== "ONE_TIME" && priceUnit !== "ON_TOTAL_BUILD") {
+    return NextResponse.json({ error: "ONE_TIME add-ons must use ONE_TIME or ON_TOTAL_BUILD unit." }, { status: 400 });
+  }
+  if (priceUnit === "ON_TOTAL_BUILD" && priceType !== "PERCENTAGE") {
+    return NextResponse.json({ error: "ON_TOTAL_BUILD unit is only valid for PERCENTAGE add-ons." }, { status: 400 });
   }
 
   // Normalize: PERCENTAGE add-ons store 0 for priceCents and null for priceMaxCents.
