@@ -8,6 +8,7 @@ import {
 import { sendAwaitingConfirmationEmail } from "@/lib/email";
 import { ticketNumber } from "@/lib/ticket";
 import { isTicketCategory } from "@/lib/ticket-categories";
+import { updateNotionTicketStatus } from "@/lib/notion";
 
 const TIMESTAMP_FOR_STATUS = {
   REVIEWING: "reviewingStartedAt",
@@ -94,6 +95,13 @@ export async function PATCH(
     where: { id },
     data: updateData,
   });
+
+  if (status !== undefined) {
+    void updateNotionTicketStatus({
+      ticketId: id,
+      status: status as import("@prisma/client").TicketStatus,
+    }).catch((err) => console.error("[notion] uncaught in admin PATCH:", err));
+  }
 
   if (status === "AWAITING_CONFIRMATION") {
     const appUrl =
