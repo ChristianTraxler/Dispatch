@@ -535,32 +535,31 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
           </p>
         </div>
       ) : (
-        <>
-          {/* Mobile: stacked cards */}
-          <ul className="md:hidden flex flex-col gap-3">
-            {initialAddOns.map((row) => {
-              const priceDisplay =
-                row.priceType === "PERCENTAGE"
-                  ? row.pricePercentBp !== null
-                    ? formatPercentBp(row.pricePercentBp)
-                    : "—"
-                  : formatPriceRange(row.priceCents, row.priceMaxCents);
-              const unitLabel = resolveUnitLabel(row.priceUnit, row.priceUnitLabel);
-              const isOpen = expandedIds.has(row.id);
-              return (
-                <li
-                  key={row.id}
-                  className={`border border-rule bg-parchment-warm/30 ${row.isActive ? "" : "opacity-60"}`}
+        <ul className="flex flex-col gap-3">
+          {initialAddOns.map((row) => {
+            const priceDisplay =
+              row.priceType === "PERCENTAGE"
+                ? row.pricePercentBp !== null
+                  ? formatPercentBp(row.pricePercentBp)
+                  : "—"
+                : formatPriceRange(row.priceCents, row.priceMaxCents);
+            const unitLabel = resolveUnitLabel(row.priceUnit, row.priceUnitLabel);
+            const isOpen = expandedIds.has(row.id);
+            return (
+              <li
+                key={row.id}
+                className={`border border-rule bg-parchment-warm/30 ${row.isActive ? "" : "opacity-60"}`}
+              >
+                <button
+                  type="button"
+                  onClick={() => toggleExpand(row.id)}
+                  aria-expanded={isOpen}
+                  className="w-full text-left p-4 block"
                 >
-                  <button
-                    type="button"
-                    onClick={() => toggleExpand(row.id)}
-                    aria-expanded={isOpen}
-                    className="w-full text-left p-4 block"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1 flex items-start gap-2">
-                        <div className="font-display text-base leading-tight min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start gap-2">
+                        <div className="font-display text-base md:text-lg leading-tight min-w-0 flex-1">
                           {row.name}
                         </div>
                         <svg
@@ -578,155 +577,71 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
                           />
                         </svg>
                       </div>
-                      <div className="text-right shrink-0">
-                        <div className="font-mono text-sm whitespace-nowrap">{priceDisplay}</div>
-                        <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mt-0.5">
-                          {unitLabel}
-                        </div>
-                      </div>
-                    </div>
 
-                    {/* Slide-down description (grid 0fr → 1fr trick) */}
-                    <div
-                      className={`grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
-                    >
-                      <div className="overflow-hidden">
-                        <p className="text-sm text-ink-mute mt-2 leading-snug whitespace-pre-wrap">
+                      {/* Description: line-clamp-2 preview when collapsed,
+                          full text when expanded, with a smooth max-height
+                          transition between the two. */}
+                      <div
+                        className={`overflow-hidden transition-[max-height] duration-300 ease-out motion-reduce:transition-none ${isOpen ? "max-h-[60rem]" : "max-h-[2.75rem]"}`}
+                      >
+                        <p className="text-xs text-ink-mute mt-1 leading-snug whitespace-pre-wrap">
                           {row.description}
                         </p>
                       </div>
                     </div>
-
-                    <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute">
-                      <span>{row.kind === "RECURRING" ? "Recurring" : "One-time"}</span>
-                      <span className="text-ink-fade">·</span>
-                      <span>{row.scope === "PER_SITE" ? "Per site" : "Per client"}</span>
-                      <span className="text-ink-fade">·</span>
-                      <span>Order {row.sortOrder}</span>
-                      <span className="text-ink-fade">·</span>
-                      {row.isActive ? (
-                        <span className="text-signal-green">Active</span>
-                      ) : (
-                        <span>Retired</span>
-                      )}
+                    <div className="text-right shrink-0">
+                      <div className="font-mono text-sm whitespace-nowrap">{priceDisplay}</div>
+                      <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mt-0.5">
+                        {unitLabel}
+                      </div>
                     </div>
-                  </button>
-
-                  <div className="px-4 pb-4 -mt-1 pt-3 border-t border-rule flex items-center gap-4">
-                    <button
-                      type="button"
-                      onClick={() => startEdit(row)}
-                      disabled={busy || editingId !== null}
-                      className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink disabled:opacity-50"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => toggleActive(row)}
-                      disabled={busy}
-                      className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink disabled:opacity-50"
-                    >
-                      {row.isActive ? "Retire" : "Unretire"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => destroy(row)}
-                      disabled={busy}
-                      className="ml-auto font-mono text-[0.65rem] uppercase tracking-widest text-signal-red hover:opacity-80 disabled:opacity-50"
-                    >
-                      Delete
-                    </button>
                   </div>
-                </li>
-              );
-            })}
-          </ul>
 
-          {/* Desktop: table */}
-          <div className="hidden md:block border border-rule">
-            <table className="w-full text-sm">
-              <thead className="bg-ink text-parchment-warm">
-                <tr>
-                  <th className="text-left font-mono text-[0.6rem] uppercase tracking-widest px-3 py-2.5">Name</th>
-                  <th className="text-left font-mono text-[0.6rem] uppercase tracking-widest px-3 py-2.5">Kind</th>
-                  <th className="text-left font-mono text-[0.6rem] uppercase tracking-widest px-3 py-2.5">Scope</th>
-                  <th className="text-left font-mono text-[0.6rem] uppercase tracking-widest px-3 py-2.5">Price</th>
-                  <th className="text-left font-mono text-[0.6rem] uppercase tracking-widest px-3 py-2.5">Order</th>
-                  <th className="text-left font-mono text-[0.6rem] uppercase tracking-widest px-3 py-2.5">Status</th>
-                  <th className="text-right font-mono text-[0.6rem] uppercase tracking-widest px-3 py-2.5">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {initialAddOns.map((row) => (
-                  <tr
-                    key={row.id}
-                    className={`border-t border-rule ${row.isActive ? "" : "opacity-60"}`}
+                  <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute">
+                    <span>{row.kind === "RECURRING" ? "Recurring" : "One-time"}</span>
+                    <span className="text-ink-fade">·</span>
+                    <span>{row.scope === "PER_SITE" ? "Per site" : "Per client"}</span>
+                    <span className="text-ink-fade">·</span>
+                    <span>Order {row.sortOrder}</span>
+                    <span className="text-ink-fade">·</span>
+                    {row.isActive ? (
+                      <span className="text-signal-green">Active</span>
+                    ) : (
+                      <span>Retired</span>
+                    )}
+                  </div>
+                </button>
+
+                <div className="px-4 pb-4 -mt-1 pt-3 border-t border-rule flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => startEdit(row)}
+                    disabled={busy || editingId !== null}
+                    className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink disabled:opacity-50"
                   >
-                    <td className="px-3 py-3 font-display">
-                      <div>{row.name}</div>
-                      <div className="text-xs text-ink-mute mt-0.5 line-clamp-1">{row.description}</div>
-                    </td>
-                    <td className="px-3 py-3 font-mono text-xs uppercase tracking-widest">
-                      {row.kind === "RECURRING" ? "Recurring" : "One-time"}
-                    </td>
-                    <td className="px-3 py-3 font-mono text-xs uppercase tracking-widest">
-                      {row.scope === "PER_SITE" ? "Per site" : "Per client"}
-                    </td>
-                    <td className="px-3 py-3 font-mono whitespace-nowrap align-top">
-                      <div>
-                        {row.priceType === "PERCENTAGE"
-                          ? row.pricePercentBp !== null
-                            ? formatPercentBp(row.pricePercentBp)
-                            : "—"
-                          : formatPriceRange(row.priceCents, row.priceMaxCents)}
-                      </div>
-                      <div className="text-[0.6rem] uppercase tracking-widest text-ink-mute">
-                        {resolveUnitLabel(row.priceUnit, row.priceUnitLabel)}
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 font-mono">{row.sortOrder}</td>
-                    <td className="px-3 py-3 font-mono text-xs uppercase tracking-widest">
-                      {row.isActive ? (
-                        <span className="text-signal-green">Active</span>
-                      ) : (
-                        <span className="text-ink-mute">Retired</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-3 text-right">
-                      <div className="inline-flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() => startEdit(row)}
-                          disabled={busy || editingId !== null}
-                          className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => toggleActive(row)}
-                          disabled={busy}
-                          className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink"
-                        >
-                          {row.isActive ? "Retire" : "Unretire"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => destroy(row)}
-                          disabled={busy}
-                          className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red hover:opacity-80"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleActive(row)}
+                    disabled={busy}
+                    className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink disabled:opacity-50"
+                  >
+                    {row.isActive ? "Retire" : "Unretire"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => destroy(row)}
+                    disabled={busy}
+                    className="ml-auto font-mono text-[0.65rem] uppercase tracking-widest text-signal-red hover:opacity-80 disabled:opacity-50"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       )}
     </div>
   );
