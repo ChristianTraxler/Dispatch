@@ -6,6 +6,7 @@ import {
   AdminRequiredError,
 } from "@/lib/auth/admin-guard";
 import { hydrateAttachments, hydrateAvatarUrl } from "@/lib/storage";
+import { createNotionTicketPage } from "@/lib/notion";
 
 export async function POST(req: Request) {
   try {
@@ -67,6 +68,14 @@ export async function POST(req: Request) {
       },
     });
     ticket = { ...created, messages: [] };
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+    void createNotionTicketPage({
+      ticket: created,
+      account: { name: account.name, email: account.email },
+      site: { displayName: account.sites[0].displayName },
+      appUrl,
+    }).catch((err) => console.error("[notion] uncaught in admin/inquiries:", err));
   }
 
   const messages = await Promise.all(
