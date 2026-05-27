@@ -4,11 +4,19 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type {
   AddOnKind,
+  AddOnPriceType,
   AddOnPriceUnit,
   AddOnScope,
   ClientAddOnStatus,
 } from "@prisma/client";
-import { formatCents, formatPriceRange, priceUnitSuffix, scopeLabel } from "@/lib/add-ons/format";
+import {
+  formatCents,
+  formatPercentBp,
+  formatPriceRange,
+  formatPriceShape,
+  priceUnitSuffix,
+  scopeLabel,
+} from "@/lib/add-ons/format";
 import { resolvePrice } from "@/lib/add-ons/pricing";
 
 type CatalogAddOn = {
@@ -17,12 +25,20 @@ type CatalogAddOn = {
   description: string;
   kind: AddOnKind;
   scope: AddOnScope;
+  priceType: AddOnPriceType;
   priceCents: number;
   priceMaxCents: number | null;
+  pricePercentBp: number | null;
   priceUnit: AddOnPriceUnit;
 };
 
-type Override = { addOnId: string; priceCents: number; priceMaxCents: number | null };
+type Override = {
+  addOnId: string;
+  priceType: AddOnPriceType;
+  priceCents: number;
+  priceMaxCents: number | null;
+  pricePercentBp: number | null;
+};
 
 type ActiveAddOn = {
   id: string;
@@ -51,8 +67,10 @@ type ModalState =
   | {
       kind: "request";
       addOn: CatalogAddOn;
+      effectiveType: AddOnPriceType;
       effectiveCents: number;
       effectiveMaxCents: number | null;
+      effectivePercentBp: number | null;
     };
 
 function formatDate(value: string): string {
@@ -121,11 +139,18 @@ export function AddOnsClient({
 
   function openRequestModal(addOn: CatalogAddOn) {
     const override = overrideByAddOnId.get(addOn.id);
-    const { effectiveCents, effectiveMaxCents } = resolvePrice(addOn, override);
+    const { effective } = resolvePrice(addOn, override);
     setSelectedSiteId("");
     setNotes("");
     setSubmitError(null);
-    setModal({ kind: "request", addOn, effectiveCents, effectiveMaxCents });
+    setModal({
+      kind: "request",
+      addOn,
+      effectiveType: effective.type,
+      effectiveCents: effective.cents,
+      effectiveMaxCents: effective.maxCents,
+      effectivePercentBp: effective.percentBp,
+    });
   }
 
   async function submitRequest() {
@@ -244,13 +269,8 @@ export function AddOnsClient({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {visibleCatalog.map((addOn) => {
               const override = overrideByAddOnId.get(addOn.id);
-              const {
-                standardCents,
-                standardMaxCents,
-                effectiveCents,
-                effectiveMaxCents,
-                isOverridden,
-              } = resolvePrice(addOn, override);
+              const resolved = resolvePrice(addOn, override);
+              const { standard, effective, isOverridden } = resolved;
 
               // PER_SITE: open request exists for any of the client's sites?
               // PER_CLIENT: open request exists at all?
@@ -287,10 +307,10 @@ export function AddOnsClient({
                     {isOverridden ? (
                       <>
                         <span className="font-mono text-sm text-ink-mute line-through">
-                          {formatPriceRange(standardCents, standardMaxCents)}
+                          {formatPriceShape(standard)}
                         </span>
-                        <span className="font-mono text-base text-ink">
-                          {formatPriceRange(effectiveCents, effectiveMaxCents)}
+                        <span className="font-mono text-base text-ink whitespace-nowrap">
+                          {formatPriceShape(effective)}
                           <span className="text-ink-mute">{priceUnitSuffix(addOn.priceUnit)}</span>
                         </span>
                         <span className="font-mono text-[0.55rem] uppercase tracking-widest bg-signal-green text-parchment-warm px-1.5 py-0.5">
@@ -298,8 +318,8 @@ export function AddOnsClient({
                         </span>
                       </>
                     ) : (
-                      <span className="font-mono text-base text-ink">
-                        {formatPriceRange(effectiveCents, effectiveMaxCents)}
+                      <span className="font-mono text-base text-ink whitespace-nowrap">
+                        {formatPriceShape(effective)}
                         <span className="text-ink-mute">{priceUnitSuffix(addOn.priceUnit)}</span>
                       </span>
                     )}
@@ -351,11 +371,21 @@ export function AddOnsClient({
           >
             <h3 className="font-display text-xl mb-1">Request {modal.addOn.name}</h3>
             <p className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-3">
-              {formatPriceRange(modal.effectiveCents, modal.effectiveMaxCents)}{priceUnitSuffix(modal.addOn.priceUnit)} · {scopeLabel(modal.addOn.scope)}
+              {modal.effectiveType === "PERCENTAGE" && modal.effectivePercentBp !== null
+                ? formatPercentBp(modal.effectivePercentBp)
+                : formatPriceRange(modal.effectiveCents, modal.effectiveMaxCents)}
+              {priceUnitSuffix(modal.addOn.priceUnit)} · {scopeLabel(modal.addOn.scope)}
             </p>
             <div className="border-l-2 border-signal-red pl-3 py-1 mb-4 bg-parchment-warm/60">
               <p className="font-display text-sm text-ink-soft leading-snug">
-                {modal.effectiveMaxCents === null ? (
+                {modal.effectiveType === "PERCENTAGE" && modal.effectivePercentBp !== null ? (
+                  <>
+                    This add-on adjusts the total by{" "}
+                    <span className="font-mono">{formatPercentBp(modal.effectivePercentBp)}</span>.
+                    We&rsquo;ll calculate the exact dollar amount against your project
+                    base, send an invoice, and begin work once payment is received.
+                  </>
+                ) : modal.effectiveMaxCents === null ? (
                   <>
                     We&rsquo;ll send you an invoice for{" "}
                     <span className="font-mono">

@@ -1,4 +1,5 @@
 import type { AddOnPriceUnit, AddOnScope } from "@prisma/client";
+import type { PriceShape } from "./pricing";
 
 export function formatCents(cents: number): string {
   const dollars = cents / 100;
@@ -29,4 +30,37 @@ export function scopeLabel(scope: AddOnScope): string {
 export function formatPriceRange(minCents: number, maxCents: number | null): string {
   if (maxCents === null || maxCents === minCents) return formatCents(minCents);
   return `${formatCents(minCents)} – ${formatCents(maxCents)}`;
+}
+
+/** Render a percentage from basis points (2500 → "+25%", -500 → "-5%"). */
+export function formatPercentBp(bp: number): string {
+  const pct = bp / 100;
+  const sign = pct > 0 ? "+" : pct < 0 ? "" : "";
+  // strip trailing .0 / .00
+  const text = pct % 1 === 0 ? pct.toFixed(0) : pct.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+  return `${sign}${text}%`;
+}
+
+/**
+ * Render any price shape into a display string without unit suffix.
+ * FIXED → "$X", RANGE → "$X – $Y", PERCENTAGE → "+25%".
+ */
+export function formatPriceShape(shape: PriceShape): string {
+  switch (shape.type) {
+    case "FIXED":
+      return formatCents(shape.cents);
+    case "RANGE":
+      return formatPriceRange(shape.cents, shape.maxCents);
+    case "PERCENTAGE":
+      return shape.percentBp === null ? "—" : formatPercentBp(shape.percentBp);
+  }
+}
+
+/**
+ * Append the per-period suffix only when meaningful. Percentage add-ons render
+ * the unit (e.g. "+25% one-time"), but it usually reads more naturally without.
+ */
+export function priceShapeSuffix(shape: PriceShape, unit: AddOnPriceUnit): string {
+  if (shape.type === "PERCENTAGE") return priceUnitSuffix(unit);
+  return priceUnitSuffix(unit);
 }

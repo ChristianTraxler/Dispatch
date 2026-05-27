@@ -2,8 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { AddOnKind, AddOnScope, AddOnPriceUnit } from "@prisma/client";
-import { formatPriceRange, priceUnitSuffix } from "@/lib/add-ons/format";
+import type {
+  AddOnKind,
+  AddOnScope,
+  AddOnPriceUnit,
+  AddOnPriceType,
+} from "@prisma/client";
+import { formatPercentBp, formatPriceRange, priceUnitSuffix } from "@/lib/add-ons/format";
 
 type AddOnRow = {
   id: string;
@@ -11,8 +16,10 @@ type AddOnRow = {
   description: string;
   kind: AddOnKind;
   scope: AddOnScope;
+  priceType: AddOnPriceType;
   priceCents: number;
   priceMaxCents: number | null;
+  pricePercentBp: number | null;
   priceUnit: AddOnPriceUnit;
   isActive: boolean;
   sortOrder: number;
@@ -25,8 +32,10 @@ type FormState = {
   description: string;
   kind: AddOnKind;
   scope: AddOnScope;
+  priceType: AddOnPriceType;
   priceDollars: string;
   priceMaxDollars: string;
+  pricePercent: string;
   priceUnit: AddOnPriceUnit;
   sortOrder: string;
 };
@@ -36,11 +45,26 @@ const EMPTY_FORM: FormState = {
   description: "",
   kind: "RECURRING",
   scope: "PER_SITE",
+  priceType: "FIXED",
   priceDollars: "",
   priceMaxDollars: "",
+  pricePercent: "",
   priceUnit: "PER_MONTH",
   sortOrder: "0",
 };
+
+function percentToBp(input: string): number | null {
+  const trimmed = input.trim().replace(/%$/, "").replace(/^\+/, "");
+  if (!trimmed) return null;
+  const n = Number(trimmed);
+  if (!Number.isFinite(n)) return null;
+  return Math.round(n * 100);
+}
+
+function bpToPercent(bp: number): string {
+  const pct = bp / 100;
+  return pct % 1 === 0 ? pct.toFixed(0) : pct.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+}
 
 function dollarsToCents(input: string): number | null {
   const trimmed = input.trim();
@@ -74,8 +98,10 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
       description: row.description,
       kind: row.kind,
       scope: row.scope,
-      priceDollars: centsToDollars(row.priceCents),
+      priceType: row.priceType,
+      priceDollars: row.priceType === "PERCENTAGE" ? "" : centsToDollars(row.priceCents),
       priceMaxDollars: row.priceMaxCents !== null ? centsToDollars(row.priceMaxCents) : "",
+      pricePercent: row.pricePercentBp !== null ? bpToPercent(row.pricePercentBp) : "",
       priceUnit: row.priceUnit,
       sortOrder: String(row.sortOrder),
     });
@@ -90,20 +116,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
 
   async function save() {
     setError(null);
-    const cents = dollarsToCents(form.priceDollars);
-    if (cents === null) {
-      setError("Price must be a non-negative number.");
-      return;
-    }
-    const maxCents = form.priceMaxDollars.trim() ? dollarsToCents(form.priceMaxDollars) : null;
-    if (form.priceMaxDollars.trim() && maxCents === null) {
-      setError("Max price must be a non-negative number (or leave blank).");
-      return;
-    }
-    if (maxCents !== null && maxCents <= cents) {
-      setError("Max price must be greater than the starting price.");
-      return;
-    }
+
     if (!form.name.trim() || !form.description.trim()) {
       setError("Name and description are required.");
       return;
@@ -117,13 +130,48 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
       return;
     }
 
+    let payloadPrice: {
+      priceType: AddOnPriceType;
+      priceCents: number;
+      priceMaxCents: number | null;
+      pricePercentBp: number | null;
+    };
+
+    if (form.priceType === "PERCENTAGE") {
+      const bp = percentToBp(form.pricePercent);
+      if (bp === null) {
+        setError('Percent must be a number (e.g. "25" or "+25%").');
+        return;
+      }
+      payloadPrice = { priceType: "PERCENTAGE", priceCents: 0, priceMaxCents: null, pricePercentBp: bp };
+    } else {
+      const cents = dollarsToCents(form.priceDollars);
+      if (cents === null) {
+        setError("Price must be a non-negative number.");
+        return;
+      }
+      if (form.priceType === "RANGE") {
+        const maxCents = dollarsToCents(form.priceMaxDollars);
+        if (maxCents === null) {
+          setError("Max price is required for ranges.");
+          return;
+        }
+        if (maxCents <= cents) {
+          setError("Max price must be greater than the starting price.");
+          return;
+        }
+        payloadPrice = { priceType: "RANGE", priceCents: cents, priceMaxCents: maxCents, pricePercentBp: null };
+      } else {
+        payloadPrice = { priceType: "FIXED", priceCents: cents, priceMaxCents: null, pricePercentBp: null };
+      }
+    }
+
     const payload = {
       name: form.name.trim(),
       description: form.description.trim(),
       kind: form.kind,
       scope: form.scope,
-      priceCents: cents,
-      priceMaxCents: maxCents,
+      ...payloadPrice,
       priceUnit: form.priceUnit,
       sortOrder: Number(form.sortOrder) || 0,
     };
@@ -305,37 +353,73 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
               </select>
             </label>
 
-            <label className="block">
+            <label className="block md:col-span-2">
               <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
-                Price / starting price (USD)
+                Pricing style
               </span>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={form.priceDollars}
-                onChange={(e) => updateForm("priceDollars", e.target.value)}
+              <select
+                value={form.priceType}
+                onChange={(e) => updateForm("priceType", e.target.value as AddOnPriceType)}
                 className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
-              />
+              >
+                <option value="FIXED">Fixed — single price (e.g. $500)</option>
+                <option value="RANGE">Range — depends on scope (e.g. $500 – $1500)</option>
+                <option value="PERCENTAGE">Percentage — modifier on a base (e.g. +25%)</option>
+              </select>
             </label>
 
-            <label className="block">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
-                Max price (optional, for ranges)
-              </span>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={form.priceMaxDollars}
-                onChange={(e) => updateForm("priceMaxDollars", e.target.value)}
-                placeholder="leave blank for single price"
-                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
-              />
-              <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute leading-snug">
-                If set, clients see a range like &ldquo;$500 – $1500&rdquo;. Leave blank for a fixed price.
-              </span>
-            </label>
+            {form.priceType !== "PERCENTAGE" && (
+              <label className="block">
+                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                  {form.priceType === "RANGE" ? "Starting price (USD)" : "Price (USD)"}
+                </span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={form.priceDollars}
+                  onChange={(e) => updateForm("priceDollars", e.target.value)}
+                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                />
+              </label>
+            )}
+
+            {form.priceType === "RANGE" && (
+              <label className="block">
+                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                  Max price (USD)
+                </span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={form.priceMaxDollars}
+                  onChange={(e) => updateForm("priceMaxDollars", e.target.value)}
+                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                />
+              </label>
+            )}
+
+            {form.priceType === "PERCENTAGE" && (
+              <label className="block md:col-span-2">
+                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                  Percent modifier
+                </span>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={form.pricePercent}
+                  onChange={(e) => updateForm("pricePercent", e.target.value)}
+                  placeholder="e.g. 25 or +25"
+                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                />
+                <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute leading-snug">
+                  Renders as &ldquo;+25%&rdquo; on the client side. Use a negative number
+                  (e.g. -10) for a discount. The actual dollar amount is calculated
+                  per-project at activation time.
+                </span>
+              </label>
+            )}
 
             <label className="block">
               <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
@@ -419,9 +503,17 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
                   <td className="px-3 py-3 font-mono text-xs uppercase tracking-widest">
                     {row.scope === "PER_SITE" ? "Per site" : "Per client"}
                   </td>
-                  <td className="px-3 py-3 font-mono">
-                    {formatPriceRange(row.priceCents, row.priceMaxCents)}
-                    <span className="text-ink-mute">{priceUnitSuffix(row.priceUnit)}</span>
+                  <td className="px-3 py-3 font-mono whitespace-nowrap align-top">
+                    <div>
+                      {row.priceType === "PERCENTAGE"
+                        ? row.pricePercentBp !== null
+                          ? formatPercentBp(row.pricePercentBp)
+                          : "—"
+                        : formatPriceRange(row.priceCents, row.priceMaxCents)}
+                    </div>
+                    <div className="text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                      {priceUnitSuffix(row.priceUnit).replace(/^\s+/, "")}
+                    </div>
                   </td>
                   <td className="px-3 py-3 font-mono">{row.sortOrder}</td>
                   <td className="px-3 py-3 font-mono text-xs uppercase tracking-widest">

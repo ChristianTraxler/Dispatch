@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AddOnKind, AddOnPriceUnit, AddOnScope } from "@prisma/client";
-import { formatCents, formatPriceRange, priceUnitSuffix, scopeLabel } from "@/lib/add-ons/format";
+import {
+  formatCents,
+  formatPercentBp,
+  formatPriceRange,
+  formatPriceShape,
+  priceUnitSuffix,
+  scopeLabel,
+} from "@/lib/add-ons/format";
+import type { AddOnPriceType } from "@prisma/client";
 
 export type AddOnBannerData = {
   clientId: string;
@@ -12,12 +20,18 @@ export type AddOnBannerData = {
     name: string;
     kind: AddOnKind;
     scope: AddOnScope;
+    priceType: AddOnPriceType;
     priceCents: number;
     priceMaxCents: number | null;
+    pricePercentBp: number | null;
     priceUnit: AddOnPriceUnit;
   };
-  overridePriceCents: number | null;
-  overridePriceMaxCents: number | null;
+  override: {
+    priceType: AddOnPriceType;
+    priceCents: number;
+    priceMaxCents: number | null;
+    pricePercentBp: number | null;
+  } | null;
   alreadyActiveCount: number;
   defaultSiteId: string;
   clientSites: { id: string; displayName: string }[];
@@ -45,25 +59,46 @@ export function AddOnRequestBanner({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  // Build effective shape (override if any, else standard)
+  const effectiveShape = data.override ?? {
+    priceType: data.addOn.priceType,
+    priceCents: data.addOn.priceCents,
+    priceMaxCents: data.addOn.priceMaxCents,
+    pricePercentBp: data.addOn.pricePercentBp,
+  };
+
+  const standardShape = {
+    type: data.addOn.priceType,
+    cents: data.addOn.priceCents,
+    maxCents: data.addOn.priceMaxCents,
+    percentBp: data.addOn.pricePercentBp,
+  } as const;
+
+  const effectiveDisplayShape = {
+    type: effectiveShape.priceType,
+    cents: effectiveShape.priceCents,
+    maxCents: effectiveShape.priceMaxCents,
+    percentBp: effectiveShape.pricePercentBp,
+  } as const;
+
+  const isOverridden =
+    data.override !== null &&
+    (data.override.priceType !== data.addOn.priceType ||
+      data.override.priceCents !== data.addOn.priceCents ||
+      data.override.priceMaxCents !== data.addOn.priceMaxCents ||
+      data.override.pricePercentBp !== data.addOn.pricePercentBp);
+
   const [siteId, setSiteId] = useState<string>(data.defaultSiteId);
-  // Snapshot price is always a single number, defaulting to the floor of
-  // the effective price (override floor, else standard floor). Admin enters
-  // the final agreed amount before activation.
+  // Snapshot price is always a single dollar amount, defaulting to the
+  // effective floor for FIXED/RANGE; blank for PERCENTAGE (admin enters the
+  // resulting amount).
   const [priceDollars, setPriceDollars] = useState<string>(
-    centsToDollars(data.overridePriceCents ?? data.addOn.priceCents),
+    effectiveShape.priceType === "PERCENTAGE" ? "" : centsToDollars(effectiveShape.priceCents),
   );
   const [note, setNote] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const effectiveCents = data.overridePriceCents ?? data.addOn.priceCents;
-  const effectiveMaxCents = data.overridePriceCents !== null
-    ? data.overridePriceMaxCents
-    : data.addOn.priceMaxCents;
-  const isOverridden =
-    data.overridePriceCents !== null &&
-    (data.overridePriceCents !== data.addOn.priceCents ||
-      data.overridePriceMaxCents !== data.addOn.priceMaxCents);
   const alreadyActive = data.alreadyActiveCount > 0;
 
   async function activate() {
@@ -111,13 +146,13 @@ export function AddOnRequestBanner({
           </div>
           <div className="font-display text-lg">
             {data.addOn.name}
-            <span className="text-ink-mute font-mono text-sm ml-2">
+            <span className="text-ink-mute font-mono text-sm ml-2 whitespace-nowrap">
               {isOverridden && (
                 <span className="line-through mr-1">
-                  {formatPriceRange(data.addOn.priceCents, data.addOn.priceMaxCents)}
+                  {formatPriceShape(standardShape)}
                 </span>
               )}
-              {formatPriceRange(effectiveCents, effectiveMaxCents)}{priceUnitSuffix(data.addOn.priceUnit)} · {scopeLabel(data.addOn.scope)}
+              {formatPriceShape(effectiveDisplayShape)}{priceUnitSuffix(data.addOn.priceUnit)} · {scopeLabel(data.addOn.scope)}
             </span>
           </div>
         </div>
@@ -171,9 +206,14 @@ export function AddOnRequestBanner({
                 onChange={(e) => setPriceDollars(e.target.value)}
                 className="mt-1 w-full border border-rule bg-parchment-warm px-3 py-2 font-mono"
               />
-              {effectiveMaxCents != null && (
+              {effectiveShape.priceType === "PERCENTAGE" && effectiveShape.pricePercentBp !== null && (
                 <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute">
-                  Range for this client: {formatPriceRange(effectiveCents, effectiveMaxCents)}{priceUnitSuffix(data.addOn.priceUnit)} — enter the agreed amount.
+                  Modifier for this client: {formatPercentBp(effectiveShape.pricePercentBp)}{priceUnitSuffix(data.addOn.priceUnit)} — enter the resulting dollar amount.
+                </span>
+              )}
+              {effectiveShape.priceType === "RANGE" && effectiveShape.priceMaxCents != null && (
+                <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute">
+                  Range for this client: {formatPriceRange(effectiveShape.priceCents, effectiveShape.priceMaxCents)}{priceUnitSuffix(data.addOn.priceUnit)} — enter the agreed amount.
                 </span>
               )}
             </label>

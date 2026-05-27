@@ -6,7 +6,7 @@ import {
   AuthRequiredError,
   AdminRequiredError,
 } from "@/lib/auth/admin-guard";
-import type { AddOnKind, AddOnScope, AddOnPriceUnit } from "@prisma/client";
+import type { AddOnKind, AddOnScope, AddOnPriceUnit, AddOnPriceType } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +15,7 @@ type Ctx = { params: Promise<{ id: string }> };
 const KINDS = new Set<AddOnKind>(["RECURRING", "ONE_TIME"]);
 const SCOPES = new Set<AddOnScope>(["PER_SITE", "PER_CLIENT"]);
 const UNITS = new Set<AddOnPriceUnit>(["ONE_TIME", "PER_MONTH", "PER_YEAR"]);
+const PRICE_TYPES = new Set<AddOnPriceType>(["FIXED", "RANGE", "PERCENTAGE"]);
 
 async function guard() {
   try {
@@ -32,8 +33,10 @@ interface PatchBody {
   description?: unknown;
   kind?: unknown;
   scope?: unknown;
+  priceType?: unknown;
   priceCents?: unknown;
   priceMaxCents?: unknown;
+  pricePercentBp?: unknown;
   priceUnit?: unknown;
   isActive?: unknown;
   sortOrder?: unknown;
@@ -78,6 +81,12 @@ export async function PATCH(req: Request, { params }: Ctx) {
     }
     data.scope = body.scope;
   }
+  if (body.priceType !== undefined) {
+    if (!PRICE_TYPES.has(body.priceType as AddOnPriceType)) {
+      return NextResponse.json({ error: "priceType must be FIXED, RANGE, or PERCENTAGE." }, { status: 400 });
+    }
+    data.priceType = body.priceType;
+  }
   if (body.priceCents !== undefined) {
     if (!Number.isInteger(body.priceCents) || (body.priceCents as number) < 0) {
       return NextResponse.json({ error: "priceCents must be a non-negative integer." }, { status: 400 });
@@ -92,6 +101,16 @@ export async function PATCH(req: Request, { params }: Ctx) {
         return NextResponse.json({ error: "priceMaxCents must be a non-negative integer or null." }, { status: 400 });
       }
       data.priceMaxCents = body.priceMaxCents;
+    }
+  }
+  if (body.pricePercentBp !== undefined) {
+    if (body.pricePercentBp === null) {
+      data.pricePercentBp = null;
+    } else {
+      if (!Number.isInteger(body.pricePercentBp)) {
+        return NextResponse.json({ error: "pricePercentBp must be an integer or null." }, { status: 400 });
+      }
+      data.pricePercentBp = body.pricePercentBp;
     }
   }
   if (body.priceUnit !== undefined) {
@@ -116,10 +135,33 @@ export async function PATCH(req: Request, { params }: Ctx) {
   // Cross-field check after merging with existing values
   const finalKind = (data.kind as AddOnKind | undefined) ?? existing.kind;
   const finalUnit = (data.priceUnit as AddOnPriceUnit | undefined) ?? existing.priceUnit;
+  const finalType = (data.priceType as AddOnPriceType | undefined) ?? existing.priceType;
   const finalMin = (data.priceCents as number | undefined) ?? existing.priceCents;
   const finalMaxRaw = data.priceMaxCents === undefined ? existing.priceMaxCents : (data.priceMaxCents as number | null);
-  if (finalMaxRaw !== null && finalMaxRaw <= finalMin) {
-    return NextResponse.json({ error: "priceMaxCents must be greater than priceCents." }, { status: 400 });
+  const finalPct = data.pricePercentBp === undefined ? existing.pricePercentBp : (data.pricePercentBp as number | null);
+
+  if (finalType === "RANGE") {
+    if (finalMaxRaw === null) {
+      return NextResponse.json({ error: "priceMaxCents required for RANGE add-ons." }, { status: 400 });
+    }
+    if (finalMaxRaw <= finalMin) {
+      return NextResponse.json({ error: "priceMaxCents must be greater than priceCents." }, { status: 400 });
+    }
+  }
+  if (finalType === "FIXED" && finalMaxRaw !== null) {
+    // Auto-clear when switching back to FIXED
+    data.priceMaxCents = null;
+  }
+  if (finalType === "PERCENTAGE") {
+    if (finalPct === null) {
+      return NextResponse.json({ error: "pricePercentBp required for PERCENTAGE add-ons." }, { status: 400 });
+    }
+    // Force priceCents=0 + maxCents=null when switching to percentage
+    if (data.priceCents === undefined) data.priceCents = 0;
+    data.priceMaxCents = null;
+  } else if (data.pricePercentBp === undefined && existing.priceType === "PERCENTAGE" && data.priceType !== undefined) {
+    // Switching away from PERCENTAGE → clear percent field
+    data.pricePercentBp = null;
   }
   if (finalKind === "RECURRING" && finalUnit === "ONE_TIME") {
     return NextResponse.json({ error: "RECURRING add-ons must use PER_MONTH or PER_YEAR." }, { status: 400 });

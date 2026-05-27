@@ -1,50 +1,76 @@
-import type { AddOn, AddOnClientPrice } from "@prisma/client";
+import type { AddOn, AddOnClientPrice, AddOnPriceType } from "@prisma/client";
 
-export type ResolvedPrice = {
-  /** Standard catalog floor price in cents. */
-  standardCents: number;
-  /** Standard catalog ceiling in cents (null if not a range). */
-  standardMaxCents: number | null;
-  /** Effective floor price for this client (override if any). */
-  effectiveCents: number;
-  /** Effective ceiling for this client (null if not a range). */
-  effectiveMaxCents: number | null;
-  /** True if any field differs from the standard catalog price. */
-  isOverridden: boolean;
+export type PriceShape = {
+  type: AddOnPriceType;
+  cents: number;
+  maxCents: number | null;
+  percentBp: number | null;
 };
 
-function rangesDiffer(
-  a: { min: number; max: number | null },
-  b: { min: number; max: number | null },
-): boolean {
-  return a.min !== b.min || a.max !== b.max;
+export type ResolvedPrice = {
+  /** Standard catalog shape. */
+  standard: PriceShape;
+  /** Effective shape (override-aware). */
+  effective: PriceShape;
+  /** True if any field differs from the standard catalog price. */
+  isOverridden: boolean;
+
+  // Legacy convenience fields (still used by older callers that only handle
+  // FIXED + RANGE prices). For PERCENTAGE add-ons, `cents`/`maxCents` are not
+  // meaningful — callers must branch on `effective.type` first.
+  standardCents: number;
+  standardMaxCents: number | null;
+  effectiveCents: number;
+  effectiveMaxCents: number | null;
+};
+
+function shapeFromAddOn(
+  addOn: Pick<AddOn, "priceType" | "priceCents" | "priceMaxCents" | "pricePercentBp">,
+): PriceShape {
+  return {
+    type: addOn.priceType,
+    cents: addOn.priceCents,
+    maxCents: addOn.priceMaxCents ?? null,
+    percentBp: addOn.pricePercentBp ?? null,
+  };
+}
+
+function shapeFromOverride(
+  o: Pick<AddOnClientPrice, "priceType" | "priceCents" | "priceMaxCents" | "pricePercentBp">,
+): PriceShape {
+  return {
+    type: o.priceType,
+    cents: o.priceCents,
+    maxCents: o.priceMaxCents ?? null,
+    percentBp: o.pricePercentBp ?? null,
+  };
+}
+
+function shapesDiffer(a: PriceShape, b: PriceShape): boolean {
+  return a.type !== b.type || a.cents !== b.cents || a.maxCents !== b.maxCents || a.percentBp !== b.percentBp;
 }
 
 export function resolvePrice(
-  addOn: Pick<AddOn, "priceCents" | "priceMaxCents">,
-  override: Pick<AddOnClientPrice, "priceCents" | "priceMaxCents"> | null | undefined,
+  addOn: Pick<AddOn, "priceType" | "priceCents" | "priceMaxCents" | "pricePercentBp">,
+  override: Pick<AddOnClientPrice, "priceType" | "priceCents" | "priceMaxCents" | "pricePercentBp"> | null | undefined,
 ): ResolvedPrice {
-  const standard = { min: addOn.priceCents, max: addOn.priceMaxCents ?? null };
-  if (
-    override &&
-    rangesDiffer(
-      { min: override.priceCents, max: override.priceMaxCents ?? null },
-      standard,
-    )
-  ) {
-    return {
-      standardCents: standard.min,
-      standardMaxCents: standard.max,
-      effectiveCents: override.priceCents,
-      effectiveMaxCents: override.priceMaxCents ?? null,
-      isOverridden: true,
-    };
+  const standard = shapeFromAddOn(addOn);
+  let effective = standard;
+  let isOverridden = false;
+  if (override) {
+    const o = shapeFromOverride(override);
+    if (shapesDiffer(o, standard)) {
+      effective = o;
+      isOverridden = true;
+    }
   }
   return {
-    standardCents: standard.min,
-    standardMaxCents: standard.max,
-    effectiveCents: standard.min,
-    effectiveMaxCents: standard.max,
-    isOverridden: false,
+    standard,
+    effective,
+    isOverridden,
+    standardCents: standard.cents,
+    standardMaxCents: standard.maxCents,
+    effectiveCents: effective.cents,
+    effectiveMaxCents: effective.maxCents,
   };
 }

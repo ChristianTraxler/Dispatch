@@ -4,28 +4,38 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type {
   AddOnKind,
+  AddOnPriceType,
   AddOnPriceUnit,
   AddOnScope,
   ClientAddOnStatus,
   TicketStatus,
 } from "@prisma/client";
-import { formatCents, formatPriceRange, priceUnitSuffix } from "@/lib/add-ons/format";
+import {
+  formatCents,
+  formatPercentBp,
+  formatPriceRange,
+  priceUnitSuffix,
+} from "@/lib/add-ons/format";
 
 export type CatalogAddOn = {
   id: string;
   name: string;
   kind: AddOnKind;
   scope: AddOnScope;
+  priceType: AddOnPriceType;
   priceCents: number;
   priceMaxCents: number | null;
+  pricePercentBp: number | null;
   priceUnit: AddOnPriceUnit;
   isActive: boolean;
 };
 
 export type Override = {
   addOnId: string;
+  priceType: AddOnPriceType;
   priceCents: number;
   priceMaxCents: number | null;
+  pricePercentBp: number | null;
 };
 
 export type ActiveRow = {
@@ -60,6 +70,14 @@ function centsToDollars(cents: number): string {
   return d % 1 === 0 ? d.toFixed(0) : d.toFixed(2);
 }
 
+function percentToBp(input: string): number | null {
+  const trimmed = input.trim().replace(/%$/, "").replace(/^\+/, "");
+  if (!trimmed) return null;
+  const n = Number(trimmed);
+  if (!Number.isFinite(n)) return null;
+  return Math.round(n * 100);
+}
+
 function formatDate(value: string | null): string {
   if (!value) return "—";
   return new Date(value).toLocaleDateString("en-US", {
@@ -86,8 +104,10 @@ export function AddOnsSection({
   // Override form state
   const [overrideOpen, setOverrideOpen] = useState(false);
   const [overrideAddOnId, setOverrideAddOnId] = useState<string>("");
+  const [overrideType, setOverrideType] = useState<AddOnPriceType>("FIXED");
   const [overridePrice, setOverridePrice] = useState<string>("");
   const [overridePriceMax, setOverridePriceMax] = useState<string>("");
+  const [overridePercent, setOverridePercent] = useState<string>("");
 
   // Activation form state
   const [activateOpen, setActivateOpen] = useState(false);
@@ -108,9 +128,23 @@ export function AddOnsSection({
 
   function startOverride() {
     setOverrideOpen(true);
-    setOverrideAddOnId(activeCatalogAddOns[0]?.id ?? "");
+    const first = activeCatalogAddOns[0];
+    setOverrideAddOnId(first?.id ?? "");
+    setOverrideType(first?.priceType ?? "FIXED");
     setOverridePrice("");
     setOverridePriceMax("");
+    setOverridePercent("");
+  }
+
+  function onChangeOverrideAddOn(id: string) {
+    setOverrideAddOnId(id);
+    const a = catalog.find((c) => c.id === id);
+    if (a) {
+      setOverrideType(a.priceType);
+      setOverridePrice("");
+      setOverridePriceMax("");
+      setOverridePercent("");
+    }
   }
 
   function defaultSnapshotCents(addOnId: string): number | null {
@@ -146,26 +180,50 @@ export function AddOnsSection({
 
   async function saveOverride() {
     if (!overrideAddOnId) return;
-    const cents = dollarsToCents(overridePrice);
-    if (cents === null) {
-      alert("Price must be a non-negative number.");
-      return;
+
+    let payload: {
+      addOnId: string;
+      priceType: AddOnPriceType;
+      priceCents: number;
+      priceMaxCents: number | null;
+      pricePercentBp: number | null;
+    };
+
+    if (overrideType === "PERCENTAGE") {
+      const bp = percentToBp(overridePercent);
+      if (bp === null) {
+        alert('Percent must be a number (e.g. "25" or "+25%").');
+        return;
+      }
+      payload = { addOnId: overrideAddOnId, priceType: "PERCENTAGE", priceCents: 0, priceMaxCents: null, pricePercentBp: bp };
+    } else {
+      const cents = dollarsToCents(overridePrice);
+      if (cents === null) {
+        alert("Price must be a non-negative number.");
+        return;
+      }
+      if (overrideType === "RANGE") {
+        const maxCents = dollarsToCents(overridePriceMax);
+        if (maxCents === null) {
+          alert("Max price is required for ranges.");
+          return;
+        }
+        if (maxCents <= cents) {
+          alert("Max price must be greater than the starting price.");
+          return;
+        }
+        payload = { addOnId: overrideAddOnId, priceType: "RANGE", priceCents: cents, priceMaxCents: maxCents, pricePercentBp: null };
+      } else {
+        payload = { addOnId: overrideAddOnId, priceType: "FIXED", priceCents: cents, priceMaxCents: null, pricePercentBp: null };
+      }
     }
-    const maxCents = overridePriceMax.trim() ? dollarsToCents(overridePriceMax) : null;
-    if (overridePriceMax.trim() && maxCents === null) {
-      alert("Max price must be a non-negative number (or leave blank).");
-      return;
-    }
-    if (maxCents !== null && maxCents <= cents) {
-      alert("Max price must be greater than the starting price.");
-      return;
-    }
+
     setBusy(true);
     try {
       const res = await fetch(`/api/admin/clients/${clientId}/add-on-prices`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ addOnId: overrideAddOnId, priceCents: cents, priceMaxCents: maxCents }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -280,50 +338,91 @@ export function AddOnsSection({
 
         {overrideOpen && (
           <div className="border border-rule bg-parchment-warm/40 p-4 mb-3">
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3 items-end">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <label className="block">
                 <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
                   Add-on
                 </span>
                 <select
                   value={overrideAddOnId}
-                  onChange={(e) => setOverrideAddOnId(e.target.value)}
+                  onChange={(e) => onChangeOverrideAddOn(e.target.value)}
                   className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display"
                 >
-                  {activeCatalogAddOns.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} — {formatPriceRange(a.priceCents, a.priceMaxCents)}{priceUnitSuffix(a.priceUnit)}
-                    </option>
-                  ))}
+                  {activeCatalogAddOns.map((a) => {
+                    const display = a.priceType === "PERCENTAGE"
+                      ? (a.pricePercentBp !== null ? formatPercentBp(a.pricePercentBp) : "—")
+                      : formatPriceRange(a.priceCents, a.priceMaxCents);
+                    return (
+                      <option key={a.id} value={a.id}>
+                        {a.name} — {display}{priceUnitSuffix(a.priceUnit)}
+                      </option>
+                    );
+                  })}
                 </select>
               </label>
+
               <label className="block">
                 <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
-                  Their price (USD)
+                  Pricing style
                 </span>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={overridePrice}
-                  onChange={(e) => setOverridePrice(e.target.value)}
-                  className="mt-1 border border-rule bg-parchment px-3 py-2 font-mono w-32"
-                />
+                <select
+                  value={overrideType}
+                  onChange={(e) => setOverrideType(e.target.value as AddOnPriceType)}
+                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                >
+                  <option value="FIXED">Fixed</option>
+                  <option value="RANGE">Range</option>
+                  <option value="PERCENTAGE">Percentage</option>
+                </select>
               </label>
-              <label className="block">
-                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
-                  Max (optional)
-                </span>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={overridePriceMax}
-                  onChange={(e) => setOverridePriceMax(e.target.value)}
-                  placeholder="—"
-                  className="mt-1 border border-rule bg-parchment px-3 py-2 font-mono w-32"
-                />
-              </label>
+
+              {overrideType !== "PERCENTAGE" && (
+                <label className="block">
+                  <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                    {overrideType === "RANGE" ? "Their starting price (USD)" : "Their price (USD)"}
+                  </span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={overridePrice}
+                    onChange={(e) => setOverridePrice(e.target.value)}
+                    className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                  />
+                </label>
+              )}
+
+              {overrideType === "RANGE" && (
+                <label className="block">
+                  <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                    Their max price (USD)
+                  </span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={overridePriceMax}
+                    onChange={(e) => setOverridePriceMax(e.target.value)}
+                    className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                  />
+                </label>
+              )}
+
+              {overrideType === "PERCENTAGE" && (
+                <label className="block">
+                  <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                    Their percent modifier
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={overridePercent}
+                    onChange={(e) => setOverridePercent(e.target.value)}
+                    placeholder="e.g. 20 or +20"
+                    className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                  />
+                </label>
+              )}
             </div>
             <div className="mt-4 flex items-center gap-3">
               <button type="button" onClick={saveOverride} disabled={busy} className="btn-dispatch">Save</button>
@@ -335,9 +434,6 @@ export function AddOnsSection({
               >
                 Cancel
               </button>
-              <span className="font-mono text-[0.55rem] text-ink-mute leading-snug ml-auto max-w-xs">
-                Fill in Max only for ranged pricing.
-              </span>
             </div>
           </div>
         )}
@@ -349,17 +445,23 @@ export function AddOnsSection({
             {overrides.map((o) => {
               const addOn = catalog.find((a) => a.id === o.addOnId);
               if (!addOn) return null;
+              const standardDisplay = addOn.priceType === "PERCENTAGE"
+                ? (addOn.pricePercentBp !== null ? formatPercentBp(addOn.pricePercentBp) : "—")
+                : formatPriceRange(addOn.priceCents, addOn.priceMaxCents);
+              const overrideDisplay = o.priceType === "PERCENTAGE"
+                ? (o.pricePercentBp !== null ? formatPercentBp(o.pricePercentBp) : "—")
+                : formatPriceRange(o.priceCents, o.priceMaxCents);
               return (
                 <li key={o.addOnId} className="px-4 py-2.5 flex items-center justify-between gap-4">
                   <div className="min-w-0">
                     <div className="font-display">{addOn.name}</div>
                     <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
-                      Standard {formatPriceRange(addOn.priceCents, addOn.priceMaxCents)}{priceUnitSuffix(addOn.priceUnit)}
+                      Standard {standardDisplay}{priceUnitSuffix(addOn.priceUnit)}
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-sm">
-                      {formatPriceRange(o.priceCents, o.priceMaxCents)}<span className="text-ink-mute">{priceUnitSuffix(addOn.priceUnit)}</span>
+                    <span className="font-mono text-sm whitespace-nowrap">
+                      {overrideDisplay}<span className="text-ink-mute">{priceUnitSuffix(addOn.priceUnit)}</span>
                     </span>
                     <button
                       type="button"
@@ -433,14 +535,30 @@ export function AddOnsSection({
                   onChange={(e) => setActivatePrice(e.target.value)}
                   className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
                 />
-                {selectedActivateAddOn?.priceMaxCents != null && (
-                  <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute">
-                    Catalog range: {formatPriceRange(
-                      (overrideByAddOn.get(selectedActivateAddOn.id)?.priceCents) ?? selectedActivateAddOn.priceCents,
-                      (overrideByAddOn.get(selectedActivateAddOn.id)?.priceMaxCents) ?? selectedActivateAddOn.priceMaxCents,
-                    )}{priceUnitSuffix(selectedActivateAddOn.priceUnit)} — enter the agreed amount.
-                  </span>
-                )}
+                {(() => {
+                  if (!selectedActivateAddOn) return null;
+                  const ov = overrideByAddOn.get(selectedActivateAddOn.id);
+                  const effType = ov?.priceType ?? selectedActivateAddOn.priceType;
+                  if (effType === "PERCENTAGE") {
+                    const bp = ov?.pricePercentBp ?? selectedActivateAddOn.pricePercentBp;
+                    if (bp === null || bp === undefined) return null;
+                    return (
+                      <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute">
+                        Catalog: {formatPercentBp(bp)}{priceUnitSuffix(selectedActivateAddOn.priceUnit)} — enter the resulting dollar amount.
+                      </span>
+                    );
+                  }
+                  if (effType === "RANGE") {
+                    const min = ov?.priceCents ?? selectedActivateAddOn.priceCents;
+                    const max = ov?.priceMaxCents ?? selectedActivateAddOn.priceMaxCents;
+                    return (
+                      <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute">
+                        Catalog range: {formatPriceRange(min, max)}{priceUnitSuffix(selectedActivateAddOn.priceUnit)} — enter the agreed amount.
+                      </span>
+                    );
+                  }
+                  return null;
+                })()}
               </label>
 
               <label className="block md:col-span-2">

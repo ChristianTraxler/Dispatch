@@ -33,12 +33,18 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
       name: string;
       kind: "RECURRING" | "ONE_TIME";
       scope: "PER_SITE" | "PER_CLIENT";
+      priceType: "FIXED" | "RANGE" | "PERCENTAGE";
       priceCents: number;
       priceMaxCents: number | null;
+      pricePercentBp: number | null;
       priceUnit: "ONE_TIME" | "PER_MONTH" | "PER_YEAR";
     };
-    overridePriceCents: number | null;
-    overridePriceMaxCents: number | null;
+    override: {
+      priceType: "FIXED" | "RANGE" | "PERCENTAGE";
+      priceCents: number;
+      priceMaxCents: number | null;
+      pricePercentBp: number | null;
+    } | null;
     alreadyActiveCount: number;
     defaultSiteId: string;
     clientSites: { id: string; displayName: string }[];
@@ -76,12 +82,20 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
         name: ticket.addOn.name,
         kind: ticket.addOn.kind,
         scope: ticket.addOn.scope,
+        priceType: ticket.addOn.priceType,
         priceCents: ticket.addOn.priceCents,
         priceMaxCents: ticket.addOn.priceMaxCents,
+        pricePercentBp: ticket.addOn.pricePercentBp,
         priceUnit: ticket.addOn.priceUnit,
       },
-      overridePriceCents: override?.priceCents ?? null,
-      overridePriceMaxCents: override?.priceMaxCents ?? null,
+      override: override
+        ? {
+            priceType: override.priceType,
+            priceCents: override.priceCents,
+            priceMaxCents: override.priceMaxCents,
+            pricePercentBp: override.pricePercentBp,
+          }
+        : null,
       alreadyActiveCount: alreadyActive,
       defaultSiteId: ticket.siteId,
       clientSites,
