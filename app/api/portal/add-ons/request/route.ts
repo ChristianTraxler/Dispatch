@@ -2,6 +2,8 @@ import "server-only";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
+import { sendNewTicketEmail } from "@/lib/email";
+import { ticketNumber } from "@/lib/ticket";
 
 export const dynamic = "force-dynamic";
 
@@ -45,11 +47,11 @@ export async function POST(req: Request) {
   // Resolve the site to attach the ticket to.
   // - PER_SITE: the requested site, must belong to this client.
   // - PER_CLIENT: pick any of the client's sites (tickets require siteId).
-  let site: { id: string; displayName: string } | null = null;
+  let site: { id: string; displayName: string; url: string } | null = null;
   if (siteId) {
     site = await prisma.site.findFirst({
       where: { id: siteId, clientAccountId: account.id },
-      select: { id: true, displayName: true },
+      select: { id: true, displayName: true, url: true },
     });
     if (!site) {
       return NextResponse.json({ error: "Site not found." }, { status: 404 });
@@ -58,7 +60,7 @@ export async function POST(req: Request) {
     site = await prisma.site.findFirst({
       where: { clientAccountId: account.id },
       orderBy: { addedAt: "asc" },
-      select: { id: true, displayName: true },
+      select: { id: true, displayName: true, url: true },
     });
     if (!site) {
       return NextResponse.json(
@@ -117,8 +119,32 @@ export async function POST(req: Request) {
       status: "NEW",
       addOnId: addOn.id,
     },
-    select: { id: true },
+    select: { id: true, title: true, description: true, category: true, createdAt: true },
   });
+
+  // Notify the admin. Mirror the new-ticket email so add-on requests don't go silent.
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+  if (adminEmail) {
+    try {
+      await sendNewTicketEmail(adminEmail, {
+        ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
+        ticketTitle: ticket.title,
+        ticketUrl: `${appUrl}/admin/ticket/${ticket.id}`,
+        category: ticket.category,
+        clientName: account.name,
+        clientEmail: account.email,
+        siteDisplayName: site.displayName,
+        siteUrl: site.url,
+        description: ticket.description,
+        isEmergency: false,
+        emergencyFeeAmountCents: null,
+        isAddOnRequest: true,
+      });
+    } catch (err) {
+      console.error("[add-on request] new-ticket email failed:", err);
+    }
+  }
 
   return NextResponse.json({ ticketId: ticket.id }, { status: 201 });
 }

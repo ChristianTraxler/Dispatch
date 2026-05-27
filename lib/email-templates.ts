@@ -289,6 +289,7 @@ export interface NewTicketEmailParams {
   description: string;
   isEmergency: boolean;
   emergencyFeeAmountCents?: number | null;
+  isAddOnRequest?: boolean;
 }
 
 export function renderNewTicketEmail(p: NewTicketEmailParams): { subject: string; html: string; text: string } {
@@ -304,30 +305,34 @@ export function renderNewTicketEmail(p: NewTicketEmailParams): { subject: string
 `.trim()
     : "";
 
+  const typeLabel = p.isAddOnRequest ? "Add-on request" : caps(p.category);
+  const sectionHeader = p.isAddOnRequest ? "ADD-ON REQUEST" : "NEW DISPATCH FILED";
+  const ledeKind = p.isAddOnRequest ? "an add-on request" : `a new ${p.category.toLowerCase()} ticket`;
+
   const body = `
 ${banner}
-${sectionLabel("NEW DISPATCH FILED")}
+${sectionLabel(sectionHeader)}
 ${headline(escape(p.ticketTitle))}
 ${lede(`From <strong style="color:${COLORS.signalRed};">${escape(p.clientName)}</strong> for ${escape(p.siteDisplayName)}.`)}
 
 ${dataTable(`
 ${dataRow("Ticket", `<span style="font-family:${FONT_MONO};font-size:13px;">${escape(p.ticketNumber)}</span>`)}
-${dataRow("Type", caps(p.category))}
+${dataRow("Type", typeLabel)}
 ${dataRow("Site", `${escape(p.siteDisplayName)} <span style="font-family:${FONT_MONO};font-size:12px;color:${COLORS.inkMute};">— ${escape(p.siteUrl)}</span>`)}
 ${dataRow("Filed by", `${escape(p.clientName)} <span style="font-family:${FONT_MONO};font-size:12px;color:${COLORS.inkMute};">${escape(p.clientEmail)}</span>`)}
 `)}
 
-<div style="margin:0 0 8px 0;">${caps("Original report")}</div>
+<div style="margin:0 0 8px 0;">${caps(p.isAddOnRequest ? "Request details" : "Original report")}</div>
 ${quoteBlock(escape(p.description).replace(/\n/g, "<br>"))}
 
 ${button({ href: p.ticketUrl, label: "Open the ticket →" })}
   `.trim();
 
   const html = shell({
-    title: `New ticket: ${p.ticketTitle}`,
+    title: p.isAddOnRequest ? `Add-on request: ${p.ticketTitle}` : `New ticket: ${p.ticketTitle}`,
     preheader: p.isEmergency
       ? `EMERGENCY — ${p.clientName} filed an after-hours ${p.category.toLowerCase()} ticket for ${p.siteDisplayName}.`
-      : `${p.clientName} filed a new ${p.category.toLowerCase()} ticket for ${p.siteDisplayName}.`,
+      : `${p.clientName} filed ${ledeKind} for ${p.siteDisplayName}.`,
     body,
   });
 
@@ -335,20 +340,22 @@ ${button({ href: p.ticketUrl, label: "Open the ticket →" })}
     ? `*** EMERGENCY — outside business hours${feeDollars ? `, $${feeDollars} fee acknowledged` : ""} ***\n\n`
     : "";
 
-  const text = `${textBanner}New ticket filed: ${p.ticketTitle}
+  const textHeading = p.isAddOnRequest ? "Add-on request filed" : "New ticket filed";
+  const text = `${textBanner}${textHeading}: ${p.ticketTitle}
 
 From: ${p.clientName} (${p.clientEmail})
 Site: ${p.siteDisplayName} — ${p.siteUrl}
-Type: ${p.category}
+Type: ${typeLabel}
 Ticket: ${p.ticketNumber}
 
 > ${p.description.split("\n").join("\n> ")}
 
 Open it here: ${p.ticketUrl}${plainTextFooter()}`;
 
+  const subjectTag = p.isAddOnRequest ? "ADD-ON" : p.category;
   const subject = p.isEmergency
-    ? `[EMERGENCY] [${p.category}] ${p.ticketTitle} — ${p.siteDisplayName}`
-    : `[${p.category}] ${p.ticketTitle} — ${p.siteDisplayName}`;
+    ? `[EMERGENCY] [${subjectTag}] ${p.ticketTitle} — ${p.siteDisplayName}`
+    : `[${subjectTag}] ${p.ticketTitle} — ${p.siteDisplayName}`;
 
   return { subject, html, text };
 }
