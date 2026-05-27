@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 const KINDS = new Set<AddOnKind>(["RECURRING", "ONE_TIME"]);
 const SCOPES = new Set<AddOnScope>(["PER_SITE", "PER_CLIENT"]);
-const UNITS = new Set<AddOnPriceUnit>(["ONE_TIME", "PER_MONTH", "PER_YEAR"]);
+const UNITS = new Set<AddOnPriceUnit>(["ONE_TIME", "PER_MONTH", "PER_YEAR", "ON_TOTAL_BUILD"]);
 const PRICE_TYPES = new Set<AddOnPriceType>(["FIXED", "RANGE", "PERCENTAGE"]);
 
 async function guard() {
@@ -46,6 +46,7 @@ interface PostBody {
   priceMaxCents?: unknown;
   pricePercentBp?: unknown;
   priceUnit?: unknown;
+  priceUnitLabel?: unknown;
   sortOrder?: unknown;
 }
 
@@ -72,6 +73,9 @@ export async function POST(req: Request) {
     ? null
     : (typeof body.pricePercentBp === "number" ? body.pricePercentBp : NaN);
   const sortOrder = typeof body.sortOrder === "number" ? body.sortOrder : 0;
+  const priceUnitLabel = typeof body.priceUnitLabel === "string"
+    ? (body.priceUnitLabel.trim().slice(0, 40) || null)
+    : null;
 
   if (!name || name.length > 120) {
     return NextResponse.json({ error: "name must be 1-120 chars." }, { status: 400 });
@@ -132,6 +136,7 @@ export async function POST(req: Request) {
       priceMaxCents: finalPriceMaxCents,
       pricePercentBp: finalPercentBp,
       priceUnit,
+      priceUnitLabel,
       sortOrder,
     },
   });

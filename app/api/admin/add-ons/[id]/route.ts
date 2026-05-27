@@ -38,6 +38,7 @@ interface PatchBody {
   priceMaxCents?: unknown;
   pricePercentBp?: unknown;
   priceUnit?: unknown;
+  priceUnitLabel?: unknown;
   isActive?: unknown;
   sortOrder?: unknown;
 }
@@ -111,6 +112,15 @@ export async function PATCH(req: Request, { params }: Ctx) {
         return NextResponse.json({ error: "pricePercentBp must be an integer or null." }, { status: 400 });
       }
       data.pricePercentBp = body.pricePercentBp;
+    }
+  }
+  if (body.priceUnitLabel !== undefined) {
+    if (body.priceUnitLabel === null || body.priceUnitLabel === "") {
+      data.priceUnitLabel = null;
+    } else if (typeof body.priceUnitLabel === "string") {
+      data.priceUnitLabel = body.priceUnitLabel.trim().slice(0, 40) || null;
+    } else {
+      return NextResponse.json({ error: "priceUnitLabel must be a string or null." }, { status: 400 });
     }
   }
   if (body.priceUnit !== undefined) {

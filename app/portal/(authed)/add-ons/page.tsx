@@ -53,6 +53,7 @@ export default async function PortalAddOnsPage() {
         priceMaxCents: a.priceMaxCents,
         pricePercentBp: a.pricePercentBp,
         priceUnit: a.priceUnit,
+        priceUnitLabel: a.priceUnitLabel,
       }))}
       overrides={overrides.map((o) => ({
         addOnId: o.addOnId,
@@ -68,6 +69,7 @@ export default async function PortalAddOnsPage() {
         kind: row.addOn.kind,
         scope: row.addOn.scope,
         priceUnit: row.addOn.priceUnit,
+        priceUnitLabel: row.addOn.priceUnitLabel,
         siteId: row.siteId,
         siteName: row.site?.displayName ?? null,
         status: row.status,

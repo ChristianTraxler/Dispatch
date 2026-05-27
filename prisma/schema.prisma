@@ -134,6 +134,7 @@ model AddOn {
   priceMaxCents  Int?           @map("price_max_cents")
   pricePercentBp Int?           @map("price_percent_bp")
   priceUnit      AddOnPriceUnit @map("price_unit")
+  priceUnitLabel String?        @map("price_unit_label")
   isActive       Boolean        @default(true) @map("is_active")
   sortOrder   Int            @default(0) @map("sort_order")
   createdAt   DateTime       @default(now()) @map("created_at")
@@ -205,6 +206,7 @@ enum AddOnPriceUnit {
   ONE_TIME
   PER_MONTH
   PER_YEAR
+  ON_TOTAL_BUILD
 }
 
 enum AddOnPriceType {

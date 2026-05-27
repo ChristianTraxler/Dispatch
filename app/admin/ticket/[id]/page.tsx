@@ -37,7 +37,7 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
       priceCents: number;
       priceMaxCents: number | null;
       pricePercentBp: number | null;
-      priceUnit: "ONE_TIME" | "PER_MONTH" | "PER_YEAR";
+      priceUnit: "ONE_TIME" | "PER_MONTH" | "PER_YEAR" | "ON_TOTAL_BUILD";
     };
     override: {
       priceType: "FIXED" | "RANGE" | "PERCENTAGE";

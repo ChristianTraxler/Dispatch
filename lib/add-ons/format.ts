@@ -16,7 +16,32 @@ export function priceUnitSuffix(unit: AddOnPriceUnit): string {
       return "/yr";
     case "ONE_TIME":
       return " one-time";
+    case "ON_TOTAL_BUILD":
+      return " on total build";
   }
+}
+
+/**
+ * Human-readable label for a price unit (defaults rendered when no custom
+ * label is set). Used as the right-side badge beside the price.
+ */
+export function defaultUnitLabel(unit: AddOnPriceUnit): string {
+  switch (unit) {
+    case "PER_MONTH":
+      return "Per month";
+    case "PER_YEAR":
+      return "Per year";
+    case "ONE_TIME":
+      return "One-time";
+    case "ON_TOTAL_BUILD":
+      return "On total build";
+  }
+}
+
+/** Pick the display label: custom override if present (and non-empty), else default. */
+export function resolveUnitLabel(unit: AddOnPriceUnit, customLabel: string | null | undefined): string {
+  if (customLabel && customLabel.trim()) return customLabel.trim();
+  return defaultUnitLabel(unit);
 }
 
 export function scopeLabel(scope: AddOnScope): string {

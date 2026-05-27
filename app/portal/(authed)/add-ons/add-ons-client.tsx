@@ -15,6 +15,7 @@ import {
   formatPriceRange,
   formatPriceShape,
   priceUnitSuffix,
+  resolveUnitLabel,
   scopeLabel,
 } from "@/lib/add-ons/format";
 import { resolvePrice } from "@/lib/add-ons/pricing";
@@ -30,6 +31,7 @@ type CatalogAddOn = {
   priceMaxCents: number | null;
   pricePercentBp: number | null;
   priceUnit: AddOnPriceUnit;
+  priceUnitLabel: string | null;
 };
 
 type Override = {
@@ -47,6 +49,7 @@ type ActiveAddOn = {
   kind: AddOnKind;
   scope: AddOnScope;
   priceUnit: AddOnPriceUnit;
+  priceUnitLabel: string | null;
   siteId: string | null;
   siteName: string | null;
   status: ClientAddOnStatus;
@@ -236,7 +239,9 @@ export function AddOnsClient({
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-sm">
                     {formatCents(row.priceCents)}
-                    <span className="text-ink-mute">{priceUnitSuffix(row.priceUnit)}</span>
+                  </span>
+                  <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                    {resolveUnitLabel(row.priceUnit, row.priceUnitLabel)}
                   </span>
                   <span
                     className={[
@@ -311,17 +316,23 @@ export function AddOnsClient({
                         </span>
                         <span className="font-mono text-base text-ink whitespace-nowrap">
                           {formatPriceShape(effective)}
-                          <span className="text-ink-mute">{priceUnitSuffix(addOn.priceUnit)}</span>
+                        </span>
+                        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute border-l border-rule pl-2">
+                          {resolveUnitLabel(addOn.priceUnit, addOn.priceUnitLabel)}
                         </span>
                         <span className="font-mono text-[0.55rem] uppercase tracking-widest bg-signal-green text-parchment-warm px-1.5 py-0.5">
                           Your rate
                         </span>
                       </>
                     ) : (
-                      <span className="font-mono text-base text-ink whitespace-nowrap">
-                        {formatPriceShape(effective)}
-                        <span className="text-ink-mute">{priceUnitSuffix(addOn.priceUnit)}</span>
-                      </span>
+                      <>
+                        <span className="font-mono text-base text-ink whitespace-nowrap">
+                          {formatPriceShape(effective)}
+                        </span>
+                        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute border-l border-rule pl-2">
+                          {resolveUnitLabel(addOn.priceUnit, addOn.priceUnitLabel)}
+                        </span>
+                      </>
                     )}
                   </div>
 

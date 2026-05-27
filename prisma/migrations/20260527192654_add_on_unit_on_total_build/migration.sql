@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "AddOnPriceUnit" ADD VALUE 'ON_TOTAL_BUILD';

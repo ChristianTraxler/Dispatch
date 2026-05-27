@@ -8,7 +8,11 @@ import type {
   AddOnPriceUnit,
   AddOnPriceType,
 } from "@prisma/client";
-import { formatPercentBp, formatPriceRange, priceUnitSuffix } from "@/lib/add-ons/format";
+import {
+  formatPercentBp,
+  formatPriceRange,
+  resolveUnitLabel,
+} from "@/lib/add-ons/format";
 
 type AddOnRow = {
   id: string;
@@ -21,6 +25,7 @@ type AddOnRow = {
   priceMaxCents: number | null;
   pricePercentBp: number | null;
   priceUnit: AddOnPriceUnit;
+  priceUnitLabel: string | null;
   isActive: boolean;
   sortOrder: number;
   createdAt: string;
@@ -37,6 +42,7 @@ type FormState = {
   priceMaxDollars: string;
   pricePercent: string;
   priceUnit: AddOnPriceUnit;
+  priceUnitLabel: string;
   sortOrder: string;
 };
 
@@ -50,6 +56,7 @@ const EMPTY_FORM: FormState = {
   priceMaxDollars: "",
   pricePercent: "",
   priceUnit: "PER_MONTH",
+  priceUnitLabel: "",
   sortOrder: "0",
 };
 
@@ -103,6 +110,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
       priceMaxDollars: row.priceMaxCents !== null ? centsToDollars(row.priceMaxCents) : "",
       pricePercent: row.pricePercentBp !== null ? bpToPercent(row.pricePercentBp) : "",
       priceUnit: row.priceUnit,
+      priceUnitLabel: row.priceUnitLabel ?? "",
       sortOrder: String(row.sortOrder),
     });
     setEditingId(row.id);
@@ -121,12 +129,16 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
       setError("Name and description are required.");
       return;
     }
-    if (form.kind === "RECURRING" && form.priceUnit === "ONE_TIME") {
+    if (form.kind === "RECURRING" && (form.priceUnit === "ONE_TIME" || form.priceUnit === "ON_TOTAL_BUILD")) {
       setError("Recurring add-ons must use per-month or per-year pricing.");
       return;
     }
-    if (form.kind === "ONE_TIME" && form.priceUnit !== "ONE_TIME") {
-      setError("One-time add-ons must use one-time pricing.");
+    if (form.kind === "ONE_TIME" && form.priceUnit !== "ONE_TIME" && form.priceUnit !== "ON_TOTAL_BUILD") {
+      setError("One-time add-ons must use one-time or on-total-build pricing.");
+      return;
+    }
+    if (form.priceUnit === "ON_TOTAL_BUILD" && form.priceType !== "PERCENTAGE") {
+      setError("On-total-build pricing is only valid for percentage add-ons.");
       return;
     }
 
@@ -173,6 +185,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
       scope: form.scope,
       ...payloadPrice,
       priceUnit: form.priceUnit,
+      priceUnitLabel: form.priceUnitLabel.trim() || null,
       sortOrder: Number(form.sortOrder) || 0,
     };
 
@@ -232,11 +245,25 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
       const next = { ...f, [key]: value };
       // Keep priceUnit consistent with kind
       if (key === "kind") {
-        if (value === "RECURRING" && next.priceUnit === "ONE_TIME") {
+        if (value === "RECURRING" && (next.priceUnit === "ONE_TIME" || next.priceUnit === "ON_TOTAL_BUILD")) {
           next.priceUnit = "PER_MONTH";
         }
         if (value === "ONE_TIME") {
-          next.priceUnit = "ONE_TIME";
+          // Default ONE_TIME to ONE_TIME unit, or ON_TOTAL_BUILD for percentage add-ons
+          if (next.priceType === "PERCENTAGE") {
+            next.priceUnit = "ON_TOTAL_BUILD";
+          } else if (next.priceUnit !== "ONE_TIME") {
+            next.priceUnit = "ONE_TIME";
+          }
+        }
+      }
+      // Keep priceUnit consistent with priceType
+      if (key === "priceType") {
+        if (value === "PERCENTAGE" && next.kind === "ONE_TIME" && next.priceUnit === "ONE_TIME") {
+          next.priceUnit = "ON_TOTAL_BUILD";
+        }
+        if (value !== "PERCENTAGE" && next.priceUnit === "ON_TOTAL_BUILD") {
+          next.priceUnit = next.kind === "ONE_TIME" ? "ONE_TIME" : "PER_MONTH";
         }
       }
       return next;
@@ -435,10 +462,34 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
                     <option value="PER_MONTH">Per month</option>
                     <option value="PER_YEAR">Per year</option>
                   </>
+                ) : form.priceType === "PERCENTAGE" ? (
+                  <>
+                    <option value="ON_TOTAL_BUILD">On total build</option>
+                    <option value="ONE_TIME">One-time</option>
+                  </>
                 ) : (
                   <option value="ONE_TIME">One-time</option>
                 )}
               </select>
+            </label>
+
+            <label className="block md:col-span-2">
+              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                Display label (optional)
+              </span>
+              <input
+                type="text"
+                maxLength={40}
+                value={form.priceUnitLabel}
+                onChange={(e) => updateForm("priceUnitLabel", e.target.value)}
+                placeholder='e.g. "Per page", "Per form", "On total build fee"'
+                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display"
+              />
+              <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute leading-snug">
+                Shown beside the price on catalog cards (e.g. &ldquo;$75 — Per page&rdquo;).
+                Leave blank to use the default for the selected unit
+                (&ldquo;One-time&rdquo;, &ldquo;Per month&rdquo;, &ldquo;On total build&rdquo;, etc.).
+              </span>
             </label>
           </div>
 
@@ -512,7 +563,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
                         : formatPriceRange(row.priceCents, row.priceMaxCents)}
                     </div>
                     <div className="text-[0.6rem] uppercase tracking-widest text-ink-mute">
-                      {priceUnitSuffix(row.priceUnit).replace(/^\s+/, "")}
+                      {resolveUnitLabel(row.priceUnit, row.priceUnitLabel)}
                     </div>
                   </td>
                   <td className="px-3 py-3 font-mono">{row.sortOrder}</td>
