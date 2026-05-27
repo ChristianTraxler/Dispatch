@@ -18,12 +18,71 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
     where: { id },
     include: {
       site: { select: { url: true, displayName: true, productionStartedAt: true } },
-      clientAccount: { select: { name: true, email: true, avatarPath: true } },
+      clientAccount: { select: { id: true, name: true, email: true, avatarPath: true } },
       messages: { orderBy: { createdAt: "asc" } },
+      addOn: true,
     },
   });
 
   if (!ticket) notFound();
+
+  let addOnBanner: {
+    clientId: string;
+    addOn: {
+      id: string;
+      name: string;
+      kind: "RECURRING" | "ONE_TIME";
+      scope: "PER_SITE" | "PER_CLIENT";
+      priceCents: number;
+      priceUnit: "ONE_TIME" | "PER_MONTH" | "PER_YEAR";
+    };
+    overridePriceCents: number | null;
+    alreadyActiveCount: number;
+    defaultSiteId: string;
+    clientSites: { id: string; displayName: string }[];
+  } | null = null;
+
+  if (ticket.addOn) {
+    const [override, alreadyActive, clientSites] = await Promise.all([
+      prisma.addOnClientPrice.findUnique({
+        where: {
+          addOnId_clientAccountId: {
+            addOnId: ticket.addOn.id,
+            clientAccountId: ticket.clientAccount.id,
+          },
+        },
+      }),
+      prisma.clientAddOn.count({
+        where: {
+          clientAccountId: ticket.clientAccount.id,
+          addOnId: ticket.addOn.id,
+          status: "ACTIVE",
+          ...(ticket.addOn.scope === "PER_SITE" ? { siteId: ticket.siteId } : {}),
+        },
+      }),
+      prisma.site.findMany({
+        where: { clientAccountId: ticket.clientAccount.id },
+        orderBy: { displayName: "asc" },
+        select: { id: true, displayName: true },
+      }),
+    ]);
+
+    addOnBanner = {
+      clientId: ticket.clientAccount.id,
+      addOn: {
+        id: ticket.addOn.id,
+        name: ticket.addOn.name,
+        kind: ticket.addOn.kind,
+        scope: ticket.addOn.scope,
+        priceCents: ticket.addOn.priceCents,
+        priceUnit: ticket.addOn.priceUnit,
+      },
+      overridePriceCents: override?.priceCents ?? null,
+      alreadyActiveCount: alreadyActive,
+      defaultSiteId: ticket.siteId,
+      clientSites,
+    };
+  }
 
   const isInquiry = ticket.isInquiry;
   const inquiryEndedAt = ticket.inquiryEndedAt?.toISOString() ?? null;
@@ -86,6 +145,7 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
       inquiryEndedAt={inquiryEndedAt}
       clientAvatarUrl={clientAvatarUrl}
       outOfFreeWindow={outOfFreeWindow}
+      addOnBanner={addOnBanner}
     />
   );
 }

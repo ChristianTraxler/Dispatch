@@ -14,6 +14,7 @@ import {
   useTicketChannel,
   type RawMessageRow,
 } from "@/lib/realtime/use-ticket-channel";
+import { AddOnRequestBanner, type AddOnBannerData } from "./add-on-banner";
 
 export function AdminTicketDetailClient({
   ticket,
@@ -24,6 +25,7 @@ export function AdminTicketDetailClient({
   inquiryEndedAt = null,
   clientAvatarUrl = null,
   outOfFreeWindow = false,
+  addOnBanner = null,
 }: {
   ticket: TicketDetail;
   ticketAttachments: ChatAttachment[];
@@ -33,6 +35,7 @@ export function AdminTicketDetailClient({
   inquiryEndedAt?: string | null;
   clientAvatarUrl?: string | null;
   outOfFreeWindow?: boolean;
+  addOnBanner?: AddOnBannerData | null;
 }) {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
@@ -279,20 +282,25 @@ export function AdminTicketDetailClient({
   }
 
   return (
-    <TicketDetailPage
-      ticket={ticket}
-      ticketAttachments={ticketAttachments}
-      messages={messages}
-      viewerType="admin"
-      otherPartyName={otherPartyName}
-      otherPartyOnline={otherPartyOnline}
-      otherPartyTyping={otherPartyTyping}
-      onSendMessage={onSendMessage as never}
-      onTypingChange={broadcastTyping}
-      onStatusChange={onStatusChange}
-      onCategoryChange={onCategoryChange}
-      onBack={onBack}
-      headerBadge={outOfFreeWindow ? <OutOfFreeWindowBadge /> : null}
-    />
+    <>
+      {addOnBanner && (
+        <AddOnRequestBanner data={addOnBanner} ticketId={ticket.id} />
+      )}
+      <TicketDetailPage
+        ticket={ticket}
+        ticketAttachments={ticketAttachments}
+        messages={messages}
+        viewerType="admin"
+        otherPartyName={otherPartyName}
+        otherPartyOnline={otherPartyOnline}
+        otherPartyTyping={otherPartyTyping}
+        onSendMessage={onSendMessage as never}
+        onTypingChange={broadcastTyping}
+        onStatusChange={onStatusChange}
+        onCategoryChange={onCategoryChange}
+        onBack={onBack}
+        headerBadge={outOfFreeWindow ? <OutOfFreeWindowBadge /> : null}
+      />
+    </>
   );
 }
