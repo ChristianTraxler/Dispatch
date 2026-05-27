@@ -42,5 +42,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# claude worktrees
-.claude/worktrees/
+# claude
+.claude/
+
+# editor / IDE
+.vscode/
+.idea/
+
+# local tooling state
+.doc-tracker.json
