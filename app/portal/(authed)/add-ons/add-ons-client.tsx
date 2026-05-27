@@ -180,6 +180,9 @@ export function AddOnsClient({
         <p className="font-display italic text-ink-mute text-base">
           Services and upgrades you can add to your account.
         </p>
+        <p className="mt-3 font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+          Payment up front — once your invoice is paid, work begins.
+        </p>
       </div>
 
       {/* Your Add-Ons */}
@@ -335,9 +338,18 @@ export function AddOnsClient({
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="font-display text-xl mb-1">Request {modal.addOn.name}</h3>
-            <p className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-4">
+            <p className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-3">
               {formatCents(modal.effectiveCents)}{priceUnitSuffix(modal.addOn.priceUnit)} · {scopeLabel(modal.addOn.scope)}
             </p>
+            <div className="border-l-2 border-signal-red pl-3 py-1 mb-4 bg-parchment-warm/60">
+              <p className="font-display text-sm text-ink-soft leading-snug">
+                We&rsquo;ll send you an invoice for{" "}
+                <span className="font-mono">
+                  {formatCents(modal.effectiveCents)}{priceUnitSuffix(modal.addOn.priceUnit)}
+                </span>
+                . Work begins once payment is received.
+              </p>
+            </div>
 
             {modal.addOn.scope === "PER_SITE" && (
               <label className="block mb-4">
