@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
 import { sendNewTicketEmail } from "@/lib/email";
+import { createNotionTicketPage } from "@/lib/notion";
 import { ticketNumber } from "@/lib/ticket";
 import { isAfterHours, type AdminSettingsInput, type WeeklyHours } from "@/lib/availability";
 import { isTicketCategory, type TicketCategoryValue } from "@/lib/ticket-categories";
@@ -117,6 +118,13 @@ export async function POST(req: Request) {
       console.error("[ticket] new-ticket email failed:", err);
     }
   }
+
+  void createNotionTicketPage({
+    ticket,
+    account: { name: account.name, email: account.email },
+    site: { displayName: site.displayName },
+    appUrl,
+  }).catch((err) => console.error("[notion] uncaught in portal/tickets:", err));
 
   return NextResponse.json({ ticket }, { status: 201 });
 }
