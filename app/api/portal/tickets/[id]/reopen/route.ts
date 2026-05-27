@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
 import { sendTicketReopenedEmail } from "@/lib/email";
 import { ticketNumber } from "@/lib/ticket";
+import { updateNotionTicketStatus } from "@/lib/notion";
 
 export async function POST(
   req: Request,
@@ -54,6 +55,10 @@ export async function POST(
       console.error("[reopen] email failed:", err);
     }
   }
+
+  void updateNotionTicketStatus({ ticketId: id, status: "REOPENED" }).catch(
+    (err) => console.error("[notion] uncaught in portal reopen:", err),
+  );
 
   return NextResponse.json({ ticket: updated });
 }
