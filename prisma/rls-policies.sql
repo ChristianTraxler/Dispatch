@@ -147,6 +147,56 @@ CREATE POLICY "admin_reads_all_invites" ON invites
   );
 
 -- ────────────────────────────────────────────────────────────────────────────
+-- 7b. ADD-ONS — catalog, per-client price overrides, active add-ons
+--     Writes happen via the server (service_role bypasses RLS). Authenticated
+--     clients can only SELECT: active catalog rows, and their own overrides
+--     and active rows.
+-- ────────────────────────────────────────────────────────────────────────────
+
+ALTER TABLE add_ons               ENABLE ROW LEVEL SECURITY;
+ALTER TABLE add_on_client_prices  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE client_add_ons        ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "client_read_active_add_ons"        ON add_ons;
+DROP POLICY IF EXISTS "client_read_own_add_on_prices"     ON add_on_client_prices;
+DROP POLICY IF EXISTS "client_read_own_client_add_ons"    ON client_add_ons;
+DROP POLICY IF EXISTS "admin_reads_all_add_ons"           ON add_ons;
+DROP POLICY IF EXISTS "admin_reads_all_add_on_prices"     ON add_on_client_prices;
+DROP POLICY IF EXISTS "admin_reads_all_client_add_ons"    ON client_add_ons;
+
+CREATE POLICY "client_read_active_add_ons" ON add_ons
+  FOR SELECT USING (is_active = true);
+
+CREATE POLICY "client_read_own_add_on_prices" ON add_on_client_prices
+  FOR SELECT USING (
+    client_account_id IN (
+      SELECT id FROM client_accounts WHERE auth_user_id = auth.uid()::text
+    )
+  );
+
+CREATE POLICY "client_read_own_client_add_ons" ON client_add_ons
+  FOR SELECT USING (
+    client_account_id IN (
+      SELECT id FROM client_accounts WHERE auth_user_id = auth.uid()::text
+    )
+  );
+
+CREATE POLICY "admin_reads_all_add_ons" ON add_ons
+  FOR SELECT USING (
+    coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin'
+  );
+
+CREATE POLICY "admin_reads_all_add_on_prices" ON add_on_client_prices
+  FOR SELECT USING (
+    coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin'
+  );
+
+CREATE POLICY "admin_reads_all_client_add_ons" ON client_add_ons
+  FOR SELECT USING (
+    coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin'
+  );
+
+-- ────────────────────────────────────────────────────────────────────────────
 -- 8. REALTIME PUBLICATION
 --    Supabase Realtime only emits postgres_changes events for tables added
 --    to the supabase_realtime publication. Add the tables we subscribe to.
