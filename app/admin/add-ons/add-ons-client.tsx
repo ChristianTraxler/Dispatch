@@ -578,11 +578,22 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
                         </svg>
                       </div>
 
-                      {/* Description: line-clamp-2 preview when collapsed,
-                          full text when expanded, with a smooth max-height
-                          transition between the two. */}
+                      {/* Description: preview when collapsed (with a soft
+                          fade-out so the bottom letters dissolve rather than
+                          hard-cut), full text when expanded. max-height
+                          handles the slide-down animation. */}
                       <div
-                        className={`overflow-hidden transition-[max-height] duration-300 ease-out motion-reduce:transition-none ${isOpen ? "max-h-[60rem]" : "max-h-[2.75rem]"}`}
+                        className={`overflow-hidden transition-[max-height] duration-300 ease-out motion-reduce:transition-none ${isOpen ? "max-h-[60rem]" : "max-h-[3.5rem]"}`}
+                        style={
+                          isOpen
+                            ? undefined
+                            : {
+                                maskImage:
+                                  "linear-gradient(to bottom, black 45%, transparent 100%)",
+                                WebkitMaskImage:
+                                  "linear-gradient(to bottom, black 45%, transparent 100%)",
+                              }
+                        }
                       >
                         <p className="text-xs text-ink-mute mt-1 leading-snug whitespace-pre-wrap">
                           {row.description}
