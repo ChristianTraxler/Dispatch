@@ -6,7 +6,7 @@
 
 **Architecture:** Direct Notion REST calls from each ticket-mutating API route, mirroring the existing `sendNewTicketEmail` fire-and-forget pattern. One new module (`lib/notion.ts`) wraps the Notion SDK; one new Prisma column (`Ticket.notionPageId`) ties Postgres rows to their Notion pages.
 
-**Tech Stack:** Notion SDK (`@notionhq/client`), Prisma, Next.js App Router. No test framework in this codebase — verification is manual against the dev server, consistent with project conventions per [[dispatch_local_db_is_prod]].
+**Tech Stack:** Notion SDK (`@notionhq/client` v5.x — installed during Task 1; note: `pages.create`/`pages.update` shapes are identical to v2 but `databases.create` nests properties under `initial_data_source` in v5), Prisma, Next.js App Router. No test framework in this codebase — verification is manual against the dev server, consistent with project conventions per [[dispatch_local_db_is_prod]].
 
 **Reference spec:** [docs/superpowers/specs/2026-05-27-notion-ticket-backup-design.md](docs/superpowers/specs/2026-05-27-notion-ticket-backup-design.md)
 
@@ -644,19 +644,22 @@ const CATEGORY_OPTIONS = [
   { name: "UPDATE" },
 ];
 
+// @notionhq/client v5: properties go inside initial_data_source, not at top level.
 const db = await notion.databases.create({
   parent: { type: "page_id", page_id: parentPageId },
   title: [{ type: "text", text: { content: "Dispatch tickets (backup)" } }],
-  properties: {
-    "Ticket #": { title: {} },
-    Status: { select: { options: STATUS_OPTIONS } },
-    Category: { select: { options: CATEGORY_OPTIONS } },
-    Site: { rich_text: {} },
-    Client: { rich_text: {} },
-    "Client email": { email: {} },
-    Emergency: { checkbox: {} },
-    Created: { date: {} },
-    "Dispatch link": { url: {} },
+  initial_data_source: {
+    properties: {
+      "Ticket #": { title: {} },
+      Status: { select: { options: STATUS_OPTIONS } },
+      Category: { select: { options: CATEGORY_OPTIONS } },
+      Site: { rich_text: {} },
+      Client: { rich_text: {} },
+      "Client email": { email: {} },
+      Emergency: { checkbox: {} },
+      Created: { date: {} },
+      "Dispatch link": { url: {} },
+    },
   },
 });
 
