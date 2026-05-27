@@ -236,7 +236,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
 
             <label className="block">
               <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
-                Sort order (lower first)
+                Display order
               </span>
               <input
                 type="number"
@@ -244,6 +244,11 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
                 onChange={(e) => updateForm("sortOrder", e.target.value)}
                 className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
               />
+              <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute leading-snug">
+                Where this add-on appears in the client&rsquo;s catalog. Lower numbers
+                first. Use spaced values (10, 20, 30…) so you can slot new add-ons
+                between later.
+              </span>
             </label>
 
             <label className="block md:col-span-2">
@@ -361,7 +366,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
                 <th className="text-left font-mono text-[0.6rem] uppercase tracking-widest px-3 py-2.5">Kind</th>
                 <th className="text-left font-mono text-[0.6rem] uppercase tracking-widest px-3 py-2.5">Scope</th>
                 <th className="text-left font-mono text-[0.6rem] uppercase tracking-widest px-3 py-2.5">Price</th>
-                <th className="text-left font-mono text-[0.6rem] uppercase tracking-widest px-3 py-2.5">Sort</th>
+                <th className="text-left font-mono text-[0.6rem] uppercase tracking-widest px-3 py-2.5">Order</th>
                 <th className="text-left font-mono text-[0.6rem] uppercase tracking-widest px-3 py-2.5">Status</th>
                 <th className="text-right font-mono text-[0.6rem] uppercase tracking-widest px-3 py-2.5">Actions</th>
               </tr>
