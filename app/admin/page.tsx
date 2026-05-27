@@ -158,8 +158,64 @@ export default async function AdminLedgerPage() {
               <QuickAction href="/admin/clients" label="Browse client roster →" />
             </ul>
           </div>
+
+          <BillingRulesNote />
         </aside>
       </div>
+    </div>
+  );
+}
+
+function BillingRulesNote() {
+  return (
+    <div className="border-l-2 border-signal-red bg-parchment-warm px-4 py-4">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">
+          §
+        </span>
+        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">
+          Before You Start Work
+        </span>
+      </div>
+
+      <p className="font-display italic text-ink-soft text-sm leading-snug mb-3">
+        Invoice first. Work begins only after payment lands.
+      </p>
+
+      <ul className="space-y-2.5 text-xs text-ink-soft leading-snug">
+        <li>
+          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-0.5">
+            Small one-time &lt; $500
+          </span>
+          <span className="font-display">
+            100% upfront. Small enough nobody balks; not worth splitting.
+          </span>
+        </li>
+        <li>
+          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-0.5">
+            Larger one-time $500+
+          </span>
+          <span className="font-display">
+            50% deposit, 50% on delivery. Standard project terms — deposit
+            secures their commitment, balance protects them.
+          </span>
+        </li>
+        <li>
+          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-0.5">
+            Recurring (monthly)
+          </span>
+          <span className="font-display">
+            Bill in advance each period. No deposit — small enough, either
+            side can cancel.
+          </span>
+        </li>
+      </ul>
+
+      <p className="font-display italic text-ink-mute text-xs leading-snug mt-3 pt-3 border-t border-rule">
+        These are existing Dispatch clients — lean lighter: 100% upfront for
+        the small stuff, 50-50 only when the dollar amount makes it awkward
+        to ask in one shot.
+      </p>
     </div>
   );
 }
