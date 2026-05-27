@@ -8,7 +8,7 @@ import type {
   AddOnScope,
   ClientAddOnStatus,
 } from "@prisma/client";
-import { formatCents, priceUnitSuffix, scopeLabel } from "@/lib/add-ons/format";
+import { formatCents, formatPriceRange, priceUnitSuffix, scopeLabel } from "@/lib/add-ons/format";
 import { resolvePrice } from "@/lib/add-ons/pricing";
 
 type CatalogAddOn = {
@@ -18,10 +18,11 @@ type CatalogAddOn = {
   kind: AddOnKind;
   scope: AddOnScope;
   priceCents: number;
+  priceMaxCents: number | null;
   priceUnit: AddOnPriceUnit;
 };
 
-type Override = { addOnId: string; priceCents: number };
+type Override = { addOnId: string; priceCents: number; priceMaxCents: number | null };
 
 type ActiveAddOn = {
   id: string;
@@ -47,7 +48,12 @@ type Site = { id: string; displayName: string };
 
 type ModalState =
   | { kind: "closed" }
-  | { kind: "request"; addOn: CatalogAddOn; effectiveCents: number };
+  | {
+      kind: "request";
+      addOn: CatalogAddOn;
+      effectiveCents: number;
+      effectiveMaxCents: number | null;
+    };
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString("en-US", {
@@ -115,11 +121,11 @@ export function AddOnsClient({
 
   function openRequestModal(addOn: CatalogAddOn) {
     const override = overrideByAddOnId.get(addOn.id);
-    const { effectiveCents } = resolvePrice(addOn, override);
+    const { effectiveCents, effectiveMaxCents } = resolvePrice(addOn, override);
     setSelectedSiteId("");
     setNotes("");
     setSubmitError(null);
-    setModal({ kind: "request", addOn, effectiveCents });
+    setModal({ kind: "request", addOn, effectiveCents, effectiveMaxCents });
   }
 
   async function submitRequest() {
@@ -238,7 +244,13 @@ export function AddOnsClient({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {visibleCatalog.map((addOn) => {
               const override = overrideByAddOnId.get(addOn.id);
-              const { standardCents, effectiveCents, isOverridden } = resolvePrice(addOn, override);
+              const {
+                standardCents,
+                standardMaxCents,
+                effectiveCents,
+                effectiveMaxCents,
+                isOverridden,
+              } = resolvePrice(addOn, override);
 
               // PER_SITE: open request exists for any of the client's sites?
               // PER_CLIENT: open request exists at all?
@@ -271,14 +283,14 @@ export function AddOnsClient({
 
                   <p className="text-sm text-ink-soft whitespace-pre-wrap">{addOn.description}</p>
 
-                  <div className="flex items-baseline gap-2 mt-auto">
+                  <div className="flex flex-wrap items-baseline gap-2 mt-auto">
                     {isOverridden ? (
                       <>
                         <span className="font-mono text-sm text-ink-mute line-through">
-                          {formatCents(standardCents)}
+                          {formatPriceRange(standardCents, standardMaxCents)}
                         </span>
                         <span className="font-mono text-base text-ink">
-                          {formatCents(effectiveCents)}
+                          {formatPriceRange(effectiveCents, effectiveMaxCents)}
                           <span className="text-ink-mute">{priceUnitSuffix(addOn.priceUnit)}</span>
                         </span>
                         <span className="font-mono text-[0.55rem] uppercase tracking-widest bg-signal-green text-parchment-warm px-1.5 py-0.5">
@@ -287,7 +299,7 @@ export function AddOnsClient({
                       </>
                     ) : (
                       <span className="font-mono text-base text-ink">
-                        {formatCents(effectiveCents)}
+                        {formatPriceRange(effectiveCents, effectiveMaxCents)}
                         <span className="text-ink-mute">{priceUnitSuffix(addOn.priceUnit)}</span>
                       </span>
                     )}
@@ -339,15 +351,28 @@ export function AddOnsClient({
           >
             <h3 className="font-display text-xl mb-1">Request {modal.addOn.name}</h3>
             <p className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-3">
-              {formatCents(modal.effectiveCents)}{priceUnitSuffix(modal.addOn.priceUnit)} · {scopeLabel(modal.addOn.scope)}
+              {formatPriceRange(modal.effectiveCents, modal.effectiveMaxCents)}{priceUnitSuffix(modal.addOn.priceUnit)} · {scopeLabel(modal.addOn.scope)}
             </p>
             <div className="border-l-2 border-signal-red pl-3 py-1 mb-4 bg-parchment-warm/60">
               <p className="font-display text-sm text-ink-soft leading-snug">
-                We&rsquo;ll send you an invoice for{" "}
-                <span className="font-mono">
-                  {formatCents(modal.effectiveCents)}{priceUnitSuffix(modal.addOn.priceUnit)}
-                </span>
-                . Work begins once payment is received.
+                {modal.effectiveMaxCents === null ? (
+                  <>
+                    We&rsquo;ll send you an invoice for{" "}
+                    <span className="font-mono">
+                      {formatCents(modal.effectiveCents)}{priceUnitSuffix(modal.addOn.priceUnit)}
+                    </span>
+                    . Work begins once payment is received.
+                  </>
+                ) : (
+                  <>
+                    Pricing for this add-on depends on scope. We&rsquo;ll review
+                    your request, confirm an exact price within the{" "}
+                    <span className="font-mono">
+                      {formatPriceRange(modal.effectiveCents, modal.effectiveMaxCents)}{priceUnitSuffix(modal.addOn.priceUnit)}
+                    </span>{" "}
+                    range, then send an invoice. Work begins once payment is received.
+                  </>
+                )}
               </p>
             </div>
 

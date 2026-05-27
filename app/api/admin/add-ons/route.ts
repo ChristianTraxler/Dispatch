@@ -41,6 +41,7 @@ interface PostBody {
   kind?: unknown;
   scope?: unknown;
   priceCents?: unknown;
+  priceMaxCents?: unknown;
   priceUnit?: unknown;
   sortOrder?: unknown;
 }
@@ -60,6 +61,9 @@ export async function POST(req: Request) {
   const scope = body.scope as AddOnScope;
   const priceUnit = body.priceUnit as AddOnPriceUnit;
   const priceCents = typeof body.priceCents === "number" ? body.priceCents : NaN;
+  const priceMaxCents = body.priceMaxCents === null || body.priceMaxCents === undefined
+    ? null
+    : (typeof body.priceMaxCents === "number" ? body.priceMaxCents : NaN);
   const sortOrder = typeof body.sortOrder === "number" ? body.sortOrder : 0;
 
   if (!name || name.length > 120) {
@@ -80,6 +84,14 @@ export async function POST(req: Request) {
   if (!Number.isInteger(priceCents) || priceCents < 0) {
     return NextResponse.json({ error: "priceCents must be a non-negative integer." }, { status: 400 });
   }
+  if (priceMaxCents !== null) {
+    if (!Number.isInteger(priceMaxCents) || priceMaxCents < 0) {
+      return NextResponse.json({ error: "priceMaxCents must be a non-negative integer or null." }, { status: 400 });
+    }
+    if (priceMaxCents <= priceCents) {
+      return NextResponse.json({ error: "priceMaxCents must be greater than priceCents." }, { status: 400 });
+    }
+  }
   if (kind === "RECURRING" && priceUnit === "ONE_TIME") {
     return NextResponse.json({ error: "RECURRING add-ons must use PER_MONTH or PER_YEAR." }, { status: 400 });
   }
@@ -88,7 +100,7 @@ export async function POST(req: Request) {
   }
 
   const addOn = await prisma.addOn.create({
-    data: { name, description, kind, scope, priceCents, priceUnit, sortOrder },
+    data: { name, description, kind, scope, priceCents, priceMaxCents, priceUnit, sortOrder },
   });
   return NextResponse.json({ addOn }, { status: 201 });
 }

@@ -33,6 +33,7 @@ interface PatchBody {
   kind?: unknown;
   scope?: unknown;
   priceCents?: unknown;
+  priceMaxCents?: unknown;
   priceUnit?: unknown;
   isActive?: unknown;
   sortOrder?: unknown;
@@ -83,6 +84,16 @@ export async function PATCH(req: Request, { params }: Ctx) {
     }
     data.priceCents = body.priceCents;
   }
+  if (body.priceMaxCents !== undefined) {
+    if (body.priceMaxCents === null) {
+      data.priceMaxCents = null;
+    } else {
+      if (!Number.isInteger(body.priceMaxCents) || (body.priceMaxCents as number) < 0) {
+        return NextResponse.json({ error: "priceMaxCents must be a non-negative integer or null." }, { status: 400 });
+      }
+      data.priceMaxCents = body.priceMaxCents;
+    }
+  }
   if (body.priceUnit !== undefined) {
     if (!UNITS.has(body.priceUnit as AddOnPriceUnit)) {
       return NextResponse.json({ error: "priceUnit invalid." }, { status: 400 });
@@ -105,6 +116,11 @@ export async function PATCH(req: Request, { params }: Ctx) {
   // Cross-field check after merging with existing values
   const finalKind = (data.kind as AddOnKind | undefined) ?? existing.kind;
   const finalUnit = (data.priceUnit as AddOnPriceUnit | undefined) ?? existing.priceUnit;
+  const finalMin = (data.priceCents as number | undefined) ?? existing.priceCents;
+  const finalMaxRaw = data.priceMaxCents === undefined ? existing.priceMaxCents : (data.priceMaxCents as number | null);
+  if (finalMaxRaw !== null && finalMaxRaw <= finalMin) {
+    return NextResponse.json({ error: "priceMaxCents must be greater than priceCents." }, { status: 400 });
+  }
   if (finalKind === "RECURRING" && finalUnit === "ONE_TIME") {
     return NextResponse.json({ error: "RECURRING add-ons must use PER_MONTH or PER_YEAR." }, { status: 400 });
   }

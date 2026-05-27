@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AddOnKind, AddOnScope, AddOnPriceUnit } from "@prisma/client";
-import { formatCents, priceUnitSuffix } from "@/lib/add-ons/format";
+import { formatPriceRange, priceUnitSuffix } from "@/lib/add-ons/format";
 
 type AddOnRow = {
   id: string;
@@ -12,6 +12,7 @@ type AddOnRow = {
   kind: AddOnKind;
   scope: AddOnScope;
   priceCents: number;
+  priceMaxCents: number | null;
   priceUnit: AddOnPriceUnit;
   isActive: boolean;
   sortOrder: number;
@@ -25,6 +26,7 @@ type FormState = {
   kind: AddOnKind;
   scope: AddOnScope;
   priceDollars: string;
+  priceMaxDollars: string;
   priceUnit: AddOnPriceUnit;
   sortOrder: string;
 };
@@ -35,6 +37,7 @@ const EMPTY_FORM: FormState = {
   kind: "RECURRING",
   scope: "PER_SITE",
   priceDollars: "",
+  priceMaxDollars: "",
   priceUnit: "PER_MONTH",
   sortOrder: "0",
 };
@@ -72,6 +75,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
       kind: row.kind,
       scope: row.scope,
       priceDollars: centsToDollars(row.priceCents),
+      priceMaxDollars: row.priceMaxCents !== null ? centsToDollars(row.priceMaxCents) : "",
       priceUnit: row.priceUnit,
       sortOrder: String(row.sortOrder),
     });
@@ -89,6 +93,15 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
     const cents = dollarsToCents(form.priceDollars);
     if (cents === null) {
       setError("Price must be a non-negative number.");
+      return;
+    }
+    const maxCents = form.priceMaxDollars.trim() ? dollarsToCents(form.priceMaxDollars) : null;
+    if (form.priceMaxDollars.trim() && maxCents === null) {
+      setError("Max price must be a non-negative number (or leave blank).");
+      return;
+    }
+    if (maxCents !== null && maxCents <= cents) {
+      setError("Max price must be greater than the starting price.");
       return;
     }
     if (!form.name.trim() || !form.description.trim()) {
@@ -110,6 +123,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
       kind: form.kind,
       scope: form.scope,
       priceCents: cents,
+      priceMaxCents: maxCents,
       priceUnit: form.priceUnit,
       sortOrder: Number(form.sortOrder) || 0,
     };
@@ -293,7 +307,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
 
             <label className="block">
               <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
-                Price (USD)
+                Price / starting price (USD)
               </span>
               <input
                 type="number"
@@ -303,6 +317,24 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
                 onChange={(e) => updateForm("priceDollars", e.target.value)}
                 className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
               />
+            </label>
+
+            <label className="block">
+              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                Max price (optional, for ranges)
+              </span>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={form.priceMaxDollars}
+                onChange={(e) => updateForm("priceMaxDollars", e.target.value)}
+                placeholder="leave blank for single price"
+                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+              />
+              <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute leading-snug">
+                If set, clients see a range like &ldquo;$500 – $1500&rdquo;. Leave blank for a fixed price.
+              </span>
             </label>
 
             <label className="block">
@@ -388,7 +420,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
                     {row.scope === "PER_SITE" ? "Per site" : "Per client"}
                   </td>
                   <td className="px-3 py-3 font-mono">
-                    {formatCents(row.priceCents)}
+                    {formatPriceRange(row.priceCents, row.priceMaxCents)}
                     <span className="text-ink-mute">{priceUnitSuffix(row.priceUnit)}</span>
                   </td>
                   <td className="px-3 py-3 font-mono">{row.sortOrder}</td>

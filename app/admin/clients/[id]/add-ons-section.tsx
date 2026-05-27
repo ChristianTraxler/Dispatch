@@ -9,8 +9,7 @@ import type {
   ClientAddOnStatus,
   TicketStatus,
 } from "@prisma/client";
-import { formatCents, priceUnitSuffix } from "@/lib/add-ons/format";
-import { resolvePrice } from "@/lib/add-ons/pricing";
+import { formatCents, formatPriceRange, priceUnitSuffix } from "@/lib/add-ons/format";
 
 export type CatalogAddOn = {
   id: string;
@@ -18,11 +17,16 @@ export type CatalogAddOn = {
   kind: AddOnKind;
   scope: AddOnScope;
   priceCents: number;
+  priceMaxCents: number | null;
   priceUnit: AddOnPriceUnit;
   isActive: boolean;
 };
 
-export type Override = { addOnId: string; priceCents: number };
+export type Override = {
+  addOnId: string;
+  priceCents: number;
+  priceMaxCents: number | null;
+};
 
 export type ActiveRow = {
   id: string;
@@ -83,6 +87,7 @@ export function AddOnsSection({
   const [overrideOpen, setOverrideOpen] = useState(false);
   const [overrideAddOnId, setOverrideAddOnId] = useState<string>("");
   const [overridePrice, setOverridePrice] = useState<string>("");
+  const [overridePriceMax, setOverridePriceMax] = useState<string>("");
 
   // Activation form state
   const [activateOpen, setActivateOpen] = useState(false);
@@ -105,6 +110,16 @@ export function AddOnsSection({
     setOverrideOpen(true);
     setOverrideAddOnId(activeCatalogAddOns[0]?.id ?? "");
     setOverridePrice("");
+    setOverridePriceMax("");
+  }
+
+  function defaultSnapshotCents(addOnId: string): number | null {
+    const a = catalog.find((c) => c.id === addOnId);
+    if (!a) return null;
+    const ov = overrideByAddOn.get(addOnId);
+    // Default to the floor (override or standard). Admin can adjust to land
+    // anywhere inside a range before saving.
+    return ov?.priceCents ?? a.priceCents;
   }
 
   function startActivate() {
@@ -114,8 +129,8 @@ export function AddOnsSection({
     setActivateSiteId("");
     setActivateError(null);
     if (first) {
-      const ov = overrideByAddOn.get(first.id);
-      setActivatePrice(centsToDollars(ov?.priceCents ?? first.priceCents));
+      const cents = defaultSnapshotCents(first.id);
+      setActivatePrice(cents !== null ? centsToDollars(cents) : "");
     } else {
       setActivatePrice("");
     }
@@ -125,11 +140,8 @@ export function AddOnsSection({
   function onChangeActivateAddOn(id: string) {
     setActivateAddOnId(id);
     setActivateSiteId("");
-    const addOn = catalog.find((a) => a.id === id);
-    if (addOn) {
-      const ov = overrideByAddOn.get(id);
-      setActivatePrice(centsToDollars(ov?.priceCents ?? addOn.priceCents));
-    }
+    const cents = defaultSnapshotCents(id);
+    setActivatePrice(cents !== null ? centsToDollars(cents) : "");
   }
 
   async function saveOverride() {
@@ -139,12 +151,21 @@ export function AddOnsSection({
       alert("Price must be a non-negative number.");
       return;
     }
+    const maxCents = overridePriceMax.trim() ? dollarsToCents(overridePriceMax) : null;
+    if (overridePriceMax.trim() && maxCents === null) {
+      alert("Max price must be a non-negative number (or leave blank).");
+      return;
+    }
+    if (maxCents !== null && maxCents <= cents) {
+      alert("Max price must be greater than the starting price.");
+      return;
+    }
     setBusy(true);
     try {
       const res = await fetch(`/api/admin/clients/${clientId}/add-on-prices`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ addOnId: overrideAddOnId, priceCents: cents }),
+        body: JSON.stringify({ addOnId: overrideAddOnId, priceCents: cents, priceMaxCents: maxCents }),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -258,37 +279,53 @@ export function AddOnsSection({
         </div>
 
         {overrideOpen && (
-          <div className="border border-rule bg-parchment-warm/40 p-4 mb-3 flex flex-col md:flex-row md:items-end gap-3">
-            <label className="block flex-1">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
-                Add-on
-              </span>
-              <select
-                value={overrideAddOnId}
-                onChange={(e) => setOverrideAddOnId(e.target.value)}
-                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display"
-              >
-                {activeCatalogAddOns.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} — {formatCents(a.priceCents)}{priceUnitSuffix(a.priceUnit)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
-                Their price (USD)
-              </span>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={overridePrice}
-                onChange={(e) => setOverridePrice(e.target.value)}
-                className="mt-1 border border-rule bg-parchment px-3 py-2 font-mono w-32"
-              />
-            </label>
-            <div className="flex items-center gap-3">
+          <div className="border border-rule bg-parchment-warm/40 p-4 mb-3">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3 items-end">
+              <label className="block">
+                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                  Add-on
+                </span>
+                <select
+                  value={overrideAddOnId}
+                  onChange={(e) => setOverrideAddOnId(e.target.value)}
+                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display"
+                >
+                  {activeCatalogAddOns.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name} — {formatPriceRange(a.priceCents, a.priceMaxCents)}{priceUnitSuffix(a.priceUnit)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                  Their price (USD)
+                </span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={overridePrice}
+                  onChange={(e) => setOverridePrice(e.target.value)}
+                  className="mt-1 border border-rule bg-parchment px-3 py-2 font-mono w-32"
+                />
+              </label>
+              <label className="block">
+                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                  Max (optional)
+                </span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={overridePriceMax}
+                  onChange={(e) => setOverridePriceMax(e.target.value)}
+                  placeholder="—"
+                  className="mt-1 border border-rule bg-parchment px-3 py-2 font-mono w-32"
+                />
+              </label>
+            </div>
+            <div className="mt-4 flex items-center gap-3">
               <button type="button" onClick={saveOverride} disabled={busy} className="btn-dispatch">Save</button>
               <button
                 type="button"
@@ -298,6 +335,9 @@ export function AddOnsSection({
               >
                 Cancel
               </button>
+              <span className="font-mono text-[0.55rem] text-ink-mute leading-snug ml-auto max-w-xs">
+                Fill in Max only for ranged pricing.
+              </span>
             </div>
           </div>
         )}
@@ -314,12 +354,12 @@ export function AddOnsSection({
                   <div className="min-w-0">
                     <div className="font-display">{addOn.name}</div>
                     <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
-                      Standard {formatCents(addOn.priceCents)}{priceUnitSuffix(addOn.priceUnit)}
+                      Standard {formatPriceRange(addOn.priceCents, addOn.priceMaxCents)}{priceUnitSuffix(addOn.priceUnit)}
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="font-mono text-sm">
-                      {formatCents(o.priceCents)}<span className="text-ink-mute">{priceUnitSuffix(addOn.priceUnit)}</span>
+                      {formatPriceRange(o.priceCents, o.priceMaxCents)}<span className="text-ink-mute">{priceUnitSuffix(addOn.priceUnit)}</span>
                     </span>
                     <button
                       type="button"
@@ -393,6 +433,14 @@ export function AddOnsSection({
                   onChange={(e) => setActivatePrice(e.target.value)}
                   className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
                 />
+                {selectedActivateAddOn?.priceMaxCents != null && (
+                  <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute">
+                    Catalog range: {formatPriceRange(
+                      (overrideByAddOn.get(selectedActivateAddOn.id)?.priceCents) ?? selectedActivateAddOn.priceCents,
+                      (overrideByAddOn.get(selectedActivateAddOn.id)?.priceMaxCents) ?? selectedActivateAddOn.priceMaxCents,
+                    )}{priceUnitSuffix(selectedActivateAddOn.priceUnit)} — enter the agreed amount.
+                  </span>
+                )}
               </label>
 
               <label className="block md:col-span-2">

@@ -37,6 +37,7 @@ export async function GET(_req: Request, { params }: Ctx) {
 interface PostBody {
   addOnId?: unknown;
   priceCents?: unknown;
+  priceMaxCents?: unknown;
 }
 
 export async function POST(req: Request, { params }: Ctx) {
@@ -51,15 +52,26 @@ export async function POST(req: Request, { params }: Ctx) {
 
   const addOnId = typeof body.addOnId === "string" ? body.addOnId : "";
   const priceCents = typeof body.priceCents === "number" ? body.priceCents : NaN;
+  const priceMaxCents = body.priceMaxCents === null || body.priceMaxCents === undefined
+    ? null
+    : (typeof body.priceMaxCents === "number" ? body.priceMaxCents : NaN);
   if (!addOnId) return NextResponse.json({ error: "addOnId required." }, { status: 400 });
   if (!Number.isInteger(priceCents) || priceCents < 0) {
     return NextResponse.json({ error: "priceCents must be a non-negative integer." }, { status: 400 });
   }
+  if (priceMaxCents !== null) {
+    if (!Number.isInteger(priceMaxCents) || priceMaxCents < 0) {
+      return NextResponse.json({ error: "priceMaxCents must be a non-negative integer or null." }, { status: 400 });
+    }
+    if (priceMaxCents <= priceCents) {
+      return NextResponse.json({ error: "priceMaxCents must be greater than priceCents." }, { status: 400 });
+    }
+  }
 
   const override = await prisma.addOnClientPrice.upsert({
     where: { addOnId_clientAccountId: { addOnId, clientAccountId: id } },
-    update: { priceCents },
-    create: { addOnId, clientAccountId: id, priceCents },
+    update: { priceCents, priceMaxCents },
+    create: { addOnId, clientAccountId: id, priceCents, priceMaxCents },
     include: { addOn: true },
   });
   return NextResponse.json({ override }, { status: 201 });

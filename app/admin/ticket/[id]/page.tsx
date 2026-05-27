@@ -34,9 +34,11 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
       kind: "RECURRING" | "ONE_TIME";
       scope: "PER_SITE" | "PER_CLIENT";
       priceCents: number;
+      priceMaxCents: number | null;
       priceUnit: "ONE_TIME" | "PER_MONTH" | "PER_YEAR";
     };
     overridePriceCents: number | null;
+    overridePriceMaxCents: number | null;
     alreadyActiveCount: number;
     defaultSiteId: string;
     clientSites: { id: string; displayName: string }[];
@@ -75,9 +77,11 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
         kind: ticket.addOn.kind,
         scope: ticket.addOn.scope,
         priceCents: ticket.addOn.priceCents,
+        priceMaxCents: ticket.addOn.priceMaxCents,
         priceUnit: ticket.addOn.priceUnit,
       },
       overridePriceCents: override?.priceCents ?? null,
+      overridePriceMaxCents: override?.priceMaxCents ?? null,
       alreadyActiveCount: alreadyActive,
       defaultSiteId: ticket.siteId,
       clientSites,

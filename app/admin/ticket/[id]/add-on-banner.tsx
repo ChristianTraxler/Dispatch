@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AddOnKind, AddOnPriceUnit, AddOnScope } from "@prisma/client";
-import { formatCents, priceUnitSuffix, scopeLabel } from "@/lib/add-ons/format";
+import { formatCents, formatPriceRange, priceUnitSuffix, scopeLabel } from "@/lib/add-ons/format";
 
 export type AddOnBannerData = {
   clientId: string;
@@ -13,9 +13,11 @@ export type AddOnBannerData = {
     kind: AddOnKind;
     scope: AddOnScope;
     priceCents: number;
+    priceMaxCents: number | null;
     priceUnit: AddOnPriceUnit;
   };
   overridePriceCents: number | null;
+  overridePriceMaxCents: number | null;
   alreadyActiveCount: number;
   defaultSiteId: string;
   clientSites: { id: string; displayName: string }[];
@@ -44,6 +46,9 @@ export function AddOnRequestBanner({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [siteId, setSiteId] = useState<string>(data.defaultSiteId);
+  // Snapshot price is always a single number, defaulting to the floor of
+  // the effective price (override floor, else standard floor). Admin enters
+  // the final agreed amount before activation.
   const [priceDollars, setPriceDollars] = useState<string>(
     centsToDollars(data.overridePriceCents ?? data.addOn.priceCents),
   );
@@ -52,7 +57,13 @@ export function AddOnRequestBanner({
   const [error, setError] = useState<string | null>(null);
 
   const effectiveCents = data.overridePriceCents ?? data.addOn.priceCents;
-  const isOverridden = data.overridePriceCents !== null && data.overridePriceCents !== data.addOn.priceCents;
+  const effectiveMaxCents = data.overridePriceCents !== null
+    ? data.overridePriceMaxCents
+    : data.addOn.priceMaxCents;
+  const isOverridden =
+    data.overridePriceCents !== null &&
+    (data.overridePriceCents !== data.addOn.priceCents ||
+      data.overridePriceMaxCents !== data.addOn.priceMaxCents);
   const alreadyActive = data.alreadyActiveCount > 0;
 
   async function activate() {
@@ -102,9 +113,11 @@ export function AddOnRequestBanner({
             {data.addOn.name}
             <span className="text-ink-mute font-mono text-sm ml-2">
               {isOverridden && (
-                <span className="line-through mr-1">{formatCents(data.addOn.priceCents)}</span>
+                <span className="line-through mr-1">
+                  {formatPriceRange(data.addOn.priceCents, data.addOn.priceMaxCents)}
+                </span>
               )}
-              {formatCents(effectiveCents)}{priceUnitSuffix(data.addOn.priceUnit)} · {scopeLabel(data.addOn.scope)}
+              {formatPriceRange(effectiveCents, effectiveMaxCents)}{priceUnitSuffix(data.addOn.priceUnit)} · {scopeLabel(data.addOn.scope)}
             </span>
           </div>
         </div>
@@ -158,6 +171,11 @@ export function AddOnRequestBanner({
                 onChange={(e) => setPriceDollars(e.target.value)}
                 className="mt-1 w-full border border-rule bg-parchment-warm px-3 py-2 font-mono"
               />
+              {effectiveMaxCents != null && (
+                <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute">
+                  Range for this client: {formatPriceRange(effectiveCents, effectiveMaxCents)}{priceUnitSuffix(data.addOn.priceUnit)} — enter the agreed amount.
+                </span>
+              )}
             </label>
 
             <label className="block mb-3">

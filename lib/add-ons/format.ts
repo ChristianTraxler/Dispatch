@@ -21,3 +21,12 @@ export function priceUnitSuffix(unit: AddOnPriceUnit): string {
 export function scopeLabel(scope: AddOnScope): string {
   return scope === "PER_SITE" ? "per site" : "for your account";
 }
+
+/**
+ * Render a price (or price range) without the per-period suffix.
+ * Pass `maxCents=null` for a single-price add-on; pass a value for a range.
+ */
+export function formatPriceRange(minCents: number, maxCents: number | null): string {
+  if (maxCents === null || maxCents === minCents) return formatCents(minCents);
+  return `${formatCents(minCents)} – ${formatCents(maxCents)}`;
+}

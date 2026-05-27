@@ -121,12 +121,14 @@ export default async function AdminClientDetailPage({ params }: PageProps) {
         kind: a.kind,
         scope: a.scope,
         priceCents: a.priceCents,
+        priceMaxCents: a.priceMaxCents,
         priceUnit: a.priceUnit,
         isActive: a.isActive,
       }))}
       addOnsOverrides={overrides.map((o) => ({
         addOnId: o.addOnId,
         priceCents: o.priceCents,
+        priceMaxCents: o.priceMaxCents,
       }))}
       addOnsActive={clientAddOns.map((r) => ({
         id: r.id,
