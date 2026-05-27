@@ -23,6 +23,8 @@ model ClientAccount {
   sites   Site[]
   tickets Ticket[]
   emailChangeRequests EmailChangeRequest[]
+  addOnPrices  AddOnClientPrice[]
+  clientAddOns ClientAddOn[]
 
   @@map("client_accounts")
 }
@@ -37,6 +39,7 @@ model Site {
 
   clientAccount ClientAccount @relation(fields: [clientAccountId], references: [id], onDelete: Cascade)
   tickets       Ticket[]
+  clientAddOns  ClientAddOn[]
 
   @@unique([clientAccountId, url])
   @@map("sites")
@@ -71,6 +74,7 @@ model Ticket {
   category        TicketCategory
   status          TicketStatus   @default(NEW)
   attachments     Json?
+  addOnId         String?        @map("add_on_id")
   isInquiry      Boolean   @default(false) @map("is_inquiry")
   inquiryEndedAt DateTime? @map("inquiry_ended_at")
   lastMessageAt  DateTime? @map("last_message_at")
@@ -91,12 +95,15 @@ model Ticket {
   clientAccount ClientAccount @relation(fields: [clientAccountId], references: [id])
   site          Site          @relation(fields: [siteId], references: [id])
   messages      Message[]
+  addOn         AddOn?        @relation(fields: [addOnId], references: [id])
+  activatedAddOns ClientAddOn[] @relation("AddOnRequestTicket")
 
   @@index([clientAccountId])
   @@index([siteId])
   @@index([status])
   @@index([isInquiry, inquiryEndedAt])
   @@index([clientAccountId, isInquiry, inquiryEndedAt])
+  @@index([addOnId])
   @@map("tickets")
 }
 
@@ -114,6 +121,90 @@ model Message {
 
   @@index([ticketId, createdAt])
   @@map("messages")
+}
+
+model AddOn {
+  id          String         @id @default(cuid())
+  name        String
+  description String         @db.Text
+  kind        AddOnKind
+  scope       AddOnScope
+  priceCents  Int            @map("price_cents")
+  priceUnit   AddOnPriceUnit @map("price_unit")
+  isActive    Boolean        @default(true) @map("is_active")
+  sortOrder   Int            @default(0) @map("sort_order")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  clientPrices AddOnClientPrice[]
+  clientAddOns ClientAddOn[]
+  tickets      Ticket[]
+
+  @@index([isActive, sortOrder])
+  @@map("add_ons")
+}
+
+model AddOnClientPrice {
+  id              String   @id @default(cuid())
+  addOnId         String   @map("add_on_id")
+  clientAccountId String   @map("client_account_id")
+  priceCents      Int      @map("price_cents")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  addOn         AddOn         @relation(fields: [addOnId], references: [id], onDelete: Cascade)
+  clientAccount ClientAccount @relation(fields: [clientAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([addOnId, clientAccountId])
+  @@index([clientAccountId])
+  @@map("add_on_client_prices")
+}
+
+model ClientAddOn {
+  id               String            @id @default(cuid())
+  clientAccountId  String            @map("client_account_id")
+  addOnId          String            @map("add_on_id")
+  siteId           String?           @map("site_id")
+  status           ClientAddOnStatus @default(ACTIVE)
+  priceCents       Int               @map("price_cents")
+  startedAt        DateTime          @default(now()) @map("started_at")
+  endedAt          DateTime?         @map("ended_at")
+  requestTicketId  String?           @map("request_ticket_id")
+  note             String?           @db.Text
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  clientAccount ClientAccount @relation(fields: [clientAccountId], references: [id], onDelete: Cascade)
+  addOn         AddOn         @relation(fields: [addOnId], references: [id])
+  site          Site?         @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  requestTicket Ticket?       @relation("AddOnRequestTicket", fields: [requestTicketId], references: [id], onDelete: SetNull)
+
+  @@index([clientAccountId, status])
+  @@index([addOnId])
+  @@index([siteId])
+  @@map("client_add_ons")
+}
+
+enum AddOnKind {
+  RECURRING
+  ONE_TIME
+}
+
+enum AddOnScope {
+  PER_SITE
+  PER_CLIENT
+}
+
+enum AddOnPriceUnit {
+  ONE_TIME
+  PER_MONTH
+  PER_YEAR
+}
+
+enum ClientAddOnStatus {
+  ACTIVE
+  PAUSED
+  ENDED
 }
 
 enum SenderType {
