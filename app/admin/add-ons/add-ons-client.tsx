@@ -92,6 +92,16 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  function toggleExpand(id: string) {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   function startNew() {
     setForm(EMPTY_FORM);
@@ -536,39 +546,73 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
                     : "—"
                   : formatPriceRange(row.priceCents, row.priceMaxCents);
               const unitLabel = resolveUnitLabel(row.priceUnit, row.priceUnitLabel);
+              const isOpen = expandedIds.has(row.id);
               return (
                 <li
                   key={row.id}
-                  className={`border border-rule bg-parchment-warm/30 p-4 ${row.isActive ? "" : "opacity-60"}`}
+                  className={`border border-rule bg-parchment-warm/30 ${row.isActive ? "" : "opacity-60"}`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="font-display text-base leading-tight">{row.name}</div>
-                      <div className="text-xs text-ink-mute mt-1 line-clamp-2">{row.description}</div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="font-mono text-sm whitespace-nowrap">{priceDisplay}</div>
-                      <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mt-0.5">
-                        {unitLabel}
+                  <button
+                    type="button"
+                    onClick={() => toggleExpand(row.id)}
+                    aria-expanded={isOpen}
+                    className="w-full text-left p-4 block"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1 flex items-start gap-2">
+                        <div className="font-display text-base leading-tight min-w-0 flex-1">
+                          {row.name}
+                        </div>
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 12 12"
+                          className={`shrink-0 mt-1 w-3 h-3 text-ink-mute transition-transform duration-200 motion-reduce:transition-none ${isOpen ? "rotate-180" : ""}`}
+                        >
+                          <path
+                            d="M2 4l4 4 4-4"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="font-mono text-sm whitespace-nowrap">{priceDisplay}</div>
+                        <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mt-0.5">
+                          {unitLabel}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute">
-                    <span>{row.kind === "RECURRING" ? "Recurring" : "One-time"}</span>
-                    <span className="text-ink-fade">·</span>
-                    <span>{row.scope === "PER_SITE" ? "Per site" : "Per client"}</span>
-                    <span className="text-ink-fade">·</span>
-                    <span>Order {row.sortOrder}</span>
-                    <span className="text-ink-fade">·</span>
-                    {row.isActive ? (
-                      <span className="text-signal-green">Active</span>
-                    ) : (
-                      <span>Retired</span>
-                    )}
-                  </div>
+                    {/* Slide-down description (grid 0fr → 1fr trick) */}
+                    <div
+                      className={`grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+                    >
+                      <div className="overflow-hidden">
+                        <p className="text-sm text-ink-mute mt-2 leading-snug whitespace-pre-wrap">
+                          {row.description}
+                        </p>
+                      </div>
+                    </div>
 
-                  <div className="mt-3 pt-3 border-t border-rule flex items-center gap-4">
+                    <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute">
+                      <span>{row.kind === "RECURRING" ? "Recurring" : "One-time"}</span>
+                      <span className="text-ink-fade">·</span>
+                      <span>{row.scope === "PER_SITE" ? "Per site" : "Per client"}</span>
+                      <span className="text-ink-fade">·</span>
+                      <span>Order {row.sortOrder}</span>
+                      <span className="text-ink-fade">·</span>
+                      {row.isActive ? (
+                        <span className="text-signal-green">Active</span>
+                      ) : (
+                        <span>Retired</span>
+                      )}
+                    </div>
+                  </button>
+
+                  <div className="px-4 pb-4 -mt-1 pt-3 border-t border-rule flex items-center gap-4">
                     <button
                       type="button"
                       onClick={() => startEdit(row)}
