@@ -14,7 +14,7 @@ type Ctx = { params: Promise<{ id: string }> };
 
 const KINDS = new Set<AddOnKind>(["RECURRING", "ONE_TIME"]);
 const SCOPES = new Set<AddOnScope>(["PER_SITE", "PER_CLIENT"]);
-const UNITS = new Set<AddOnPriceUnit>(["ONE_TIME", "PER_MONTH", "PER_YEAR"]);
+const UNITS = new Set<AddOnPriceUnit>(["ONE_TIME", "PER_MONTH", "PER_YEAR", "ON_TOTAL_BUILD"]);
 const PRICE_TYPES = new Set<AddOnPriceType>(["FIXED", "RANGE", "PERCENTAGE"]);
 
 async function guard() {
