@@ -39,6 +39,13 @@ body {
   position: relative;
 }
 
+/* iOS PWA standalone: keep content out from under the status bar
+   and the home-indicator area. Resolves to 0 in regular browsers. */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 body {
   background-image:
     radial-gradient(circle at 12% 18%, rgba(201, 192, 171, 0.08) 0px, transparent 1px),
