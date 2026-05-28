@@ -267,6 +267,13 @@ export function AddOnsSection({
       setActivateError("Price must be a non-negative number.");
       return;
     }
+    if (
+      !confirm(
+        `Activate "${addOn.name}"?\n\nConfirm that an invoice has been sent to the client AND payment has been received before activating this add-on.`,
+      )
+    ) {
+      return;
+    }
     setBusy(true);
     try {
       const res = await fetch(`/api/admin/clients/${clientId}/add-ons`, {
