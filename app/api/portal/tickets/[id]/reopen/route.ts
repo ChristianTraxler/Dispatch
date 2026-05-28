@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
 import { sendTicketReopenedEmail } from "@/lib/email";
@@ -56,9 +56,7 @@ export async function POST(
     }
   }
 
-  void updateNotionTicketStatus({ ticketId: id, status: "REOPENED" }).catch(
-    (err) => console.error("[notion] uncaught in portal reopen:", err),
-  );
+  after(() => updateNotionTicketStatus({ ticketId: id, status: "REOPENED" }));
 
   return NextResponse.json({ ticket: updated });
 }

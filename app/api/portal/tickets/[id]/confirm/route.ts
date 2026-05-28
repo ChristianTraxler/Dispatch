@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
 import { updateNotionTicketStatus } from "@/lib/notion";
@@ -36,9 +36,7 @@ export async function POST(
     },
   });
 
-  void updateNotionTicketStatus({ ticketId: id, status: "CLOSED" }).catch(
-    (err) => console.error("[notion] uncaught in portal confirm:", err),
-  );
+  after(() => updateNotionTicketStatus({ ticketId: id, status: "CLOSED" }));
 
   return NextResponse.json({ ticket: updated });
 }

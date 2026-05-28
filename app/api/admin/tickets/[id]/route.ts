@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
   requireAdmin,
@@ -97,10 +97,12 @@ export async function PATCH(
   });
 
   if (status !== undefined) {
-    void updateNotionTicketStatus({
-      ticketId: id,
-      status: status as import("@prisma/client").TicketStatus,
-    }).catch((err) => console.error("[notion] uncaught in admin PATCH:", err));
+    after(() =>
+      updateNotionTicketStatus({
+        ticketId: id,
+        status: status as import("@prisma/client").TicketStatus,
+      }),
+    );
   }
 
   if (status === "AWAITING_CONFIRMATION") {

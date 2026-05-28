@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
 import { sendNewTicketEmail } from "@/lib/email";
@@ -119,12 +119,14 @@ export async function POST(req: Request) {
     }
   }
 
-  void createNotionTicketPage({
-    ticket,
-    account: { name: account.name, email: account.email },
-    site: { displayName: site.displayName },
-    appUrl,
-  }).catch((err) => console.error("[notion] uncaught in portal/tickets:", err));
+  after(() =>
+    createNotionTicketPage({
+      ticket,
+      account: { name: account.name, email: account.email },
+      site: { displayName: site.displayName },
+      appUrl,
+    }),
+  );
 
   return NextResponse.json({ ticket }, { status: 201 });
 }

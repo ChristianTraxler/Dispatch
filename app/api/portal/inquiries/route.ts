@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
 import { hydrateAttachments } from "@/lib/storage";
@@ -42,12 +42,14 @@ export async function POST() {
     ticket = { ...created, messages: [] };
     const appUrl =
       process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-    void createNotionTicketPage({
-      ticket: created,
-      account: { name: account.name, email: account.email },
-      site: { displayName: account.sites[0].displayName },
-      appUrl,
-    }).catch((err) => console.error("[notion] uncaught in portal/inquiries:", err));
+    after(() =>
+      createNotionTicketPage({
+        ticket: created,
+        account: { name: account.name, email: account.email },
+        site: { displayName: account.sites[0].displayName },
+        appUrl,
+      }),
+    );
   }
 
   const messages = await Promise.all(

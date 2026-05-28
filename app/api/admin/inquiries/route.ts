@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
   requireAdmin,
@@ -70,12 +70,14 @@ export async function POST(req: Request) {
     ticket = { ...created, messages: [] };
     const appUrl =
       process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
-    void createNotionTicketPage({
-      ticket: created,
-      account: { name: account.name, email: account.email },
-      site: { displayName: account.sites[0].displayName },
-      appUrl,
-    }).catch((err) => console.error("[notion] uncaught in admin/inquiries:", err));
+    after(() =>
+      createNotionTicketPage({
+        ticket: created,
+        account: { name: account.name, email: account.email },
+        site: { displayName: account.sites[0].displayName },
+        appUrl,
+      }),
+    );
   }
 
   const messages = await Promise.all(
