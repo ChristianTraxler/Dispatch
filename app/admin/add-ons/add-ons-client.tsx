@@ -143,8 +143,11 @@ function AddOnCard({
 
   useEffect(() => {
     const el = descRef.current;
-    if (!el) return;
-    const measure = () => setFullHeight(el.scrollHeight);
+    const parent = el?.parentElement;
+    if (!el || !parent) return;
+    // Measure the wrapper so the <p>'s own margins (mt-1) are included —
+    // otherwise descenders on the last line get clipped by overflow-hidden.
+    const measure = () => setFullHeight(parent.scrollHeight);
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
