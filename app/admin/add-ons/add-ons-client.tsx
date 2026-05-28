@@ -88,6 +88,36 @@ function centsToDollars(cents: number): string {
 
 const COLLAPSED_DESC_PX = 56; // ~3.5rem preview
 
+const BULLET_RE = /^\s*[•\-*]/;
+
+// Collapse soft-wrapped newlines (hard-coded for a wider editor) into spaces,
+// while preserving paragraph breaks and bullet boundaries. Continuation lines
+// inside a bullet get merged back into the bullet they belong to.
+function normalizeDescription(text: string): string {
+  return text
+    .replace(/\r\n?/g, "\n")
+    .split(/\n{2,}/)
+    .map((para) => {
+      const lines = para.split("\n");
+      const hasBullets = lines.some((l) => BULLET_RE.test(l));
+      if (!hasBullets) {
+        return lines.map((l) => l.trim()).filter(Boolean).join(" ");
+      }
+      const out: string[] = [];
+      for (const raw of lines) {
+        const line = raw.trim();
+        if (!line) continue;
+        if (BULLET_RE.test(line) || out.length === 0) {
+          out.push(line);
+        } else {
+          out[out.length - 1] = `${out[out.length - 1]} ${line}`;
+        }
+      }
+      return out.join("\n");
+    })
+    .join("\n\n");
+}
+
 function AddOnCard({
   row,
   isOpen,
@@ -109,6 +139,7 @@ function AddOnCard({
 }) {
   const descRef = useRef<HTMLParagraphElement>(null);
   const [fullHeight, setFullHeight] = useState<number>(0);
+  const description = normalizeDescription(row.description);
 
   useEffect(() => {
     const el = descRef.current;
@@ -118,7 +149,7 @@ function AddOnCard({
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [row.description]);
+  }, [description]);
 
   const priceDisplay =
     row.priceType === "PERCENTAGE"
@@ -178,9 +209,9 @@ function AddOnCard({
             >
               <p
                 ref={descRef}
-                className="text-xs text-ink-mute mt-1 leading-snug whitespace-pre-wrap"
+                className="text-xs text-ink-mute mt-1 leading-snug whitespace-pre-line"
               >
-                {row.description}
+                {description}
               </p>
             </div>
           </div>
