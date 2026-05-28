@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type {
   AddOnKind,
@@ -84,6 +84,157 @@ function dollarsToCents(input: string): number | null {
 function centsToDollars(cents: number): string {
   const d = cents / 100;
   return d % 1 === 0 ? d.toFixed(0) : d.toFixed(2);
+}
+
+const COLLAPSED_DESC_PX = 56; // ~3.5rem preview
+
+function AddOnCard({
+  row,
+  isOpen,
+  onToggle,
+  onEdit,
+  onToggleActive,
+  onDelete,
+  editDisabled,
+  busy,
+}: {
+  row: AddOnRow;
+  isOpen: boolean;
+  onToggle: () => void;
+  onEdit: () => void;
+  onToggleActive: () => void;
+  onDelete: () => void;
+  editDisabled: boolean;
+  busy: boolean;
+}) {
+  const descRef = useRef<HTMLParagraphElement>(null);
+  const [fullHeight, setFullHeight] = useState<number>(0);
+
+  useEffect(() => {
+    const el = descRef.current;
+    if (!el) return;
+    const measure = () => setFullHeight(el.scrollHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [row.description]);
+
+  const priceDisplay =
+    row.priceType === "PERCENTAGE"
+      ? row.pricePercentBp !== null
+        ? formatPercentBp(row.pricePercentBp)
+        : "—"
+      : formatPriceRange(row.priceCents, row.priceMaxCents);
+  const unitLabel = resolveUnitLabel(row.priceUnit, row.priceUnitLabel);
+
+  return (
+    <li
+      className={`border border-rule bg-parchment-warm/30 ${row.isActive ? "" : "opacity-60"}`}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className="w-full text-left p-4 block"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start gap-2">
+              <div className="font-display text-base md:text-lg leading-tight min-w-0 flex-1">
+                {row.name}
+              </div>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 12 12"
+                className={`shrink-0 mt-1 w-3 h-3 text-ink-mute transition-transform duration-300 ease-out motion-reduce:transition-none ${isOpen ? "rotate-180" : ""}`}
+              >
+                <path
+                  d="M2 4l4 4 4-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+
+            <div
+              className="overflow-hidden transition-[max-height] duration-300 ease-out motion-reduce:transition-none"
+              style={{
+                maxHeight: isOpen
+                  ? fullHeight || undefined
+                  : COLLAPSED_DESC_PX,
+                ...(isOpen
+                  ? null
+                  : {
+                      maskImage:
+                        "linear-gradient(to bottom, black 45%, transparent 100%)",
+                      WebkitMaskImage:
+                        "linear-gradient(to bottom, black 45%, transparent 100%)",
+                    }),
+              }}
+            >
+              <p
+                ref={descRef}
+                className="text-xs text-ink-mute mt-1 leading-snug whitespace-pre-wrap"
+              >
+                {row.description}
+              </p>
+            </div>
+          </div>
+          <div className="text-right shrink-0">
+            <div className="font-mono text-sm whitespace-nowrap">{priceDisplay}</div>
+            <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mt-0.5">
+              {unitLabel}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute">
+          <span>{row.kind === "RECURRING" ? "Recurring" : "One-time"}</span>
+          <span className="text-ink-fade">·</span>
+          <span>{row.scope === "PER_SITE" ? "Per site" : "Per client"}</span>
+          <span className="text-ink-fade">·</span>
+          <span>Order {row.sortOrder}</span>
+          <span className="text-ink-fade">·</span>
+          {row.isActive ? (
+            <span className="text-signal-green">Active</span>
+          ) : (
+            <span>Retired</span>
+          )}
+        </div>
+      </button>
+
+      <div className="px-4 pb-4 -mt-1 pt-3 border-t border-rule flex items-center gap-4">
+        <button
+          type="button"
+          onClick={onEdit}
+          disabled={editDisabled}
+          className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink disabled:opacity-50"
+        >
+          Edit
+        </button>
+        <button
+          type="button"
+          onClick={onToggleActive}
+          disabled={busy}
+          className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink disabled:opacity-50"
+        >
+          {row.isActive ? "Retire" : "Unretire"}
+        </button>
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={busy}
+          className="ml-auto font-mono text-[0.65rem] uppercase tracking-widest text-signal-red hover:opacity-80 disabled:opacity-50"
+        >
+          Delete
+        </button>
+      </div>
+    </li>
+  );
 }
 
 export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[] }) {
@@ -536,122 +687,19 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
         </div>
       ) : (
         <ul className="flex flex-col gap-3">
-          {initialAddOns.map((row) => {
-            const priceDisplay =
-              row.priceType === "PERCENTAGE"
-                ? row.pricePercentBp !== null
-                  ? formatPercentBp(row.pricePercentBp)
-                  : "—"
-                : formatPriceRange(row.priceCents, row.priceMaxCents);
-            const unitLabel = resolveUnitLabel(row.priceUnit, row.priceUnitLabel);
-            const isOpen = expandedIds.has(row.id);
-            return (
-              <li
-                key={row.id}
-                className={`border border-rule bg-parchment-warm/30 ${row.isActive ? "" : "opacity-60"}`}
-              >
-                <button
-                  type="button"
-                  onClick={() => toggleExpand(row.id)}
-                  aria-expanded={isOpen}
-                  className="w-full text-left p-4 block"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start gap-2">
-                        <div className="font-display text-base md:text-lg leading-tight min-w-0 flex-1">
-                          {row.name}
-                        </div>
-                        <svg
-                          aria-hidden="true"
-                          viewBox="0 0 12 12"
-                          className={`shrink-0 mt-1 w-3 h-3 text-ink-mute transition-transform duration-200 motion-reduce:transition-none ${isOpen ? "rotate-180" : ""}`}
-                        >
-                          <path
-                            d="M2 4l4 4 4-4"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </div>
-
-                      {/* Description: preview when collapsed (with a soft
-                          fade-out so the bottom letters dissolve rather than
-                          hard-cut), full text when expanded. max-height
-                          handles the slide-down animation. */}
-                      <div
-                        className={`overflow-hidden transition-[max-height] duration-300 ease-out motion-reduce:transition-none ${isOpen ? "max-h-[60rem]" : "max-h-[3.5rem]"}`}
-                        style={
-                          isOpen
-                            ? undefined
-                            : {
-                                maskImage:
-                                  "linear-gradient(to bottom, black 45%, transparent 100%)",
-                                WebkitMaskImage:
-                                  "linear-gradient(to bottom, black 45%, transparent 100%)",
-                              }
-                        }
-                      >
-                        <p className="text-xs text-ink-mute mt-1 leading-snug whitespace-pre-wrap">
-                          {row.description}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="font-mono text-sm whitespace-nowrap">{priceDisplay}</div>
-                      <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mt-0.5">
-                        {unitLabel}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute">
-                    <span>{row.kind === "RECURRING" ? "Recurring" : "One-time"}</span>
-                    <span className="text-ink-fade">·</span>
-                    <span>{row.scope === "PER_SITE" ? "Per site" : "Per client"}</span>
-                    <span className="text-ink-fade">·</span>
-                    <span>Order {row.sortOrder}</span>
-                    <span className="text-ink-fade">·</span>
-                    {row.isActive ? (
-                      <span className="text-signal-green">Active</span>
-                    ) : (
-                      <span>Retired</span>
-                    )}
-                  </div>
-                </button>
-
-                <div className="px-4 pb-4 -mt-1 pt-3 border-t border-rule flex items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() => startEdit(row)}
-                    disabled={busy || editingId !== null}
-                    className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink disabled:opacity-50"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleActive(row)}
-                    disabled={busy}
-                    className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink disabled:opacity-50"
-                  >
-                    {row.isActive ? "Retire" : "Unretire"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => destroy(row)}
-                    disabled={busy}
-                    className="ml-auto font-mono text-[0.65rem] uppercase tracking-widest text-signal-red hover:opacity-80 disabled:opacity-50"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </li>
-            );
-          })}
+          {initialAddOns.map((row) => (
+            <AddOnCard
+              key={row.id}
+              row={row}
+              isOpen={expandedIds.has(row.id)}
+              onToggle={() => toggleExpand(row.id)}
+              onEdit={() => startEdit(row)}
+              onToggleActive={() => toggleActive(row)}
+              onDelete={() => destroy(row)}
+              editDisabled={busy || editingId !== null}
+              busy={busy}
+            />
+          ))}
         </ul>
       )}
     </div>
