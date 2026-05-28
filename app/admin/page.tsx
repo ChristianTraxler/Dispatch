@@ -142,6 +142,8 @@ export default async function AdminLedgerPage() {
         <aside className="space-y-8">
           <OnlineClientsPanel />
 
+          <BillingRulesNote />
+
           <div>
             <div className="flex items-center gap-3 mb-4">
               <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">
@@ -158,8 +160,6 @@ export default async function AdminLedgerPage() {
               <QuickAction href="/admin/clients" label="Browse client roster →" />
             </ul>
           </div>
-
-          <BillingRulesNote />
         </aside>
       </div>
     </div>
