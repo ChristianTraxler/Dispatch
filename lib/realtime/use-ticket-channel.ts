@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { ensureUtcIso } from "@/lib/datetime";
 
 export type RawMessageRow = {
   id: string;
@@ -14,6 +15,17 @@ export type RawMessageRow = {
   created_at: string;
   attachments: unknown;
 };
+
+// Realtime forwards `timestamp`-without-zone columns with no zone designator,
+// so `new Date()` would parse them as local time. Mark them as the UTC they are
+// before handing the row to consumers (matches the server's `.toISOString()`).
+function normalizeRow(row: RawMessageRow): RawMessageRow {
+  return {
+    ...row,
+    created_at: ensureUtcIso(row.created_at),
+    read_at: ensureUtcIso(row.read_at),
+  };
+}
 
 export type ViewerSide = "CLIENT" | "ADMIN";
 
@@ -91,7 +103,7 @@ export function useTicketChannel({
             filter: `ticket_id=eq.${ticketId}`,
           },
           (payload: { new: RawMessageRow }) => {
-            onInsertRef.current?.(payload.new);
+            onInsertRef.current?.(normalizeRow(payload.new));
           },
         )
         .on(
@@ -103,7 +115,7 @@ export function useTicketChannel({
             filter: `ticket_id=eq.${ticketId}`,
           },
           (payload: { new: RawMessageRow }) => {
-            onUpdateRef.current?.(payload.new);
+            onUpdateRef.current?.(normalizeRow(payload.new));
           },
         )
         .on(

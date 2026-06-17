@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import type { CSSProperties } from "react";
 import { uploadFile } from "@/lib/upload-client";
+import { ensureUtcIso } from "@/lib/datetime";
 import { Avatar } from "./Avatar";
 
 export type SenderType = "CLIENT" | "ADMIN";
@@ -57,7 +58,7 @@ export interface ChatThreadProps {
 }
 
 function formatTime(value: string | Date): string {
-  const d = typeof value === "string" ? new Date(value) : value;
+  const d = typeof value === "string" ? new Date(ensureUtcIso(value)) : value;
   const now = new Date();
   const sameDay =
     d.getFullYear() === now.getFullYear() &&
