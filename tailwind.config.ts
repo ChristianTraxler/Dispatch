@@ -30,8 +30,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ['"Fraunces"', "Georgia", "serif"],
-        mono: ['"JetBrains Mono"', "ui-monospace", "monospace"],
+        display: ["var(--font-fraunces)", "Georgia", "serif"],
+        mono: ["var(--font-jetbrains-mono)", "ui-monospace", "monospace"],
       },
       letterSpacing: {
         wider: "0.08em",

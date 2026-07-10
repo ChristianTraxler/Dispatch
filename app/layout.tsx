@@ -1,6 +1,24 @@
 import type { Metadata, Viewport } from "next";
+import { Fraunces, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ScrollToTop } from "@/components/ScrollToTop";
+
+// Self-hosted via next/font so there is no runtime Google Fonts request.
+// Fraunces needs the `opsz` axis (headings set font-variation-settings: "opsz" …)
+// and italic (font-display italic is used across the app).
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  axes: ["opsz"],
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-fraunces",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-jetbrains-mono",
+});
 
 export const metadata: Metadata = {
   title: "Dispatch — Developer of Code support",
@@ -29,7 +47,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
+    <html
+      lang="en"
+      className={`h-full antialiased ${fraunces.variable} ${jetbrainsMono.variable}`}
+    >
       <body className="min-h-full flex flex-col">
         {children}
         <ScrollToTop />
