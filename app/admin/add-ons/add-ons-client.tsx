@@ -212,7 +212,7 @@ function AddOnCard({
             >
               <p
                 ref={descRef}
-                className="text-xs text-ink-mute mt-1 leading-snug whitespace-pre-line"
+                className="text-xs md:text-sm text-ink-mute mt-1 leading-snug whitespace-pre-line"
               >
                 {description}
               </p>
