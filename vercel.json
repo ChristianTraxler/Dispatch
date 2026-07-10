@@ -15,6 +15,10 @@
     {
       "path": "/api/admin/cron/process-vacations",
       "schedule": "5 5 * * *"
+    },
+    {
+      "path": "/api/admin/cron/keepalive",
+      "schedule": "0 6 * * *"
     }
   ]
 }
