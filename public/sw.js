@@ -39,8 +39,14 @@ self.addEventListener("notificationclick", function (event) {
       .then(function (windowClients) {
         for (const client of windowClients) {
           if ("focus" in client) {
-            client.navigate(target);
-            return client.focus();
+            return client
+              .navigate(target)
+              .then(function () {
+                return client.focus();
+              })
+              .catch(function () {
+                return self.clients.openWindow(target);
+              });
           }
         }
         return self.clients.openWindow(target);
