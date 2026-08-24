@@ -5,6 +5,7 @@ import {
   sendAwaitingConfirmationEmail,
   sendNewTicketEmail,
   sendNewMessageToAdminEmail,
+  sendNewMessageToClientEmail,
   sendTicketReopenedEmail,
 } from "@/lib/email";
 import { ticketNumber } from "@/lib/ticket";
@@ -59,6 +60,37 @@ async function pushToClient(
     // one rather than stacking six entries in the tray.
     tag: `ticket-${ticket.id}`,
   });
+}
+
+/**
+ * Admin replied in a ticket thread. Until this existed the client got an
+ * email and no push, so no notification and no app badge — status changes
+ * alerted them but a direct reply did not.
+ */
+export async function notifyClientNewMessage(
+  ticket: NotifyTicket,
+  appUrl: string,
+  messageBody: string,
+) {
+  // Email first, push second — see notifyTicketFixed for why.
+  try {
+    // The ticket id is the second argument on purpose: it keys a 60-second
+    // per-recipient debounce inside lib/email.ts. Dropping it would email the
+    // client on every message in a fast back-and-forth.
+    await sendNewMessageToClientEmail(ticket.clientAccount.email, ticket.id, {
+      ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
+      ticketTitle: ticket.title,
+      ticketUrl: clientTicketUrl(appUrl, ticket.id),
+      siteDisplayName: ticket.site.displayName,
+      messageBody,
+    });
+  } catch (err) {
+    console.error("[notify] new-message-to-client email failed:", err);
+  }
+
+  // Shares the client `ticket-<id>` tag with the stage notifications, so a
+  // ticket keeps one tray entry rather than stacking a reply beside a status.
+  await pushToClient(ticket, appUrl, `Reply: ${forPushBody(messageBody)}`);
 }
 
 export async function notifyTicketViewed(ticket: NotifyTicket, appUrl: string) {

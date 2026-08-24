@@ -1,12 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
   requireAdmin,
   AuthRequiredError,
   AdminRequiredError,
 } from "@/lib/auth/admin-guard";
-import { sendNewMessageToClientEmail } from "@/lib/email";
-import { ticketNumber } from "@/lib/ticket";
+import { notifyClientNewMessage } from "@/lib/notify";
 import { hydrateAttachments } from "@/lib/storage";
 
 export async function POST(
@@ -53,7 +52,9 @@ export async function POST(
     where: { id: ticketId },
     include: {
       site: { select: { displayName: true } },
-      clientAccount: { select: { email: true } },
+      // authUserId is what the push is addressed to — without it the
+      // notification silently has no recipient rather than erroring.
+      clientAccount: { select: { authUserId: true, email: true, name: true } },
     },
   });
   if (!ticket) {
@@ -89,20 +90,14 @@ export async function POST(
     },
   });
 
-  // Per-message email — tickets only; inquiries notify via end-of-chat transcript.
+  // Per-message notification — tickets only; inquiries notify via the
+  // end-of-chat transcript and the hourly nudge cron instead. This guard is
+  // load-bearing: without it every quick-chat message would notify.
   if (!ticket.isInquiry) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
-    try {
-      await sendNewMessageToClientEmail(ticket.clientAccount.email, ticket.id, {
-        ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
-        ticketTitle: ticket.title,
-        ticketUrl: `${appUrl}/portal/ticket/${ticket.id}`,
-        siteDisplayName: ticket.site.displayName,
-        messageBody: body ?? "(attachment)",
-      });
-    } catch (err) {
-      console.error("[messages] new-message-to-client email failed:", err);
-    }
+    after(() =>
+      notifyClientNewMessage(ticket, appUrl, body ?? "(attachment)"),
+    );
   }
 
   return NextResponse.json({
