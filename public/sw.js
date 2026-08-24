@@ -31,6 +31,12 @@ self.addEventListener("notificationclick", function (event) {
   const target = event.notification.data && event.notification.data.url;
   if (!target) return;
 
+  // Opening a fresh window is the fallback for every failure path, and it
+  // must never reject — this is the last link in the waitUntil chain.
+  function openFresh() {
+    return self.clients.openWindow(target).catch(function () {});
+  }
+
   // Focus an already-open Dispatch window and navigate it, rather than
   // opening a duplicate tab on every tap.
   event.waitUntil(
@@ -41,15 +47,17 @@ self.addEventListener("notificationclick", function (event) {
           if ("focus" in client) {
             return client
               .navigate(target)
-              .then(function () {
-                return client.focus();
+              .then(function (navigated) {
+                // navigate() resolves with the post-navigation client, which
+                // may be a different object; fall back to the original only
+                // if it resolved with nothing.
+                return (navigated || client).focus();
               })
-              .catch(function () {
-                return self.clients.openWindow(target);
-              });
+              .catch(openFresh);
           }
         }
-        return self.clients.openWindow(target);
-      }),
+        return openFresh();
+      })
+      .catch(openFresh),
   );
 });
