@@ -67,6 +67,17 @@ export default function PushToggle() {
     setBusy(true);
     setError(null);
     try {
+      // NEXT_PUBLIC_* env vars are inlined into the bundle at BUILD time. If
+      // the VAPID key was added in Vercel after the last deploy, this bundle
+      // still has it baked in as undefined. Check before requesting
+      // permission, not after — on iOS a consumed permission prompt can't be
+      // re-requested from the page, so failing after the prompt would strand
+      // the user rather than let them retry once the deploy catches up.
+      if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+        setError("Push isn't configured on this deployment.");
+        return;
+      }
+
       // Must be called from this click handler — iOS grants permission only
       // in response to a real user gesture.
       const permission = await Notification.requestPermission();

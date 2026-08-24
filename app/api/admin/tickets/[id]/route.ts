@@ -128,6 +128,10 @@ export async function PATCH(
       // relations that prisma.ticket.update does not return. Merge so the
       // copy always reflects what the ticket now IS.
       const fresh = { ...ticket, ...updated };
+      // Wrapped in after(): the notifier sends email and/or push, and
+      // web-push has no default socket timeout, so a slow push service must
+      // never delay this response — the admin's UI update always returns
+      // immediately regardless of notification delivery.
       after(() => notifier(fresh, appUrl));
     }
   }

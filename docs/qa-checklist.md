@@ -62,6 +62,18 @@ This is the most important security check before launch. Need **two distinct tes
 - [ ] Logged-in client visits `/admin` → redirect to `/portal/dashboard` (not `/admin`)
 - [ ] Logged-out user visits `/portal/dashboard` → redirect to `/portal?from=...`
 
+### Push notifications
+
+Local push testing requires a secure context — run `npm run dev:https`, not
+plain `npm run dev`; Web Push cannot register over HTTP.
+
+- [ ] **Subscribe** — from the portal account page, turn the notifications toggle on; browser prompts for permission and the toggle switches to "on"
+- [ ] **Admin subscribe** — the same toggle in admin settings works identically
+- [ ] **Receive while closed** — with the app fully closed (not just backgrounded/tab-switched), trigger a ticket event and confirm the OS shows a notification
+- [ ] **Deep link** — tapping the notification opens (or focuses an already-open window on) the correct ticket, not just the dashboard
+- [ ] **Unsubscribe** — toggle off removes the subscription; confirm no further notifications reach that device
+- [ ] **iOS, not installed** — on iOS Safari without "Add to Home Screen," the toggle is replaced by Add-to-Home-Screen instructions instead of a live (and non-functional) toggle
+
 ---
 
 After every box above is green, we're clear for Phase 14 (production cutover).

@@ -46,12 +46,17 @@ async function deliver(subs: SubRow[], payload: PushPayload): Promise<void> {
   await Promise.all(
     subs.map(async (sub) => {
       try {
+        // web-push sets no default socket timeout, so a degraded push
+        // service can otherwise hang the request indefinitely — and because
+        // every send here runs inside one Promise.all, a single hung
+        // endpoint would block delivery to every other device. Cap it.
         await webpush.sendNotification(
           {
             endpoint: sub.endpoint,
             keys: { p256dh: sub.p256dh, auth: sub.auth },
           },
           body,
+          { timeout: 5000 },
         );
       } catch (err) {
         const status = (err as { statusCode?: number }).statusCode;
