@@ -5,8 +5,12 @@ import {
   AuthRequiredError,
   AdminRequiredError,
 } from "@/lib/auth/admin-guard";
-import { sendAwaitingConfirmationEmail } from "@/lib/email";
-import { ticketNumber } from "@/lib/ticket";
+import {
+  notifyTicketReviewing,
+  notifyTicketFixing,
+  notifyTicketFixed,
+  type NotifyTicket,
+} from "@/lib/notify";
 import { isTicketCategory } from "@/lib/ticket-categories";
 import { updateNotionTicketStatus } from "@/lib/notion";
 
@@ -15,6 +19,16 @@ const TIMESTAMP_FOR_STATUS = {
   FIXING: "fixingStartedAt",
   AWAITING_CONFIRMATION: "fixedAt",
 } as const satisfies Partial<Record<string, string>>;
+
+// Mirrors TIMESTAMP_FOR_STATUS above. A status with no entry notifies nobody,
+// which keeps this total without a fallback branch.
+const STATUS_NOTIFIER = {
+  REVIEWING: notifyTicketReviewing,
+  FIXING: notifyTicketFixing,
+  AWAITING_CONFIRMATION: notifyTicketFixed,
+} as const satisfies Partial<
+  Record<string, (t: NotifyTicket, appUrl: string) => Promise<void>>
+>;
 
 const ALLOWED_TRANSITIONS = new Set([
   "REVIEWING",
@@ -67,7 +81,7 @@ export async function PATCH(
     where: { id },
     include: {
       site: { select: { url: true, displayName: true } },
-      clientAccount: { select: { email: true, name: true } },
+      clientAccount: { select: { authUserId: true, email: true, name: true } },
     },
   });
   if (!ticket) {
@@ -105,18 +119,20 @@ export async function PATCH(
     );
   }
 
-  if (status === "AWAITING_CONFIRMATION") {
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
-    try {
-      await sendAwaitingConfirmationEmail(ticket.clientAccount.email, {
-        ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
-        ticketTitle: ticket.title,
-        ticketUrl: `${appUrl}/portal/ticket/${ticket.id}`,
-        siteDisplayName: ticket.site.displayName,
-      });
-    } catch (err) {
-      console.error("[admin/tickets PATCH] awaiting-confirmation email failed:", err);
+  if (status !== undefined) {
+    const notifier = STATUS_NOTIFIER[status as keyof typeof STATUS_NOTIFIER];
+    if (notifier) {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+      // `updated` carries the post-write scalars — including a category that
+      // may have changed in this same PATCH — while `ticket` carries the
+      // relations that prisma.ticket.update does not return. Merge so the
+      // copy always reflects what the ticket now IS.
+      const fresh = { ...ticket, ...updated };
+      // Wrapped in after(): the notifier sends email and/or push, and
+      // web-push has no default socket timeout, so a slow push service must
+      // never delay this response — the admin's UI update always returns
+      // immediately regardless of notification delivery.
+      after(() => notifier(fresh, appUrl));
     }
   }
 

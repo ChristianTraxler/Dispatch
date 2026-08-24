@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { computeAvailability, type WeeklyHours } from "@/lib/availability";
 import { VacationCalendar, type Vacation } from "./vacation-calendar";
+import PushToggle from "@/components/PushToggle";
 
 interface InitialState {
   timezone: string;
@@ -641,6 +642,8 @@ export function AccountForm({ initial }: { initial: InitialState }) {
           </button>
         </div>
       </section>
+
+      <PushToggle />
     </div>
   );
 }

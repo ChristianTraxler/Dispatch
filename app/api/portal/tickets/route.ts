@@ -1,9 +1,8 @@
 import { NextResponse, after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
-import { sendNewTicketEmail } from "@/lib/email";
+import { notifyAdminNewTicket } from "@/lib/notify";
 import { createNotionTicketPage } from "@/lib/notion";
-import { ticketNumber } from "@/lib/ticket";
 import { isAfterHours, type AdminSettingsInput, type WeeklyHours } from "@/lib/availability";
 import { isTicketCategory, type TicketCategoryValue } from "@/lib/ticket-categories";
 
@@ -95,29 +94,33 @@ export async function POST(req: Request) {
     },
   });
 
-  // Notify the admin. Don't fail the create if the email hiccups.
-  const adminEmail = process.env.ADMIN_EMAIL;
   const appUrl =
     process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
-  if (adminEmail) {
-    try {
-      await sendNewTicketEmail(adminEmail, {
-        ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
-        ticketTitle: ticket.title,
-        ticketUrl: `${appUrl}/admin/ticket/${ticket.id}`,
+
+  after(() =>
+    notifyAdminNewTicket(
+      {
+        id: ticket.id,
+        title: ticket.title,
         category: ticket.category,
-        clientName: account.name,
+        createdAt: ticket.createdAt,
+        clientAccount: {
+          authUserId: account.authUserId,
+          email: account.email,
+          name: account.name,
+        },
+        site: { displayName: site.displayName },
+      },
+      appUrl,
+      {
         clientEmail: account.email,
-        siteDisplayName: site.displayName,
         siteUrl: site.url,
         description: ticket.description,
         isEmergency: ticket.isEmergency,
         emergencyFeeAmountCents: ticket.emergencyFeeAmountCents,
-      });
-    } catch (err) {
-      console.error("[ticket] new-ticket email failed:", err);
-    }
-  }
+      },
+    ),
+  );
 
   after(() =>
     createNotionTicketPage({

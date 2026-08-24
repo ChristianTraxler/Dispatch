@@ -292,3 +292,24 @@ model EmailChangeRequest {
   @@index([newEmail])
   @@map("email_change_requests")
 }
+
+/// One row per device that has opted into Web Push. Keyed on the Supabase
+/// auth user id rather than clientAccountId because the admin has no
+/// ClientAccount row — this lets client and admin subscriptions share one
+/// table and one code path. `isAdmin` is stamped at subscribe time from
+/// isAdmin(user) so "push to the admin" needs no env var to stay in sync.
+model PushSubscription {
+  id         String    @id @default(cuid())
+  authUserId String    @map("auth_user_id")
+  isAdmin    Boolean   @default(false) @map("is_admin")
+  endpoint   String    @unique @db.Text
+  p256dh     String
+  auth       String
+  userAgent  String?   @map("user_agent")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  lastUsedAt DateTime? @map("last_used_at")
+
+  @@index([authUserId])
+  @@index([isAdmin])
+  @@map("push_subscriptions")
+}

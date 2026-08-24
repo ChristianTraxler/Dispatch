@@ -1,9 +1,8 @@
 import { NextResponse, after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
-import { sendTicketReopenedEmail } from "@/lib/email";
-import { ticketNumber } from "@/lib/ticket";
 import { updateNotionTicketStatus } from "@/lib/notion";
+import { notifyAdminTicketReopened } from "@/lib/notify";
 
 export async function POST(
   req: Request,
@@ -18,7 +17,15 @@ export async function POST(
 
   const ticket = await prisma.ticket.findFirst({
     where: { id, clientAccountId: account.id },
-    include: { site: { select: { displayName: true } } },
+    select: {
+      id: true,
+      status: true,
+      title: true,
+      category: true,
+      createdAt: true,
+      clientAccount: { select: { authUserId: true, email: true, name: true } },
+      site: { select: { displayName: true } },
+    },
   });
   if (!ticket) {
     return NextResponse.json({ error: "Ticket not found." }, { status: 404 });
@@ -38,23 +45,8 @@ export async function POST(
     },
   });
 
-  // Notify admin that the client kicked it back. Don't fail the API call if email hiccups.
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (adminEmail) {
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
-    try {
-      await sendTicketReopenedEmail(adminEmail, {
-        ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
-        ticketTitle: ticket.title,
-        ticketUrl: `${appUrl}/admin/ticket/${ticket.id}`,
-        clientName: account.name,
-        siteDisplayName: ticket.site.displayName,
-      });
-    } catch (err) {
-      console.error("[reopen] email failed:", err);
-    }
-  }
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+  after(() => notifyAdminTicketReopened(ticket, appUrl));
 
   after(() => updateNotionTicketStatus({ ticketId: id, status: "REOPENED" }));
 

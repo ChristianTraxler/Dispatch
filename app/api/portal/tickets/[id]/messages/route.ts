@@ -1,8 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
-import { sendNewMessageToAdminEmail } from "@/lib/email";
-import { ticketNumber } from "@/lib/ticket";
+import { notifyAdminNewMessage } from "@/lib/notify";
 import { hydrateAttachments } from "@/lib/storage";
 
 export async function POST(
@@ -41,7 +40,14 @@ export async function POST(
 
   const ticket = await prisma.ticket.findFirst({
     where: { id: ticketId, clientAccountId: account.id },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      category: true,
+      createdAt: true,
+      isInquiry: true,
+      inquiryEndedAt: true,
+      clientAccount: { select: { authUserId: true, email: true, name: true } },
       site: { select: { displayName: true } },
     },
   });
@@ -73,25 +79,13 @@ export async function POST(
     data: { lastMessageAt: now },
   });
 
-  // Per-message email — tickets only. Inquiries notify via end-of-chat transcript
-  // and the 1-hour admin-nudge cron; no per-message email noise.
+  // Tickets only. Inquiries notify via the end-of-chat transcript and the
+  // 1-hour admin-nudge cron — no per-message noise. This guard is load-bearing.
   if (!ticket.isInquiry) {
-    const adminEmail = process.env.ADMIN_EMAIL;
-    if (adminEmail) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
-      try {
-        await sendNewMessageToAdminEmail(adminEmail, ticket.id, {
-          ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
-          ticketTitle: ticket.title,
-          ticketUrl: `${appUrl}/admin/ticket/${ticket.id}`,
-          clientName: account.name,
-          siteDisplayName: ticket.site.displayName,
-          messageBody: body ?? "(attachment)",
-        });
-      } catch (err) {
-        console.error("[messages] new-message-to-admin email failed:", err);
-      }
-    }
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+    after(() =>
+      notifyAdminNewMessage(ticket, appUrl, body ?? "(attachment)"),
+    );
   }
 
   return NextResponse.json({
