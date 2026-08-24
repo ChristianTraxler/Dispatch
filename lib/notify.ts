@@ -99,6 +99,13 @@ function adminEmail(): string | null {
   return process.env.ADMIN_EMAIL ?? null;
 }
 
+// Web Push payloads cap near 4KB and the OS truncates notification bodies
+// for display anyway. Cap user-supplied text so an long message can never
+// make the whole push fail with a 413 and vanish silently.
+function forPushBody(text: string): string {
+  return text.length > 120 ? `${text.slice(0, 119)}…` : text;
+}
+
 export interface NewTicketExtra {
   clientEmail: string;
   siteUrl: string;
@@ -182,7 +189,7 @@ export async function notifyAdminNewMessage(
 ) {
   await sendPushToAdmins({
     title: `Reply — ${ticketNumber(ticket.id, ticket.createdAt)}`,
-    body: `${ticket.clientAccount.name}: ${messageBody}`,
+    body: `${ticket.clientAccount.name}: ${forPushBody(messageBody)}`,
     url: adminTicketUrl(appUrl, ticket.id),
     tag: `admin-ticket-${ticket.id}`,
   });
