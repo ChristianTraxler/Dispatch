@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
+import PushToggle from "@/components/PushToggle";
 
 export function AccountClient({
   name: initialName,
@@ -532,6 +533,9 @@ export function AccountClient({
           </button>
         </div>
       </form>
+
+      <div className="rule-thin" />
+      <PushToggle />
     </div>
   );
 }
