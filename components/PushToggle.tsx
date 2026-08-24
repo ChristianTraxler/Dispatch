@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 // The VAPID public key arrives as base64url text but pushManager.subscribe
 // requires raw bytes.
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
+function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
   const raw = window.atob(base64);
@@ -37,8 +37,12 @@ export default function PushToggle() {
         // iOS only exposes these APIs once the app is installed to the home
         // screen, so "unsupported on iOS" really means "not installed yet".
         const isIOS =
-          /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-          !("MSStream" in window);
+          (/iPad|iPhone|iPod/.test(navigator.userAgent) &&
+            !("MSStream" in window)) ||
+          // iPadOS 13+ defaults to desktop-class browsing and reports a
+          // Macintosh UA with no iPad token; a real Mac has 0 touch points.
+          (navigator.maxTouchPoints > 1 &&
+            /Macintosh/.test(navigator.userAgent));
         setState(isIOS ? "needs-install" : "unsupported");
         return;
       }
@@ -76,7 +80,7 @@ export default function PushToggle() {
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(
           process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-        ) as BufferSource,
+        ),
       });
 
       const res = await fetch("/api/push/subscribe", {
