@@ -2,6 +2,18 @@
 // Scope is "/" so it covers both /portal and /admin. This worker exists ONLY
 // to receive push events — there is deliberately no offline caching here.
 
+// Without these, a new worker sits in "waiting" until every instance of the
+// app is closed, so a change to this file needs the app deleted and
+// reinstalled before it takes effect. There is no cached state to protect
+// here — the worker only handles push — so activating immediately is safe.
+self.addEventListener("install", function () {
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", function (event) {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("push", function (event) {
   if (!event.data) return;
 
@@ -19,11 +31,14 @@ self.addEventListener("push", function (event) {
     badge: "/icon-192.png",
     // Collapse repeat notifications for the same ticket instead of stacking.
     tag: data.tag || undefined,
-    // Without renotify, replacing a still-visible notification with the same
-    // tag need not re-alert, so a client could silently miss a stage.
-    // renotify REQUIRES a tag (TypeError otherwise), so only set it when
-    // we actually have one.
-    renotify: data.tag ? true : undefined,
+    // NOTE: `renotify` was removed on 2026-08-24 while bisecting why iOS
+    // shows these notifications on the lock screen without ever playing a
+    // sound or firing an Apple Watch haptic. Device settings, urgency and
+    // tag-collapsing were each ruled out by testing. renotify is the least
+    // widely supported option we passed, and WebKit may treat its presence
+    // as "this is a re-notification" and suppress the alert even when there
+    // is no earlier notification to replace. If sound returns without it,
+    // that was the cause; do not add it back without retesting on a device.
     data: { url: data.url || "/portal" },
   };
 
