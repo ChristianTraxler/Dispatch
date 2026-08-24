@@ -25,22 +25,26 @@ self.addEventListener("push", function (event) {
     return;
   }
 
-  // ─── DIAGNOSTIC BUILD, 2026-08-24 ──────────────────────────────────────
-  // Stripped to the bare minimum while bisecting why iOS displays these
-  // notifications but never plays a sound or fires an Apple Watch haptic.
+  // On the silent-notification investigation of 2026-08-24: iOS displays
+  // these on the lock screen but never plays a sound or fires an Apple Watch
+  // haptic. Ruled out by device testing, in order — notification settings
+  // (Sounds on, Immediate delivery, other apps audible), `urgency` (raised
+  // to high in lib/push.ts), tag collapsing (a brand-new ticket with a fresh
+  // tag was also silent), `renotify` (removed, no change), Apple Watch
+  // routing (a second phone with no watch paired is also silent), and
+  // finally a payload stripped to bare title + body, which was ALSO silent.
   //
-  // Already ruled out by device testing: notification settings (Sounds on,
-  // Immediate delivery, other apps audible), `urgency` (now high), tag
-  // collapsing (a brand-new ticket with a fresh tag was also silent),
-  // `renotify` (removed, no change), and Apple Watch routing (a second
-  // phone with no watch paired is also silent).
-  //
-  // If this bare payload still produces no sound, the cause is WebKit's
-  // handling of web push and not anything in this file — restore icon,
-  // badge and tag, because they cost nothing and improve the tray. If sound
-  // DOES return, add them back one at a time to find the culprit.
+  // That last test is conclusive: the cause is WebKit's handling of web push
+  // on iOS, not anything in this file. The options below were restored
+  // afterwards because they cost nothing and make the tray entry better.
+  // Do not re-litigate the sound from here — it is not reachable from the
+  // payload.
   const options = {
     body: data.body,
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
+    // Collapse repeat notifications for the same ticket instead of stacking.
+    tag: data.tag || undefined,
     data: { url: data.url || "/portal" },
   };
 

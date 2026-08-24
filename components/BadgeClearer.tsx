@@ -16,12 +16,22 @@ import { useEffect } from "react";
 export function BadgeClearer() {
   useEffect(() => {
     function clear() {
-      // Both calls are optional-chained: Badging is unsupported in plain
-      // Safari and on desktop browsers that never installed the app.
+      // Badging is unsupported in plain Safari and on desktop browsers that
+      // never installed the app, so this is optional-chained.
       navigator.clearAppBadge?.().catch(() => {});
-      navigator.serviceWorker?.controller?.postMessage({
-        type: "dispatch:clear-badge",
-      });
+
+      // Deliberately NOT `serviceWorker.controller`: that is null whenever
+      // the page was not already claimed by the worker at load time, and a
+      // null controller means this message is silently never sent. The
+      // visible badge would clear while the worker's stored count stayed
+      // put, so the next push resumed from the old number instead of 1.
+      // `ready` resolves once a registration is active whether or not it
+      // controls this page, and posting to it wakes a sleeping worker.
+      navigator.serviceWorker?.ready
+        .then((registration) => {
+          registration.active?.postMessage({ type: "dispatch:clear-badge" });
+        })
+        .catch(() => {});
     }
 
     clear();
