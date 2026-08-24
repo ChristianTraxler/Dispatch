@@ -1,0 +1,72 @@
+name: Build and deploy to Vercel
+
+# Fallback for when Vercel cannot build from GitHub itself — e.g. its stored
+# GitHub credential has expired and every fetch comes back 401 "Bad
+# credentials", which is what happened on 2026-08-24.
+#
+# This builds on GitHub's own Linux runner and uploads the finished output, so
+# Vercel never needs to read the repo. Two details are load-bearing:
+#
+#   1. The build MUST happen on Linux. Prisma compiles a platform-specific
+#      query engine, so a macOS-built artifact fails at runtime on Vercel with
+#      PrismaClientInitializationError. Building here produces Linux engines.
+#   2. `.git` is deleted before deploying. Vercel blocks prebuilt deployments
+#      that carry commit metadata it cannot match to a GitHub account
+#      ("the commit email ... could not be matched"). Removing .git leaves no
+#      metadata to reject. The checkout is disposable, so this is safe.
+#
+# This does NOT replace .github/workflows/vercel-deploy.yml — that deploy-hook
+# workflow is deliberately kept as belt-and-suspenders.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: team_ZHrqgA7Yqy4Sytp7oFx7qgqx
+      VERCEL_PROJECT_ID: prj_W723ojihioPmSW4KEDMv860k6Qn9
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Guard — VERCEL_TOKEN must be set
+        run: |
+          if [ -z "${VERCEL_TOKEN}" ]; then
+            echo "::error::VERCEL_TOKEN secret is not set. Add a TEAM-scoped (All Projects) token."
+            exit 1
+          fi
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=production --token="${VERCEL_TOKEN}"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build (Linux — produces correct Prisma engines)
+        run: vercel build --prod --token="${VERCEL_TOKEN}"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Strip git metadata before deploying
+        # Vercel rejects prebuilt deployments carrying unmatched commit
+        # metadata. No .git means nothing to reject.
+        run: rm -rf .git
+
+      - name: Deploy prebuilt output to production
+        run: vercel deploy --prebuilt --prod --token="${VERCEL_TOKEN}"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
