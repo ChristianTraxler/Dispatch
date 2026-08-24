@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { BadgeClearer } from "@/components/BadgeClearer";
 
 // Self-hosted via next/font so there is no runtime Google Fonts request.
 // Fraunces needs the `opsz` axis (headings set font-variation-settings: "opsz" …)
@@ -54,6 +55,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <ScrollToTop />
+        <BadgeClearer />
       </body>
     </html>
   );

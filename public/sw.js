@@ -27,11 +27,24 @@ self.addEventListener("push", function (event) {
     data: { url: data.url || "/portal" },
   };
 
-  event.waitUntil(self.registration.showNotification(data.title, options));
+  // Show the notification and bump the badge together. bumpBadge never
+  // rejects, so a platform without Badging support cannot stop the
+  // notification from being shown.
+  event.waitUntil(
+    Promise.all([
+      self.registration.showNotification(data.title, options),
+      bumpBadge(),
+    ]),
+  );
 });
 
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
+
+  // Reset before the target guard below: tapping a notification has cleared
+  // it either way, so the badge must not survive even when there is no URL
+  // to open. waitUntil may be called more than once per event.
+  event.waitUntil(resetBadge());
 
   const target = event.notification.data && event.notification.data.url;
   if (!target) return;
@@ -65,4 +78,96 @@ self.addEventListener("notificationclick", function (event) {
       })
       .catch(openFresh),
   );
+});
+
+// ─── App icon badge ─────────────────────────────────────────────────────────
+// setAppBadge has no getter, so the count has to be persisted somewhere the
+// worker can reach after it has been killed and restarted. IndexedDB is the
+// only durable store available in a service worker.
+
+const BADGE_DB = "dispatch-badge";
+const BADGE_STORE = "state";
+const BADGE_KEY = "count";
+
+function badgeDb() {
+  return new Promise(function (resolve, reject) {
+    const req = indexedDB.open(BADGE_DB, 1);
+    req.onupgradeneeded = function () {
+      req.result.createObjectStore(BADGE_STORE);
+    };
+    req.onsuccess = function () {
+      resolve(req.result);
+    };
+    req.onerror = function () {
+      reject(req.error);
+    };
+  });
+}
+
+function readBadge() {
+  return badgeDb()
+    .then(function (db) {
+      return new Promise(function (resolve) {
+        const req = db.transaction(BADGE_STORE, "readonly").objectStore(BADGE_STORE).get(BADGE_KEY);
+        req.onsuccess = function () {
+          resolve(typeof req.result === "number" ? req.result : 0);
+        };
+        req.onerror = function () {
+          resolve(0);
+        };
+      });
+    })
+    .catch(function () {
+      return 0;
+    });
+}
+
+function writeBadge(n) {
+  return badgeDb()
+    .then(function (db) {
+      return new Promise(function (resolve) {
+        const tx = db.transaction(BADGE_STORE, "readwrite");
+        tx.objectStore(BADGE_STORE).put(n, BADGE_KEY);
+        tx.oncomplete = function () {
+          resolve();
+        };
+        tx.onerror = function () {
+          resolve();
+        };
+      });
+    })
+    .catch(function () {});
+}
+
+// Badging is unsupported outside installed apps (and on plain Safari), so
+// every call is guarded. A missing badge must never break the notification.
+function bumpBadge() {
+  return readBadge()
+    .then(function (n) {
+      const next = n + 1;
+      return writeBadge(next).then(function () {
+        if (self.navigator && self.navigator.setAppBadge) {
+          return self.navigator.setAppBadge(next);
+        }
+      });
+    })
+    .catch(function () {});
+}
+
+function resetBadge() {
+  return writeBadge(0)
+    .then(function () {
+      if (self.navigator && self.navigator.clearAppBadge) {
+        return self.navigator.clearAppBadge();
+      }
+    })
+    .catch(function () {});
+}
+
+// The page clears the badge when it is opened or refocused — the worker owns
+// the stored count, so the page asks rather than writing it itself.
+self.addEventListener("message", function (event) {
+  if (event.data && event.data.type === "dispatch:clear-badge") {
+    event.waitUntil(resetBadge());
+  }
 });

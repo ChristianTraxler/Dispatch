@@ -56,7 +56,11 @@ async function deliver(subs: SubRow[], payload: PushPayload): Promise<void> {
             keys: { p256dh: sub.p256dh, auth: sub.auth },
           },
           body,
-          { timeout: 5000 },
+          // urgency "high" maps to APNs priority 10. At the default
+          // ("normal") Apple is free to deliver quietly — the notification
+          // lands on the lock screen with no sound and no Apple Watch
+          // haptic, which is exactly what happened in testing.
+          { timeout: 5000, urgency: "high" },
         );
       } catch (err) {
         const status = (err as { statusCode?: number }).statusCode;
