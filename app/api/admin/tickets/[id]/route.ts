@@ -120,12 +120,15 @@ export async function PATCH(
   }
 
   if (status !== undefined) {
-    const notifier =
-      STATUS_NOTIFIER[status as keyof typeof STATUS_NOTIFIER];
+    const notifier = STATUS_NOTIFIER[status as keyof typeof STATUS_NOTIFIER];
     if (notifier) {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
-      // after() so a slow push service never delays the admin's UI.
-      after(() => notifier(ticket, appUrl));
+      // `updated` carries the post-write scalars — including a category that
+      // may have changed in this same PATCH — while `ticket` carries the
+      // relations that prisma.ticket.update does not return. Merge so the
+      // copy always reflects what the ticket now IS.
+      const fresh = { ...ticket, ...updated };
+      after(() => notifier(fresh, appUrl));
     }
   }
 

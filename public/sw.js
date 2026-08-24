@@ -19,6 +19,11 @@ self.addEventListener("push", function (event) {
     badge: "/icon-192.png",
     // Collapse repeat notifications for the same ticket instead of stacking.
     tag: data.tag || undefined,
+    // Without renotify, replacing a still-visible notification with the same
+    // tag need not re-alert, so a client could silently miss a stage.
+    // renotify REQUIRES a tag (TypeError otherwise), so only set it when
+    // we actually have one.
+    renotify: data.tag ? true : undefined,
     data: { url: data.url || "/portal" },
   };
 
