@@ -53,10 +53,6 @@ async function deliver(subs: SubRow[], payload: PushPayload): Promise<void> {
           },
           body,
         );
-        await prisma.pushSubscription.update({
-          where: { id: sub.id },
-          data: { lastUsedAt: new Date() },
-        });
       } catch (err) {
         const status = (err as { statusCode?: number }).statusCode;
         // 404/410 mean the push service has permanently retired this
@@ -70,6 +66,18 @@ async function deliver(subs: SubRow[], payload: PushPayload): Promise<void> {
           return;
         }
         console.error("[push] send failed:", status, err);
+        return;
+      }
+
+      // Bookkeeping only, and deliberately outside the send's catch: a
+      // failure here must never be logged as a delivery failure.
+      try {
+        await prisma.pushSubscription.update({
+          where: { id: sub.id },
+          data: { lastUsedAt: new Date() },
+        });
+      } catch (err) {
+        console.error("[push] lastUsedAt update failed:", err);
       }
     }),
   );
