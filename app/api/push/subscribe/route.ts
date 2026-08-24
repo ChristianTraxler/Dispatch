@@ -7,6 +7,18 @@ interface SubscribeBody {
   keys?: { p256dh?: string; auth?: string };
 }
 
+// Web Push endpoints only ever come from a browser's own push service.
+// An https-only check is NOT sufficient: https://10.0.0.5:8443/x is still
+// https, and web-push would happily POST to it. Suffix matching keeps
+// per-region and per-shard subdomains working.
+const ALLOWED_PUSH_HOSTS = [
+  "push.services.mozilla.com",
+  "fcm.googleapis.com",
+  "android.googleapis.com",
+  "web.push.apple.com",
+  "notify.windows.com",
+];
+
 export async function POST(req: Request) {
   const user = await getCurrentAuthUser();
   if (!user) {
@@ -45,6 +57,20 @@ export async function POST(req: Request) {
   if (endpointUrl.protocol !== "https:") {
     return NextResponse.json(
       { error: "endpoint must use https." },
+      { status: 400 },
+    );
+  }
+
+  const host = endpointUrl.hostname.toLowerCase().replace(/\.$/, "");
+  const hostAllowed = ALLOWED_PUSH_HOSTS.some(
+    (h) => host === h || host.endsWith(`.${h}`),
+  );
+  if (!hostAllowed) {
+    // Logged so that a legitimate new browser push service showing up as a
+    // "toggle doesn't work" report is diagnosable rather than mysterious.
+    console.warn("[push] rejected subscription endpoint host:", host);
+    return NextResponse.json(
+      { error: "endpoint host is not a recognised push service." },
       { status: 400 },
     );
   }
