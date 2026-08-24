@@ -25,20 +25,22 @@ self.addEventListener("push", function (event) {
     return;
   }
 
+  // ─── DIAGNOSTIC BUILD, 2026-08-24 ──────────────────────────────────────
+  // Stripped to the bare minimum while bisecting why iOS displays these
+  // notifications but never plays a sound or fires an Apple Watch haptic.
+  //
+  // Already ruled out by device testing: notification settings (Sounds on,
+  // Immediate delivery, other apps audible), `urgency` (now high), tag
+  // collapsing (a brand-new ticket with a fresh tag was also silent),
+  // `renotify` (removed, no change), and Apple Watch routing (a second
+  // phone with no watch paired is also silent).
+  //
+  // If this bare payload still produces no sound, the cause is WebKit's
+  // handling of web push and not anything in this file — restore icon,
+  // badge and tag, because they cost nothing and improve the tray. If sound
+  // DOES return, add them back one at a time to find the culprit.
   const options = {
     body: data.body,
-    icon: "/icon-192.png",
-    badge: "/icon-192.png",
-    // Collapse repeat notifications for the same ticket instead of stacking.
-    tag: data.tag || undefined,
-    // NOTE: `renotify` was removed on 2026-08-24 while bisecting why iOS
-    // shows these notifications on the lock screen without ever playing a
-    // sound or firing an Apple Watch haptic. Device settings, urgency and
-    // tag-collapsing were each ruled out by testing. renotify is the least
-    // widely supported option we passed, and WebKit may treat its presence
-    // as "this is a re-notification" and suppress the alert even when there
-    // is no earlier notification to replace. If sound returns without it,
-    // that was the cause; do not add it back without retesting on a device.
     data: { url: data.url || "/portal" },
   };
 
