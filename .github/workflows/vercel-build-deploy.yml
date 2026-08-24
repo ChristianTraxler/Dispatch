@@ -1,19 +1,23 @@
-name: Build and deploy to Vercel
+name: Deploy to Vercel
 
-# Fallback for when Vercel cannot build from GitHub itself — e.g. its stored
-# GitHub credential has expired and every fetch comes back 401 "Bad
-# credentials", which is what happened on 2026-08-24.
+# Fallback for when Vercel cannot pull the repo from GitHub itself. On
+# 2026-08-24 Vercel's stored GitHub credential started returning
+# 401 "Bad credentials", so every git-triggered build failed with
+# "the git provider returned a server error" and the deploy hook produced
+# queued jobs that never became deployments.
 #
-# This builds on GitHub's own Linux runner and uploads the finished output, so
-# Vercel never needs to read the repo. Two details are load-bearing:
+# This uploads the source directly and lets VERCEL build it. Two details are
+# load-bearing, both learned the hard way that day:
 #
-#   1. The build MUST happen on Linux. Prisma compiles a platform-specific
-#      query engine, so a macOS-built artifact fails at runtime on Vercel with
-#      PrismaClientInitializationError. Building here produces Linux engines.
-#   2. `.git` is deleted before deploying. Vercel blocks prebuilt deployments
-#      that carry commit metadata it cannot match to a GitHub account
-#      ("the commit email ... could not be matched"). Removing .git leaves no
-#      metadata to reject. The checkout is disposable, so this is safe.
+#   1. Do NOT use `vercel build` + `--prebuilt`. Uploading a locally- or
+#      CI-built artifact deployed successfully but produced a site that
+#      500'd on every database-backed page (PrismaClientInitializationError).
+#      Vercel's own builder handles Prisma correctly. Upload source, let them
+#      build it. This took production down twice before the cause was found.
+#   2. `.git` is deleted before deploying. Vercel blocks deployments carrying
+#      commit metadata it cannot match to a GitHub account ("the commit email
+#      ... could not be matched"). No .git means nothing to reject. The
+#      checkout is disposable, so this is safe.
 #
 # This does NOT replace .github/workflows/vercel-deploy.yml — that deploy-hook
 # workflow is deliberately kept as belt-and-suspenders.
@@ -27,9 +31,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      VERCEL_ORG_ID: team_ZHrqgA7Yqy4Sytp7oFx7qgqx
-      VERCEL_PROJECT_ID: prj_W723ojihioPmSW4KEDMv860k6Qn9
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -42,7 +43,7 @@ jobs:
       - name: Guard — VERCEL_TOKEN must be set
         run: |
           if [ -z "${VERCEL_TOKEN}" ]; then
-            echo "::error::VERCEL_TOKEN secret is not set. Add a TEAM-scoped (All Projects) token."
+            echo "::error::VERCEL_TOKEN secret is not set. Add a TEAM-scoped (All Projects) token — a project-scoped one resolves no user and fails with 'User not found'."
             exit 1
           fi
         env:
@@ -51,22 +52,28 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
-      - name: Pull Vercel environment
-        run: vercel pull --yes --environment=production --token="${VERCEL_TOKEN}"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build (Linux — produces correct Prisma engines)
-        run: vercel build --prod --token="${VERCEL_TOKEN}"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-
       - name: Strip git metadata before deploying
-        # Vercel rejects prebuilt deployments carrying unmatched commit
-        # metadata. No .git means nothing to reject.
+        # Vercel rejects deployments carrying unmatched commit metadata.
         run: rm -rf .git
 
-      - name: Deploy prebuilt output to production
-        run: vercel deploy --prebuilt --prod --token="${VERCEL_TOKEN}"
+      - name: Deploy to production (built by Vercel, not here)
+        run: |
+          vercel deploy --prod --yes \
+            --project dispatch \
+            --scope developer-of-code-llcs-projects \
+            --token="${VERCEL_TOKEN}"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Verify production is actually healthy
+        # A green deploy is not proof the site works — both outages on
+        # 2026-08-24 came from a "successful" deploy serving 500s.
+        run: |
+          sleep 20
+          CODE=$(curl -s -o /dev/null -w "%{http_code}" https://support.developerofcode.com/portal)
+          echo "GET /portal -> $CODE"
+          if [ "$CODE" != "200" ]; then
+            echo "::error::Production is unhealthy after deploy (/portal returned $CODE). Roll back in the Vercel dashboard."
+            exit 1
+          fi
+          echo "Production healthy."
