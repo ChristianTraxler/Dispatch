@@ -1,7 +1,12 @@
 import "server-only";
 
-import { sendPushToUser } from "@/lib/push";
-import { sendAwaitingConfirmationEmail } from "@/lib/email";
+import { sendPushToUser, sendPushToAdmins } from "@/lib/push";
+import {
+  sendAwaitingConfirmationEmail,
+  sendNewTicketEmail,
+  sendNewMessageToAdminEmail,
+  sendTicketReopenedEmail,
+} from "@/lib/email";
 import { ticketNumber } from "@/lib/ticket";
 
 /**
@@ -82,5 +87,121 @@ export async function notifyTicketFixed(ticket: NotifyTicket, appUrl: string) {
     });
   } catch (err) {
     console.error("[notify] awaiting-confirmation email failed:", err);
+  }
+}
+
+function adminTicketUrl(appUrl: string, ticketId: string) {
+  return `${appUrl}/admin/ticket/${ticketId}`;
+}
+
+/** ADMIN_EMAIL resolved once, here, instead of in every route. */
+function adminEmail(): string | null {
+  return process.env.ADMIN_EMAIL ?? null;
+}
+
+export interface NewTicketExtra {
+  clientEmail: string;
+  siteUrl: string;
+  description: string;
+  isEmergency: boolean;
+  emergencyFeeAmountCents: number | null;
+}
+
+/** Client confirmed the fix. Push only — no email exists for this event. */
+export async function notifyAdminTicketClosed(ticket: NotifyTicket, appUrl: string) {
+  await sendPushToAdmins({
+    title: `Closed — ${ticketNumber(ticket.id, ticket.createdAt)}`,
+    body: `${ticket.clientAccount.name} confirmed: ${ticket.title}`,
+    url: adminTicketUrl(appUrl, ticket.id),
+    tag: `admin-ticket-${ticket.id}`,
+  });
+}
+
+export async function notifyAdminTicketReopened(ticket: NotifyTicket, appUrl: string) {
+  await sendPushToAdmins({
+    title: `Reopened — ${ticketNumber(ticket.id, ticket.createdAt)}`,
+    body: `${ticket.clientAccount.name} kicked it back: ${ticket.title}`,
+    url: adminTicketUrl(appUrl, ticket.id),
+    tag: `admin-ticket-${ticket.id}`,
+  });
+
+  const to = adminEmail();
+  if (!to) return;
+  try {
+    await sendTicketReopenedEmail(to, {
+      ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
+      ticketTitle: ticket.title,
+      ticketUrl: adminTicketUrl(appUrl, ticket.id),
+      clientName: ticket.clientAccount.name,
+      siteDisplayName: ticket.site.displayName,
+    });
+  } catch (err) {
+    console.error("[notify] reopened email failed:", err);
+  }
+}
+
+export async function notifyAdminNewTicket(
+  ticket: NotifyTicket,
+  appUrl: string,
+  extra: NewTicketExtra,
+) {
+  await sendPushToAdmins({
+    title: extra.isEmergency
+      ? `EMERGENCY — ${ticketNumber(ticket.id, ticket.createdAt)}`
+      : `New ticket — ${ticketNumber(ticket.id, ticket.createdAt)}`,
+    body: `${ticket.clientAccount.name}: ${ticket.title}`,
+    url: adminTicketUrl(appUrl, ticket.id),
+    tag: `admin-ticket-${ticket.id}`,
+  });
+
+  const to = adminEmail();
+  if (!to) return;
+  try {
+    await sendNewTicketEmail(to, {
+      ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
+      ticketTitle: ticket.title,
+      ticketUrl: adminTicketUrl(appUrl, ticket.id),
+      category: ticket.category,
+      clientName: ticket.clientAccount.name,
+      clientEmail: extra.clientEmail,
+      siteDisplayName: ticket.site.displayName,
+      siteUrl: extra.siteUrl,
+      description: extra.description,
+      isEmergency: extra.isEmergency,
+      emergencyFeeAmountCents: extra.emergencyFeeAmountCents,
+    });
+  } catch (err) {
+    console.error("[notify] new-ticket email failed:", err);
+  }
+}
+
+export async function notifyAdminNewMessage(
+  ticket: NotifyTicket,
+  appUrl: string,
+  messageBody: string,
+) {
+  await sendPushToAdmins({
+    title: `Reply — ${ticketNumber(ticket.id, ticket.createdAt)}`,
+    body: `${ticket.clientAccount.name}: ${messageBody}`,
+    url: adminTicketUrl(appUrl, ticket.id),
+    tag: `admin-ticket-${ticket.id}`,
+  });
+
+  const to = adminEmail();
+  if (!to) return;
+  try {
+    // Note: sendNewMessageToAdminEmail applies its own 60-second per-ticket
+    // debounce internally (see lib/email.ts). Push is deliberately NOT
+    // debounced — a tray notification collapses by tag instead.
+    await sendNewMessageToAdminEmail(to, ticket.id, {
+      ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
+      ticketTitle: ticket.title,
+      ticketUrl: adminTicketUrl(appUrl, ticket.id),
+      clientName: ticket.clientAccount.name,
+      siteDisplayName: ticket.site.displayName,
+      messageBody,
+    });
+  } catch (err) {
+    console.error("[notify] new-message email failed:", err);
   }
 }

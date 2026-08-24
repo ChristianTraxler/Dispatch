@@ -2,9 +2,10 @@ import { NextResponse, after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
 import { updateNotionTicketStatus } from "@/lib/notion";
+import { notifyAdminTicketClosed } from "@/lib/notify";
 
 export async function POST(
-  _req: Request,
+  req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const account = await getCurrentClientAccount();
@@ -16,7 +17,15 @@ export async function POST(
 
   const ticket = await prisma.ticket.findFirst({
     where: { id, clientAccountId: account.id },
-    select: { id: true, status: true },
+    select: {
+      id: true,
+      status: true,
+      title: true,
+      category: true,
+      createdAt: true,
+      clientAccount: { select: { authUserId: true, email: true, name: true } },
+      site: { select: { displayName: true } },
+    },
   });
   if (!ticket) {
     return NextResponse.json({ error: "Ticket not found." }, { status: 404 });
@@ -37,6 +46,9 @@ export async function POST(
   });
 
   after(() => updateNotionTicketStatus({ ticketId: id, status: "CLOSED" }));
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+  after(() => notifyAdminTicketClosed(ticket, appUrl));
 
   return NextResponse.json({ ticket: updated });
 }
