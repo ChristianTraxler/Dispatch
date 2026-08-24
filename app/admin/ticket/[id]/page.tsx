@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ticketNumber } from "@/lib/ticket";
 import { hydrateAttachments, hydrateAvatarUrl } from "@/lib/storage";
 import { isOutOfFreeWindow } from "@/lib/free-updates";
+import { notifyTicketViewed } from "@/lib/notify";
 import type { ChatMessage } from "@/components/ChatThread";
 import type { TicketDetail } from "@/components/TicketDetailPage";
 import { AdminTicketDetailClient } from "./admin-ticket-detail-client";
@@ -18,7 +20,7 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
     where: { id },
     include: {
       site: { select: { url: true, displayName: true, productionStartedAt: true } },
-      clientAccount: { select: { id: true, name: true, email: true, avatarPath: true } },
+      clientAccount: { select: { id: true, authUserId: true, name: true, email: true, avatarPath: true } },
       messages: { orderBy: { createdAt: "asc" } },
       addOn: true,
     },
@@ -108,11 +110,17 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
   // Stage 3 (Viewed) — auto-set the first time the admin opens the ticket.
   // Inquiries skip the 6-stage flow, so don't touch firstViewedAt for them.
   if (!isInquiry && !ticket.firstViewedAt) {
-    await prisma.ticket.update({
-      where: { id: ticket.id },
+    // updateMany with a null guard rather than update: two concurrent
+    // renders would otherwise both write and both notify.
+    const firstView = await prisma.ticket.updateMany({
+      where: { id: ticket.id, firstViewedAt: null },
       data: { firstViewedAt: new Date() },
     });
     ticket.firstViewedAt = new Date();
+    if (firstView.count === 1) {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+      after(() => notifyTicketViewed(ticket, appUrl));
+    }
   }
 
   const detail: TicketDetail = {
