@@ -97,6 +97,14 @@ model Ticket {
   confirmedAt        DateTime? @map("confirmed_at")
   reopenedAt         DateTime? @map("reopened_at")
 
+  // Per-viewer "last opened this ticket" marks, set by the mark-read routes.
+  // The tickets lists compare these against message read state and the stage
+  // timestamps above to decide which tickets have activity the viewer has not
+  // seen — a status change alone leaves no message behind, so unread messages
+  // are not sufficient on their own.
+  clientLastViewedAt DateTime? @map("client_last_viewed_at")
+  adminLastViewedAt  DateTime? @map("admin_last_viewed_at")
+
   clientAccount ClientAccount @relation(fields: [clientAccountId], references: [id])
   site          Site          @relation(fields: [siteId], references: [id])
   messages      Message[]

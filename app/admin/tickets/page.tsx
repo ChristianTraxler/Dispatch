@@ -4,6 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ticketNumber } from "@/lib/ticket";
 import { StatusPill } from "@/components/StatusPill";
+import { adminHasActivity } from "@/lib/ticket-activity";
 import { OutOfFreeWindowBadge } from "@/components/AdminClientDetail";
 import { isOutOfFreeWindow } from "@/lib/free-updates";
 import { RefreshTicketsOnChange } from "./refresh-on-change";
@@ -30,6 +31,16 @@ export default async function AdminTicketsPage() {
       clientAccount: { select: { name: true, email: true } },
     },
   });
+
+  // Unread client messages per ticket, in one grouped query.
+  const unreadRows = await prisma.message.groupBy({
+    by: ["ticketId"],
+    where: { senderType: "CLIENT", readAt: null, ticket: { isInquiry: false } },
+    _count: { _all: true },
+  });
+  const unreadByTicket = new Map(
+    unreadRows.map((r) => [r.ticketId, r._count._all]),
+  );
 
   return (
     <div className="max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12">
@@ -71,6 +82,27 @@ export default async function AdminTicketsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1">
                         <StatusPill status={t.status} />
+                        {(() => {
+                          const unread = unreadByTicket.get(t.id) ?? 0;
+                          if (unread > 0) {
+                            return (
+                              <span className="font-mono text-[0.55rem] uppercase tracking-widest bg-signal-red text-parchment-warm px-1.5 py-0.5">
+                                {unread} new
+                              </span>
+                            );
+                          }
+                          return adminHasActivity({
+                            unreadCount: unread,
+                            adminLastViewedAt: t.adminLastViewedAt,
+                            firstViewedAt: t.firstViewedAt,
+                            reopenedAt: t.reopenedAt,
+                            confirmedAt: t.confirmedAt,
+                          }) ? (
+                            <span className="font-mono text-[0.55rem] uppercase tracking-widest border border-signal-red text-signal-red px-1.5 py-0.5">
+                              Updated
+                            </span>
+                          ) : null;
+                        })()}
                         <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
                           {ticketNumber(t.id, t.createdAt)}
                         </span>

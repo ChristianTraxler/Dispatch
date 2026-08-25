@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
 import { ticketNumber } from "@/lib/ticket";
+import { clientHasActivity } from "@/lib/ticket-activity";
 import {
   type DashboardSite,
   type DashboardTicket,
@@ -27,6 +28,22 @@ export default async function DashboardPage() {
     },
   });
 
+  // Unread counts in one grouped query rather than a filtered _count: Prisma
+  // cannot count the same relation twice with different filters, and the
+  // total message count above is already using it.
+  const unreadRows = await prisma.message.groupBy({
+    by: ["ticketId"],
+    where: {
+      senderType: "ADMIN",
+      readAt: null,
+      ticket: { clientAccountId: account.id, isInquiry: false },
+    },
+    _count: { _all: true },
+  });
+  const unreadByTicket = new Map(
+    unreadRows.map((r) => [r.ticketId, r._count._all]),
+  );
+
   const ticketDtos: DashboardTicket[] = tickets.map((t) => ({
     id: t.id,
     ticketNumber: ticketNumber(t.id, t.createdAt),
@@ -36,7 +53,15 @@ export default async function DashboardPage() {
     status: t.status,
     lastActivityAt: (t.messages[0]?.createdAt ?? t.createdAt).toISOString(),
     messageCount: t._count.messages,
-    // unreadCount: omitted until messages.read_at is wired in Phase 8
+    unreadCount: unreadByTicket.get(t.id) ?? 0,
+    hasActivity: clientHasActivity({
+      unreadCount: unreadByTicket.get(t.id) ?? 0,
+      clientLastViewedAt: t.clientLastViewedAt,
+      firstViewedAt: t.firstViewedAt,
+      reviewingStartedAt: t.reviewingStartedAt,
+      fixingStartedAt: t.fixingStartedAt,
+      fixedAt: t.fixedAt,
+    }),
   }));
 
   const sites: DashboardSite[] = account.sites.map((s) => ({

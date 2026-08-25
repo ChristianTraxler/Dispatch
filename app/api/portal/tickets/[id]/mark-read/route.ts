@@ -32,5 +32,13 @@ export async function POST(
     data: { readAt: new Date() },
   });
 
+  // Stamp the viewing mark too. Unread messages alone can't tell the dashboard
+  // whether a status change has been seen — a stage transition leaves no
+  // message behind — so the list compares the stage timestamps against this.
+  await prisma.ticket.update({
+    where: { id: ticketId },
+    data: { clientLastViewedAt: new Date() },
+  });
+
   return NextResponse.json({ updated: result.count });
 }

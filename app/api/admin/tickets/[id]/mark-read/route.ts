@@ -39,5 +39,13 @@ export async function POST(
     data: { readAt: new Date() },
   });
 
+  // Mirror of the client route: the tickets list needs a viewing mark to tell
+  // whether a reopen or a client confirmation has been seen, since neither
+  // leaves an unread message behind.
+  await prisma.ticket.update({
+    where: { id: ticketId },
+    data: { adminLastViewedAt: new Date() },
+  });
+
   return NextResponse.json({ updated: result.count });
 }

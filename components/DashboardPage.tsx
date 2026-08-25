@@ -12,6 +12,12 @@ export interface DashboardTicket {
   status: TicketStatus;
   lastActivityAt: string | Date;
   unreadCount?: number;
+  /**
+   * Something changed on this ticket that the client hasn't seen — a status
+   * transition with no message behind it. Unread messages take priority in
+   * the UI, so this only shows when unreadCount is 0.
+   */
+  hasActivity?: boolean;
   messageCount: number;
 }
 
@@ -204,6 +210,10 @@ function TicketRow({ ticket, onClick }: { ticket: DashboardTicket; onClick: () =
           {ticket.unreadCount && ticket.unreadCount > 0 ? (
             <span className="font-mono text-[0.55rem] uppercase tracking-widest bg-signal-red text-parchment-warm px-1.5 py-0.5">
               {ticket.unreadCount} new
+            </span>
+          ) : ticket.hasActivity ? (
+            <span className="font-mono text-[0.55rem] uppercase tracking-widest border border-signal-red text-signal-red px-1.5 py-0.5">
+              Updated
             </span>
           ) : null}
         </div>
