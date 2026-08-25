@@ -60,7 +60,13 @@ function escape(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function shell(opts: { title: string; preheader: string; body: string }): string {
+/**
+ * `manageUrl` is passed only by the two client ticket emails — the ones the
+ * client can switch off on their account page. Transactional mail (invites,
+ * email-change, password) never carries the link, because that mail is not
+ * optional and offering to turn it off would be a lie.
+ */
+function shell(opts: { title: string; preheader: string; body: string; manageUrl?: string }): string {
   return `${head(opts.title)}
 <body style="margin:0;padding:0;background:${COLORS.parchment};font-family:${FONT_DISPLAY};color:${COLORS.ink};-webkit-font-smoothing:antialiased;">
 <!-- Preheader (hidden in body, shown in inbox preview) -->
@@ -104,6 +110,13 @@ Developer of Code, LLC ── Support Desk
 <p style="margin:0;font-family:${FONT_DISPLAY};font-style:italic;font-size:13px;color:${COLORS.inkMute};line-height:1.5;">
 Sent from the dispatch desk. Reply to this email and it'll land in the right ticket.
 </p>
+${
+  opts.manageUrl
+    ? `<p style="margin:10px 0 0 0;font-family:${FONT_MONO};font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:${COLORS.inkFade};line-height:1.6;">
+<a href="${escape(opts.manageUrl)}" style="color:${COLORS.inkMute};text-decoration:underline;">Manage email notifications</a>
+</p>`
+    : ""
+}
 </td></tr>
 
 </table>
@@ -197,8 +210,11 @@ function caps(text: string, color: string = COLORS.inkMute): string {
   return `<span style="font-family:${FONT_MONO};font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:${color};">${escape(text)}</span>`;
 }
 
-function plainTextFooter(): string {
-  return `\n\n--\nDeveloper of Code, LLC — Support Desk\nReply to this email and it'll land in the right ticket.`;
+function plainTextFooter(manageUrl?: string): string {
+  const manage = manageUrl
+    ? `\nTurn these emails off: ${manageUrl}`
+    : "";
+  return `\n\n--\nDeveloper of Code, LLC — Support Desk\nReply to this email and it'll land in the right ticket.${manage}`;
 }
 
 /* ============================================
@@ -414,6 +430,8 @@ export interface NewMessageToClientEmailParams {
   ticketTitle: string;
   ticketUrl: string;
   siteDisplayName: string;
+  /** Account page link for the "manage email notifications" footer. */
+  accountUrl: string;
   messageBody: string;
 }
 
@@ -436,13 +454,14 @@ Ticket ${escape(p.ticketNumber)}
     title: `Christian replied on ${p.ticketTitle}`,
     preheader: p.messageBody.slice(0, 100),
     body,
+    manageUrl: p.accountUrl,
   });
 
   const text = `Christian replied on "${p.ticketTitle}":
 
 > ${p.messageBody.split("\n").join("\n> ")}
 
-Read & reply here: ${p.ticketUrl}${plainTextFooter()}`;
+Read & reply here: ${p.ticketUrl}${plainTextFooter(p.accountUrl)}`;
 
   return {
     subject: `Re: ${p.ticketTitle}`,
@@ -459,6 +478,8 @@ export interface AwaitingConfirmationEmailParams {
   ticketTitle: string;
   ticketUrl: string;
   siteDisplayName: string;
+  /** Account page link for the "manage email notifications" footer. */
+  accountUrl: string;
   fixSummary?: string;
 }
 
@@ -487,11 +508,12 @@ Ticket ${escape(p.ticketNumber)} · ${escape(p.siteDisplayName)}
     title: `Verify the fix: ${p.ticketTitle}`,
     preheader: `I marked ${p.ticketTitle} as fixed. Verify it's working before I close the ticket.`,
     body,
+    manageUrl: p.accountUrl,
   });
 
   const text = `I marked "${p.ticketTitle}" as fixed. Take a look and confirm — or reopen it if it's still acting up.
 
-${p.fixSummary ? `What I changed:\n> ${p.fixSummary.split("\n").join("\n> ")}\n\n` : ""}Verify here: ${p.ticketUrl}${plainTextFooter()}`;
+${p.fixSummary ? `What I changed:\n> ${p.fixSummary.split("\n").join("\n> ")}\n\n` : ""}Verify here: ${p.ticketUrl}${plainTextFooter(p.accountUrl)}`;
 
   return {
     subject: `Fixed — please verify: ${p.ticketTitle}`,

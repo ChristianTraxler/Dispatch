@@ -18,6 +18,10 @@ model ClientAccount {
   email      String   @unique
   name       String
   avatarPath String?  @map("avatar_path")
+  // Opt-out for ticket-update email (admin reply, ready-for-review). Defaults
+  // on so existing clients keep getting mail; push has its own per-device
+  // toggle and is deliberately unaffected by this flag.
+  emailNotifications Boolean @default(true) @map("email_notifications")
   createdAt  DateTime @default(now()) @map("created_at")
 
   sites   Site[]

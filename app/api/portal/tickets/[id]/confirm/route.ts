@@ -23,7 +23,9 @@ export async function POST(
       title: true,
       category: true,
       createdAt: true,
-      clientAccount: { select: { authUserId: true, email: true, name: true } },
+      clientAccount: {
+        select: { authUserId: true, email: true, name: true, emailNotifications: true },
+      },
       site: { select: { displayName: true } },
     },
   });

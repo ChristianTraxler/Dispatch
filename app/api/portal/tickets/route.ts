@@ -108,6 +108,7 @@ export async function POST(req: Request) {
           authUserId: account.authUserId,
           email: account.email,
           name: account.name,
+          emailNotifications: account.emailNotifications,
         },
         site: { displayName: site.displayName },
       },

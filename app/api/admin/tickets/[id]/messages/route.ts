@@ -54,7 +54,9 @@ export async function POST(
       site: { select: { displayName: true } },
       // authUserId is what the push is addressed to — without it the
       // notification silently has no recipient rather than erroring.
-      clientAccount: { select: { authUserId: true, email: true, name: true } },
+      clientAccount: {
+        select: { authUserId: true, email: true, name: true, emailNotifications: true },
+      },
     },
   });
   if (!ticket) {

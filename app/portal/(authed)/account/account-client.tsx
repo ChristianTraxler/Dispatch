@@ -4,17 +4,20 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import PushToggle from "@/components/PushToggle";
+import EmailNotificationsToggle from "@/components/EmailNotificationsToggle";
 
 export function AccountClient({
   name: initialName,
   email,
   avatarUrl: initialAvatarUrl,
   initialPending,
+  emailNotifications,
 }: {
   name: string;
   email: string;
   avatarUrl: string | null;
   initialPending: { newEmail: string; expiresAt: string } | null;
+  emailNotifications: boolean;
 }) {
   const router = useRouter();
 
@@ -535,7 +538,13 @@ export function AccountClient({
       </form>
 
       <div className="rule-thin" />
-      <PushToggle />
+
+      <section className="space-y-4">
+        <h2 className="font-display text-2xl">Notifications</h2>
+        <EmailNotificationsToggle initialEnabled={emailNotifications} />
+        {/* Heading suppressed: this row lives under the one above. */}
+        <PushToggle showHeading={false} />
+      </section>
     </div>
   );
 }

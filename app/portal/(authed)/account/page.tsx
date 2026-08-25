@@ -18,6 +18,7 @@ export default async function AccountPage() {
       name={account.name}
       email={account.email}
       avatarUrl={avatarUrl}
+      emailNotifications={account.emailNotifications}
       initialPending={
         pending
           ? {

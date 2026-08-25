@@ -81,7 +81,9 @@ export async function PATCH(
     where: { id },
     include: {
       site: { select: { url: true, displayName: true } },
-      clientAccount: { select: { authUserId: true, email: true, name: true } },
+      clientAccount: {
+        select: { authUserId: true, email: true, name: true, emailNotifications: true },
+      },
     },
   });
   if (!ticket) {

@@ -47,7 +47,9 @@ export async function POST(
       createdAt: true,
       isInquiry: true,
       inquiryEndedAt: true,
-      clientAccount: { select: { authUserId: true, email: true, name: true } },
+      clientAccount: {
+        select: { authUserId: true, email: true, name: true, emailNotifications: true },
+      },
       site: { select: { displayName: true } },
     },
   });

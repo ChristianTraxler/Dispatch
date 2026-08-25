@@ -20,7 +20,18 @@ export interface NotifyTicket {
   title: string;
   category: string;
   createdAt: Date;
-  clientAccount: { authUserId: string; email: string; name: string };
+  clientAccount: {
+    authUserId: string;
+    email: string;
+    name: string;
+    /**
+     * Client's opt-out for ticket-update email. Carried on the ticket rather
+     * than re-queried here for the same reason as authUserId: a route that
+     * forgets to select it fails to typecheck instead of silently mailing a
+     * client who opted out.
+     */
+    emailNotifications: boolean;
+  };
   site: { displayName: string };
 }
 
@@ -45,6 +56,11 @@ function labels(category: string) {
 
 function clientTicketUrl(appUrl: string, ticketId: string) {
   return `${appUrl}/portal/ticket/${ticketId}`;
+}
+
+/** Where the ticket emails point their "manage notifications" footer link. */
+function clientAccountUrl(appUrl: string) {
+  return `${appUrl}/portal/account`;
 }
 
 async function pushToClient(
@@ -72,20 +88,25 @@ export async function notifyClientNewMessage(
   appUrl: string,
   messageBody: string,
 ) {
-  // Email first, push second — see notifyTicketFixed for why.
-  try {
-    // The ticket id is the second argument on purpose: it keys a 60-second
-    // per-recipient debounce inside lib/email.ts. Dropping it would email the
-    // client on every message in a fast back-and-forth.
-    await sendNewMessageToClientEmail(ticket.clientAccount.email, ticket.id, {
-      ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
-      ticketTitle: ticket.title,
-      ticketUrl: clientTicketUrl(appUrl, ticket.id),
-      siteDisplayName: ticket.site.displayName,
-      messageBody,
-    });
-  } catch (err) {
-    console.error("[notify] new-message-to-client email failed:", err);
+  // Email first, push second — see notifyTicketFixed for why. The opt-out
+  // gates email only: push has its own per-device toggle, so a client who
+  // muted their inbox still gets the notification on their phone.
+  if (ticket.clientAccount.emailNotifications) {
+    try {
+      // The ticket id is the second argument on purpose: it keys a 60-second
+      // per-recipient debounce inside lib/email.ts. Dropping it would email the
+      // client on every message in a fast back-and-forth.
+      await sendNewMessageToClientEmail(ticket.clientAccount.email, ticket.id, {
+        ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
+        ticketTitle: ticket.title,
+        ticketUrl: clientTicketUrl(appUrl, ticket.id),
+        siteDisplayName: ticket.site.displayName,
+        accountUrl: clientAccountUrl(appUrl),
+        messageBody,
+      });
+    } catch (err) {
+      console.error("[notify] new-message-to-client email failed:", err);
+    }
   }
 
   // Shares the client `ticket-<id>` tag with the stage notifications, so a
@@ -119,15 +140,18 @@ export async function notifyTicketFixed(ticket: NotifyTicket, appUrl: string) {
   // service can hang until the function is torn down — if push were awaited
   // first, the email below would never send. Email keeps its own try/catch:
   // a push failure must not swallow the email, and vice versa.
-  try {
-    await sendAwaitingConfirmationEmail(ticket.clientAccount.email, {
-      ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
-      ticketTitle: ticket.title,
-      ticketUrl: clientTicketUrl(appUrl, ticket.id),
-      siteDisplayName: ticket.site.displayName,
-    });
-  } catch (err) {
-    console.error("[notify] awaiting-confirmation email failed:", err);
+  if (ticket.clientAccount.emailNotifications) {
+    try {
+      await sendAwaitingConfirmationEmail(ticket.clientAccount.email, {
+        ticketNumber: ticketNumber(ticket.id, ticket.createdAt),
+        ticketTitle: ticket.title,
+        ticketUrl: clientTicketUrl(appUrl, ticket.id),
+        siteDisplayName: ticket.site.displayName,
+        accountUrl: clientAccountUrl(appUrl),
+      });
+    } catch (err) {
+      console.error("[notify] awaiting-confirmation email failed:", err);
+    }
   }
 
   await pushToClient(ticket, appUrl, `${labels(ticket.category).done} — ready for your review`);

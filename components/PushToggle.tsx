@@ -21,7 +21,12 @@ type State =
   | "off"
   | "on";
 
-export default function PushToggle() {
+/**
+ * `showHeading` is false on the client portal account page, where this sits
+ * under one shared "Notifications" heading alongside the email toggle. The
+ * admin page renders it standalone, so the heading stays on by default.
+ */
+export default function PushToggle({ showHeading = true }: { showHeading?: boolean } = {}) {
   const [state, setState] = useState<State>("loading");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -135,7 +140,7 @@ export default function PushToggle() {
 
   return (
     <section className="space-y-4">
-      <h2 className="font-display text-2xl">Notifications</h2>
+      {showHeading && <h2 className="font-display text-2xl">Notifications</h2>}
 
       {state === "needs-install" && (
         <p className="font-display italic text-ink-mute text-sm">

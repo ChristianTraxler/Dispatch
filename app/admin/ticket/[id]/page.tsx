@@ -20,7 +20,16 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
     where: { id },
     include: {
       site: { select: { url: true, displayName: true, productionStartedAt: true } },
-      clientAccount: { select: { id: true, authUserId: true, name: true, email: true, avatarPath: true } },
+      clientAccount: {
+        select: {
+          id: true,
+          authUserId: true,
+          name: true,
+          email: true,
+          avatarPath: true,
+          emailNotifications: true,
+        },
+      },
       messages: { orderBy: { createdAt: "asc" } },
       addOn: true,
     },
