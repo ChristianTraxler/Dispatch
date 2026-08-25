@@ -2,7 +2,11 @@
 
 import { type CSSProperties, type ReactNode } from "react";
 import { StatusPill, type TicketStatus } from "./StatusPill";
-import { StatusTimeline, type TicketTimestamps } from "./StatusTimeline";
+import {
+  StatusTimeline,
+  workLabelsForCategory,
+  type TicketTimestamps,
+} from "./StatusTimeline";
 import { TICKET_CATEGORIES, categoryShortLabel } from "@/lib/ticket-categories";
 import {
   ChatThread,
@@ -287,10 +291,13 @@ function AdminStatusChanger({
   currentCategory: string;
   onCategoryChange?: (c: string) => void | Promise<void>;
 }) {
+  // Speak the same language as the progress bar: an UPDATE ticket gets
+  // "Start Making Update(s)", a BUG gets "Start Fixing Errors", and so on.
+  const work = workLabelsForCategory(currentCategory);
   const transitions: { status: TicketStatus; label: string }[] = [
-    { status: "REVIEWING", label: "Mark Reviewing" },
-    { status: "FIXING", label: "Mark Fixing" },
-    { status: "AWAITING_CONFIRMATION", label: "Mark Fixed" },
+    { status: "REVIEWING", label: `Start ${work.reviewing}` },
+    { status: "FIXING", label: `Start ${work.working}` },
+    { status: "AWAITING_CONFIRMATION", label: `Mark ${work.done}` },
   ];
 
   return (

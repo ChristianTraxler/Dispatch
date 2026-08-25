@@ -42,6 +42,12 @@ const WORK_LABELS_BY_CATEGORY: Record<
 };
 const DEFAULT_WORK_LABELS = WORK_LABELS_BY_CATEGORY.BUG;
 
+/** The Reviewing/Working/Done wording this ticket type uses, so other UI
+ *  (e.g. the admin status buttons) can speak the same language as the timeline. */
+export function workLabelsForCategory(category?: string) {
+  return (category ? WORK_LABELS_BY_CATEGORY[category] : undefined) ?? DEFAULT_WORK_LABELS;
+}
+
 // Map the canonical TicketStatus to which of the six visible stages should
 // be highlighted. Stages: 0=Sent 1=Received 2=Viewed 3=Reviewing 4=Fixing 5=Fixed.
 function statusToStageIndex(
@@ -92,7 +98,7 @@ export function StatusTimeline({
   className = "",
   style,
 }: StatusTimelineProps) {
-  const work = (category ? WORK_LABELS_BY_CATEGORY[category] : undefined) ?? DEFAULT_WORK_LABELS;
+  const work = workLabelsForCategory(category);
   const stages: Stage[] = [
     { key: "createdAt", label: "Sent", timestamp: ticket.createdAt },
     { key: "receivedAt", label: "Received", timestamp: ticket.receivedAt },
