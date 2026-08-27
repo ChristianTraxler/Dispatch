@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ticketNumber } from "@/lib/ticket";
+import { formatFiledAt } from "@/lib/datetime";
 import { StatusPill } from "@/components/StatusPill";
 import { adminHasActivity } from "@/lib/ticket-activity";
 import { OutOfFreeWindowBadge } from "@/components/AdminClientDetail";
@@ -23,6 +24,14 @@ function formatRelative(value: Date): string {
 }
 
 export default async function AdminTicketsPage() {
+  // Stamps are formatted server-side, so they need the admin's own zone —
+  // otherwise they render in the deploy region's clock (UTC).
+  const settingsRow = await prisma.adminSettings.findUnique({
+    where: { id: "global" },
+    select: { timezone: true },
+  });
+  const tz = settingsRow?.timezone ?? "America/New_York";
+
   const tickets = await prisma.ticket.findMany({
     where: { isInquiry: false },
     orderBy: { createdAt: "desc" },
@@ -118,7 +127,13 @@ export default async function AdminTicketsPage() {
                       </p>
                     </div>
                     <div className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-fade md:text-right shrink-0 mt-2 md:mt-0">
-                      Filed {formatRelative(t.createdAt)}
+                      <span className="block">Filed {formatRelative(t.createdAt)}</span>
+                      <time
+                        dateTime={t.createdAt.toISOString()}
+                        className="block mt-0.5 text-[0.6rem] tracking-wider"
+                      >
+                        {formatFiledAt(t.createdAt, tz)}
+                      </time>
                     </div>
                   </div>
                 </Link>

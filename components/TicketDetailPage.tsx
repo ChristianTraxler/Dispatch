@@ -8,6 +8,7 @@ import {
   type TicketTimestamps,
 } from "./StatusTimeline";
 import { TICKET_CATEGORIES, categoryShortLabel } from "@/lib/ticket-categories";
+import { formatFiledAt } from "@/lib/datetime";
 import {
   ChatThread,
   type ChatAttachment,
@@ -92,6 +93,9 @@ export function TicketDetailPage({
 }: TicketDetailPageProps) {
   const isClient = viewerType === "client";
   const showConfirmActions = isClient && ticket.status === "AWAITING_CONFIRMATION";
+  // Client component, so this formats in the viewer's own zone — same as the
+  // per-stage stamps in the timeline below.
+  const filedAt = formatFiledAt(ticket.createdAt);
 
   return (
     <div className={`max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12 ${className}`} style={style}>
@@ -143,6 +147,12 @@ export function TicketDetailPage({
             </>
           )}
         </div>
+
+        {filedAt && (
+          <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade mt-3">
+            Filed {filedAt}
+          </p>
+        )}
       </header>
 
       {/* Status timeline */}
