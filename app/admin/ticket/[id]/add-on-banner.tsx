@@ -169,7 +169,7 @@ export function AddOnRequestBanner({
 
       {open && (
         <div
-          className="fixed inset-0 z-50 bg-ink/40 flex items-end md:items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-scrim/40 flex items-end md:items-center justify-center p-4"
           onClick={() => !busy && setOpen(false)}
         >
           <div

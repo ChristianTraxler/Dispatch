@@ -83,7 +83,7 @@ export function EmergencyFixModal({ open, feeCents, onConfirm, onCancel }: Emerg
         type="button"
         aria-label="Cancel"
         onClick={onCancel}
-        className="absolute inset-0 bg-ink/60"
+        className="absolute inset-0 bg-scrim/60"
       />
       <div
         ref={dialogRef}

@@ -340,7 +340,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
             type="button"
             onClick={saveHours}
             disabled={savingHours}
-            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-parchment-warm transition-colors disabled:opacity-50"
+            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-onInverse transition-colors disabled:opacity-50"
           >
             {savingHours ? "Saving…" : "Save hours"}
           </button>
@@ -477,7 +477,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
             type="button"
             onClick={saveOoo}
             disabled={savingOoo}
-            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-parchment-warm transition-colors disabled:opacity-50"
+            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-onInverse transition-colors disabled:opacity-50"
           >
             {savingOoo ? "Saving…" : "Save OOO"}
           </button>
@@ -534,7 +534,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
             type="button"
             onClick={saveOutOfTown}
             disabled={savingOutOfTown}
-            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-parchment-warm transition-colors disabled:opacity-50"
+            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-onInverse transition-colors disabled:opacity-50"
           >
             {savingOutOfTown ? "Saving…" : "Save out-of-town"}
           </button>
@@ -595,7 +595,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
             type="button"
             onClick={saveHolidays}
             disabled={savingHolidays}
-            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-parchment-warm transition-colors disabled:opacity-50"
+            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-onInverse transition-colors disabled:opacity-50"
           >
             {savingHolidays ? "Saving…" : "Save holidays"}
           </button>
@@ -636,7 +636,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
             type="button"
             onClick={saveFee}
             disabled={savingFee}
-            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-parchment-warm transition-colors disabled:opacity-50"
+            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-onInverse transition-colors disabled:opacity-50"
           >
             {savingFee ? "Saving…" : "Save fee"}
           </button>

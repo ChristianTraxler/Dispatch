@@ -8,13 +8,15 @@ export type TicketStatus =
   | "CLOSED"
   | "REOPENED";
 
+// Themed through CSS variables rather than hex: these sit on a translucent
+// pill whose bed flips with the theme, so the ink has to flip with it.
 const STATUS_CONFIG: Record<TicketStatus, { label: string; color: string }> = {
-  NEW: { label: "New", color: "#1A1815" },
-  REVIEWING: { label: "Reviewing", color: "#7A4E1F" },
-  FIXING: { label: "Fixing", color: "#9E2614" },
-  AWAITING_CONFIRMATION: { label: "Awaiting Confirmation", color: "#5B6B1F" },
-  CLOSED: { label: "Closed", color: "#2E7D3F" },
-  REOPENED: { label: "Reopened", color: "#C8341A" },
+  NEW: { label: "New", color: "rgb(var(--ink))" },
+  REVIEWING: { label: "Reviewing", color: "rgb(var(--status-reviewing))" },
+  FIXING: { label: "Fixing", color: "rgb(var(--signal-red-deep))" },
+  AWAITING_CONFIRMATION: { label: "Awaiting Confirmation", color: "rgb(var(--status-awaiting))" },
+  CLOSED: { label: "Closed", color: "rgb(var(--signal-green))" },
+  REOPENED: { label: "Reopened", color: "rgb(var(--signal-red))" },
 };
 
 export interface StatusPillProps {

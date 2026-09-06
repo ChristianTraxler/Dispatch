@@ -4,6 +4,7 @@ import { type ReactNode } from "react";
 import { Masthead } from "./Masthead";
 import { PresenceDot } from "./PresenceDot";
 import { PullToRefresh } from "./PullToRefresh";
+import { ThemeToggle } from "./ThemeToggle";
 
 export interface AdminShellProps {
   /** Active nav item key */
@@ -39,6 +40,7 @@ export function AdminShell({
         tagline="THE EDITORIAL DESK ── ADMIN VIEW"
         rightContent={
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <span className="hidden md:inline-flex items-center gap-2">
               <PresenceDot status={onlineClientCount > 0 ? "online" : "offline"} pulse={onlineClientCount > 0} />
               <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
@@ -64,14 +66,14 @@ export function AdminShell({
       />
 
       {/* Sub-nav bar — distinct admin styling: dark band */}
-      <div className="bg-ink text-parchment-warm">
+      <div className="bg-band text-onInverse">
         <div className="max-w-6xl mx-auto px-5 md:px-10 py-2.5 flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-3">
           <div className="flex items-baseline justify-center md:justify-start gap-2 min-w-0">
             <span className="font-mono text-[0.55rem] uppercase tracking-widest text-signal-red">
               ADMIN
             </span>
-            <span className="text-ink-fade">·</span>
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-parchment-warm/70 truncate">
+            <span className="text-onInverse/40">·</span>
+            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-onInverse/70 truncate">
               Christian / Developer of Code
             </span>
           </div>
@@ -82,7 +84,7 @@ export function AdminShell({
                 {idx > 0 && (
                   <span
                     aria-hidden="true"
-                    className="text-ink-fade font-mono text-[0.6rem] pb-0.5 self-stretch flex items-center leading-none"
+                    className="text-onInverse/40 font-mono text-[0.6rem] pb-0.5 self-stretch flex items-center leading-none"
                   >
                     •
                   </span>
@@ -93,13 +95,13 @@ export function AdminShell({
                   className={[
                     "font-mono text-[0.6rem] uppercase tracking-widest pb-0.5 transition-colors whitespace-nowrap",
                     activeNav === item.key
-                      ? "text-parchment-warm border-b-2 border-signal-red"
-                      : "text-parchment-warm/60 hover:text-parchment-warm",
+                      ? "text-onInverse border-b-2 border-signal-red"
+                      : "text-onInverse/60 hover:text-onInverse",
                   ].join(" ")}
                 >
                   {item.label}
                   {item.key === "inquiries" && inquiryCount > 0 && (
-                    <span className="ml-1.5 inline-block min-w-[1.1rem] px-1 py-px text-center bg-signal-red text-parchment-warm font-mono text-[0.55rem] leading-none">
+                    <span className="ml-1.5 inline-block min-w-[1.1rem] px-1 py-px text-center bg-signal-red text-onInverse font-mono text-[0.55rem] leading-none">
                       {inquiryCount}
                     </span>
                   )}

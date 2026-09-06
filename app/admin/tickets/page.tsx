@@ -95,7 +95,7 @@ export default async function AdminTicketsPage() {
                           const unread = unreadByTicket.get(t.id) ?? 0;
                           if (unread > 0) {
                             return (
-                              <span className="font-mono text-[0.55rem] uppercase tracking-widest bg-signal-red text-parchment-warm px-1.5 py-0.5">
+                              <span className="font-mono text-[0.55rem] uppercase tracking-widest bg-signal-red text-onInverse px-1.5 py-0.5">
                                 {unread} new
                               </span>
                             );

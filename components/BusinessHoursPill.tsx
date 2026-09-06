@@ -209,7 +209,7 @@ export function BusinessHoursPill() {
           onTransitionEnd={(e) => {
             if (!open && e.propertyName === "opacity") setMounted(false);
           }}
-          className={`absolute right-0 top-[calc(100%+6px)] z-50 w-[260px] origin-top-right border border-rule bg-parchment-warm shadow-[0_14px_40px_-18px_rgba(15,15,15,0.35)] transition ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+          className={`absolute right-0 top-[calc(100%+6px)] z-50 w-[260px] origin-top-right border border-rule bg-parchment-warm shadow-[0_14px_40px_-18px_rgb(var(--shadow-tint)/0.35)] transition ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
             visible
               ? "opacity-100 translate-y-0 scale-100 duration-[340ms]"
               : "opacity-0 -translate-y-2 scale-[0.96] pointer-events-none duration-[200ms]"

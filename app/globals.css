@@ -2,27 +2,133 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==========================================================================
+   PALETTE
+
+   Values are space-separated RGB channels, not hex, because tailwind.config.ts
+   composes them as `rgb(var(--token) / <alpha-value>)` so that alpha modifiers
+   (`bg-signal-red/5`) keep working. Anything reading a token directly in this
+   file must therefore wrap it: `rgb(var(--ink))`, never `var(--ink)`.
+
+   :root is the light theme. Dark is applied two ways:
+     - :root[data-theme="dark"]                     — an explicit choice
+     - prefers-color-scheme, when no choice is set  — "System"
+
+   The media block is guarded with :not([data-theme="light"]) so that picking
+   Light explicitly wins on a machine set to dark, not just the other way round.
+   ========================================================================== */
+
 :root {
-  --parchment: #f5f1e8;
-  --parchment-deep: #ede6d6;
-  --parchment-warm: #faf6ec;
-  --ink: #1a1815;
-  --ink-soft: #3d3a35;
-  --ink-mute: #6b665e;
-  --ink-fade: #a8a39a;
-  --rule: #c9c0ab;
-  --rule-soft: #ddd6c2;
-  --signal-red: #c8341a;
-  --signal-red-deep: #9e2614;
-  --signal-green: #2e7d3f;
-  --signal-green-light: #4a9d5c;
+  color-scheme: light;
+
+  --parchment: 245 241 232;
+  --parchment-deep: 237 230 214;
+  --parchment-warm: 250 246 236;
+  --ink: 26 24 21;
+  --ink-soft: 61 58 53;
+  --ink-mute: 107 102 94;
+  --ink-fade: 168 163 154;
+  --rule: 201 192 171;
+  --rule-soft: 221 214 194;
+  --signal-red: 200 52 26;
+  --signal-red-deep: 158 38 20;
+  --signal-green: 46 125 63;
+  --signal-green-light: 74 157 92;
+
+  /* Recessed chrome (admin sub-nav, chat headers). Identical to --ink in
+     light mode, which is why this theme looks unchanged. */
+  --band: 26 24 21;
+  /* Label on a signal colour. Stays light in both themes. */
+  --on-inverse: 250 246 236;
+  /* Modal scrim. Stays dark in both themes. */
+  --scrim: 26 24 21;
+
+  /* Ticket statuses that are not already a signal colour. */
+  --status-reviewing: 122 78 31;
+  --status-awaiting: 91 107 31;
+
+  /* Paper texture, drop-shadow tint, and the translucent status-pill bed. */
+  --grain: 201 192 171;
+  --grain-strong: 0.08;
+  --grain-soft: 0.06;
+  --shadow-tint: 26 24 21;
+  --pill-bed: 255 255 255;
+  --pill-bed-alpha: 0.45;
+}
+
+/* Deep navy ink — an explicit dark choice. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --parchment: 18 21 28;
+  --parchment-deep: 13 15 21;
+  --parchment-warm: 26 30 39;
+  --ink: 228 231 237;
+  --ink-soft: 195 200 210;
+  --ink-mute: 155 161 173;
+  --ink-fade: 108 115 130;
+  --rule: 44 50 64;
+  --rule-soft: 34 39 54;
+  --signal-red: 228 89 61;
+  --signal-red-deep: 240 120 92;
+  --signal-green: 79 168 98;
+  --signal-green-light: 109 196 127;
+
+  --band: 35 41 54;
+  --on-inverse: 240 243 247;
+  --scrim: 4 6 10;
+
+  --status-reviewing: 217 160 91;
+  --status-awaiting: 168 191 82;
+
+  --grain: 155 161 173;
+  --grain-strong: 0.05;
+  --grain-soft: 0.04;
+  --shadow-tint: 0 0 0;
+  --pill-bed: 255 255 255;
+  --pill-bed-alpha: 0.06;
+}
+
+/* The same palette, for "System" on a machine set to dark. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --parchment: 18 21 28;
+    --parchment-deep: 13 15 21;
+    --parchment-warm: 26 30 39;
+    --ink: 228 231 237;
+    --ink-soft: 195 200 210;
+    --ink-mute: 155 161 173;
+    --ink-fade: 108 115 130;
+    --rule: 44 50 64;
+    --rule-soft: 34 39 54;
+    --signal-red: 228 89 61;
+    --signal-red-deep: 240 120 92;
+    --signal-green: 79 168 98;
+    --signal-green-light: 109 196 127;
+
+    --band: 35 41 54;
+    --on-inverse: 240 243 247;
+    --scrim: 4 6 10;
+
+    --status-reviewing: 217 160 91;
+    --status-awaiting: 168 191 82;
+
+    --grain: 155 161 173;
+    --grain-strong: 0.05;
+    --grain-soft: 0.04;
+    --shadow-tint: 0 0 0;
+    --pill-bed: 255 255 255;
+    --pill-bed-alpha: 0.06;
+  }
 }
 
 html,
 body,
 #root {
-  background: var(--parchment);
-  color: var(--ink);
+  background: rgb(var(--parchment));
+  color: rgb(var(--ink));
   font-family: var(--font-fraunces), Georgia, serif;
   -webkit-font-smoothing: antialiased;
   font-feature-settings: "liga" 1, "kern" 1;
@@ -46,8 +152,8 @@ body {
 
 body {
   background-image:
-    radial-gradient(circle at 12% 18%, rgba(201, 192, 171, 0.08) 0px, transparent 1px),
-    radial-gradient(circle at 88% 72%, rgba(201, 192, 171, 0.06) 0px, transparent 1px);
+    radial-gradient(circle at 12% 18%, rgb(var(--grain) / var(--grain-strong)) 0px, transparent 1px),
+    radial-gradient(circle at 88% 72%, rgb(var(--grain) / var(--grain-soft)) 0px, transparent 1px);
   background-size: 7px 7px, 11px 11px;
 }
 
@@ -61,12 +167,12 @@ body {
   flex-shrink: 0;
 }
 .presence-dot.online {
-  background: var(--signal-green);
-  box-shadow: 0 0 0 1px rgba(46, 125, 63, 0.15);
+  background: rgb(var(--signal-green));
+  box-shadow: 0 0 0 1px rgb(var(--signal-green) / 0.15);
 }
 .presence-dot.offline {
-  background: var(--signal-red);
-  box-shadow: 0 0 0 1px rgba(200, 52, 26, 0.18);
+  background: rgb(var(--signal-red));
+  box-shadow: 0 0 0 1px rgb(var(--signal-red) / 0.18);
 }
 .presence-dot.online.pulse::before,
 .presence-dot.online.pulse::after {
@@ -74,7 +180,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: var(--signal-green);
+  background: rgb(var(--signal-green));
   animation: sonar 2.4s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
   pointer-events: none;
 }
@@ -125,12 +231,27 @@ body {
   .badge-wiggle { animation: none; }
 }
 
+/* THEME TOGGLE — settles in on load.
+   The server cannot know the stored preference, so the control renders
+   "System" for the first frame and resolves on hydration. Fading it in hides
+   that swap without needing a state flag to track mounting. */
+@keyframes theme-toggle-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.theme-toggle-in {
+  animation: theme-toggle-in 240ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle-in { animation: none; }
+}
+
 /* RULES */
-.rule-thin { border-bottom: 1px solid var(--rule); }
-.rule-soft { border-bottom: 1px solid var(--rule-soft); }
+.rule-thin { border-bottom: 1px solid rgb(var(--rule)); }
+.rule-soft { border-bottom: 1px solid rgb(var(--rule-soft)); }
 .rule-double {
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
+  border-top: 1px solid rgb(var(--rule));
+  border-bottom: 1px solid rgb(var(--rule));
   border-style: double;
   border-width: 3px 0;
 }
@@ -147,7 +268,7 @@ body {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   border-left: 3px solid currentColor;
-  background: rgba(255, 255, 255, 0.45);
+  background: rgb(var(--pill-bed) / var(--pill-bed-alpha));
   white-space: nowrap;
 }
 
@@ -155,17 +276,17 @@ body {
 .input-line {
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px solid rgb(var(--rule));
   padding: 0.5rem 0;
   font-family: var(--font-fraunces), Georgia, serif;
   font-size: 1.0625rem;
-  color: var(--ink);
+  color: rgb(var(--ink));
   width: 100%;
   outline: none;
   transition: border-color 0.15s ease;
 }
-.input-line:focus { border-bottom-color: var(--signal-red); }
-.input-line::placeholder { color: var(--ink-fade); font-style: italic; }
+.input-line:focus { border-bottom-color: rgb(var(--signal-red)); }
+.input-line::placeholder { color: rgb(var(--ink-fade)); font-style: italic; }
 
 /* BUTTONS */
 .btn-dispatch {
@@ -179,14 +300,16 @@ body {
   font-weight: 500;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  background: var(--ink);
-  color: var(--parchment-warm);
+  background: rgb(var(--ink));
+  color: rgb(var(--parchment-warm));
   border: none;
   cursor: pointer;
   transition: background 0.15s ease;
 }
-.btn-dispatch:hover { background: var(--signal-red); }
-.btn-dispatch:disabled { background: var(--ink-fade); cursor: not-allowed; }
+/* On hover the bed becomes signal red, which does not invert between themes —
+   so the label switches to the always-light token rather than the inverting one. */
+.btn-dispatch:hover { background: rgb(var(--signal-red)); color: rgb(var(--on-inverse)); }
+.btn-dispatch:disabled { background: rgb(var(--ink-fade)); cursor: not-allowed; }
 
 .btn-ghost {
   display: inline-flex;
@@ -199,9 +322,9 @@ body {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   background: transparent;
-  color: var(--ink-soft);
-  border: 1px solid var(--rule);
+  color: rgb(var(--ink-soft));
+  border: 1px solid rgb(var(--rule));
   cursor: pointer;
   transition: all 0.15s ease;
 }
-.btn-ghost:hover { color: var(--signal-red); border-color: var(--signal-red); }
+.btn-ghost:hover { color: rgb(var(--signal-red)); border-color: rgb(var(--signal-red)); }

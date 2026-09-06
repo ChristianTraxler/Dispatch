@@ -3,6 +3,7 @@ import { Fraunces, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { BadgeClearer } from "@/components/BadgeClearer";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 // Self-hosted via next/font so there is no runtime Google Fonts request.
 // Fraunces needs the `opsz` axis (headings set font-variation-settings: "opsz" …)
@@ -35,7 +36,12 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#F5F1E8",
+  // Paired so the iOS PWA status bar and the browser chrome follow the theme.
+  // These are the resolved --parchment values from globals.css.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F5F1E8" },
+    { media: "(prefers-color-scheme: dark)", color: "#12151C" },
+  ],
   width: "device-width",
   initialScale: 1,
   minimumScale: 1,
@@ -51,8 +57,14 @@ export default function RootLayout({
     <html
       lang="en"
       className={`h-full antialiased ${fraunces.variable} ${jetbrainsMono.variable}`}
+      // The init script below stamps data-theme onto <html> before React sees
+      // it, which is exactly the kind of difference this suppresses.
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
+        {/* Must run synchronously, before anything paints, or a dark-themed
+            load flashes the light parchment first. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         {children}
         <ScrollToTop />
         <BadgeClearer />

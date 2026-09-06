@@ -247,7 +247,7 @@ export function AddOnsClient({
                     className={[
                       "font-mono text-[0.6rem] uppercase tracking-widest px-1.5 py-0.5",
                       row.status === "ACTIVE"
-                        ? "bg-signal-green text-parchment-warm"
+                        ? "bg-signal-green text-onInverse"
                         : "bg-ink-mute text-parchment-warm",
                     ].join(" ")}
                   >
@@ -320,7 +320,7 @@ export function AddOnsClient({
                         <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute border-l border-rule pl-2">
                           {resolveUnitLabel(addOn.priceUnit, addOn.priceUnitLabel)}
                         </span>
-                        <span className="font-mono text-[0.55rem] uppercase tracking-widest bg-signal-green text-parchment-warm px-1.5 py-0.5">
+                        <span className="font-mono text-[0.55rem] uppercase tracking-widest bg-signal-green text-onInverse px-1.5 py-0.5">
                           Your rate
                         </span>
                       </>
@@ -373,7 +373,7 @@ export function AddOnsClient({
       {/* Request modal */}
       {modal.kind === "request" && (
         <div
-          className="fixed inset-0 z-50 bg-ink/40 flex items-end md:items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-scrim/40 flex items-end md:items-center justify-center p-4"
           onClick={() => !submitting && setModal({ kind: "closed" })}
         >
           <div

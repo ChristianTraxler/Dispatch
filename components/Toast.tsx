@@ -138,7 +138,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
   return (
     <div
       className={[
-        "pointer-events-auto bg-parchment-warm border-l-[3px] shadow-[2px_2px_0_rgba(26,24,21,0.08)]",
+        "pointer-events-auto bg-parchment-warm border-l-[3px] shadow-[2px_2px_0_rgb(var(--shadow-tint)/0.08)]",
         "border border-rule",
         accent,
         "transform transition-all duration-200 ease-out",

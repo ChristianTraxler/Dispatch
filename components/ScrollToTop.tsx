@@ -30,9 +30,9 @@ export function ScrollToTop() {
       // center: chat center is at 54px from right (24 + 60/2); scroll center
       // here is at 32 + 44/2 = 54px. Bottom-24 leaves a ~12px gap above the
       // chat button. On pages without the launcher, it just floats higher.
-      className={`fixed bottom-24 right-8 z-40 w-11 h-11 rounded-full bg-parchment-warm text-ink-soft flex items-center justify-center origin-bottom-right shadow-[0_8px_20px_-6px_rgba(26,24,21,0.25),_0_2px_5px_-1px_rgba(26,24,21,0.1)] ring-1 ring-rule transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-2 focus-visible:ring-offset-parchment ${
+      className={`fixed bottom-24 right-8 z-40 w-11 h-11 rounded-full bg-parchment-warm text-ink-soft flex items-center justify-center origin-bottom-right shadow-[0_8px_20px_-6px_rgb(var(--shadow-tint)/0.25),_0_2px_5px_-1px_rgb(var(--shadow-tint)/0.1)] ring-1 ring-rule transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-2 focus-visible:ring-offset-parchment ${
         visible
-          ? "opacity-100 scale-100 hover:-translate-y-0.5 hover:text-signal-red hover:ring-signal-red/40 hover:shadow-[0_12px_24px_-8px_rgba(26,24,21,0.3),_0_3px_8px_-2px_rgba(26,24,21,0.14)] active:translate-y-0 active:scale-95"
+          ? "opacity-100 scale-100 hover:-translate-y-0.5 hover:text-signal-red hover:ring-signal-red/40 hover:shadow-[0_12px_24px_-8px_rgb(var(--shadow-tint)/0.3),_0_3px_8px_-2px_rgb(var(--shadow-tint)/0.14)] active:translate-y-0 active:scale-95"
           : "opacity-0 scale-75 pointer-events-none"
       }`}
     >

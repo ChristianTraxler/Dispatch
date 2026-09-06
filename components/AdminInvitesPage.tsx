@@ -31,10 +31,10 @@ export interface AdminInvitesPageProps {
 type Filter = "ALL" | InviteStatus;
 
 const STATUS_COLORS: Record<InviteStatus, string> = {
-  PENDING: "#7A4E1F",
-  REDEEMED: "#2E7D3F",
-  EXPIRED: "#6B665E",
-  REVOKED: "#C8341A",
+  PENDING: "rgb(var(--status-reviewing))",
+  REDEEMED: "rgb(var(--signal-green))",
+  EXPIRED: "rgb(var(--ink-mute))",
+  REVOKED: "rgb(var(--signal-red))",
 };
 
 function formatDate(value: string | Date): string {

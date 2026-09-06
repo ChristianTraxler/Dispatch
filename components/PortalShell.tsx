@@ -3,6 +3,7 @@
 import { type ReactNode } from "react";
 import { Masthead } from "./Masthead";
 import { PullToRefresh } from "./PullToRefresh";
+import { ThemeToggle } from "./ThemeToggle";
 
 export interface PortalUser {
   id: string;
@@ -47,6 +48,7 @@ export function PortalShell({
         compact
         rightContent={
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             {availabilityPill}
             <button
               type="button"

@@ -412,9 +412,9 @@ export function AdminQuickChatLauncher() {
             : "Start a quick chat"
         }
         title="Start a quick chat"
-        className={`group fixed bottom-6 right-6 z-50 w-[60px] h-[60px] rounded-full bg-ink text-parchment-warm flex items-center justify-center origin-bottom-right shadow-[0_10px_28px_-6px_rgba(26,24,21,0.45),_0_2px_6px_-1px_rgba(26,24,21,0.18)] ring-1 ring-inset ring-signal-red/45 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-2 focus-visible:ring-offset-parchment ${
+        className={`group fixed bottom-6 right-6 z-50 w-[60px] h-[60px] rounded-full bg-band text-onInverse flex items-center justify-center origin-bottom-right shadow-[0_10px_28px_-6px_rgb(var(--shadow-tint)/0.45),_0_2px_6px_-1px_rgb(var(--shadow-tint)/0.18)] ring-1 ring-inset ring-signal-red/45 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-2 focus-visible:ring-offset-parchment ${
           isCollapsed
-            ? "opacity-100 scale-100 hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-8px_rgba(26,24,21,0.55),_0_4px_10px_-2px_rgba(26,24,21,0.22)] active:translate-y-0 active:scale-95"
+            ? "opacity-100 scale-100 hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-8px_rgb(var(--shadow-tint)/0.55),_0_4px_10px_-2px_rgb(var(--shadow-tint)/0.22)] active:translate-y-0 active:scale-95"
             : "opacity-0 scale-50 pointer-events-none"
         }`}
       >
@@ -451,7 +451,7 @@ export function AdminQuickChatLauncher() {
             : "opacity-100 scale-100 translate-y-0"
         }`}
       >
-      <div className="flex items-center justify-between px-4 py-3 border-b border-rule bg-ink text-parchment-warm">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-rule bg-band text-onInverse">
         <div className="flex items-center gap-2 min-w-0">
           {state.kind === "open" && (
             <button

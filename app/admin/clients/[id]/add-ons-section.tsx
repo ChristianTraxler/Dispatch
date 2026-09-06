@@ -630,7 +630,7 @@ export function AddOnsSection({
                     <span
                       className={[
                         "font-mono text-[0.55rem] uppercase tracking-widest px-1.5 py-0.5",
-                        row.status === "ACTIVE" ? "bg-signal-green text-parchment-warm"
+                        row.status === "ACTIVE" ? "bg-signal-green text-onInverse"
                         : row.status === "PAUSED" ? "bg-ink-mute text-parchment-warm"
                         : "bg-rule text-ink-soft",
                       ].join(" ")}

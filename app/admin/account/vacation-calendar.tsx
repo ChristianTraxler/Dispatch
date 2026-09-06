@@ -247,7 +247,7 @@ export function VacationCalendar({ initial, timezone, onOutOfTownChange }: Props
               type="button"
               disabled={!canAdd}
               onClick={addVacation}
-              className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-parchment-warm transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-signal-red"
+              className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-onInverse transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-signal-red"
             >
               {adding ? "Saving…" : "Add vacation"}
             </button>
@@ -333,7 +333,7 @@ function MonthGrid({
           if (!cell.inMonth) cls += " text-ink-fade/40";
           else if (disabled && scheduled) cls += " bg-signal-red/30 text-ink-fade cursor-not-allowed";
           else if (disabled) cls += " text-ink-fade/60 cursor-not-allowed";
-          else if (inPreview) cls += " bg-signal-red text-parchment-warm";
+          else if (inPreview) cls += " bg-signal-red text-onInverse";
           else cls += " text-ink hover:bg-signal-red/10 cursor-pointer";
           if (cell.isToday && !inPreview) cls += " ring-1 ring-signal-red";
           const isSelectedEndpoint = cell.date === pendingStart || cell.date === pendingEnd;
