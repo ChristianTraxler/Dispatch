@@ -2,6 +2,7 @@
 
 import { useState, type CSSProperties } from "react";
 import { StatusPill, type TicketStatus } from "./StatusPill";
+import { DISPLAY_TIME_ZONE } from "@/lib/datetime";
 
 export interface DashboardTicket {
   id: string;
@@ -54,7 +55,7 @@ function formatRelative(value: string | Date): string {
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
   if (days < 7) return `${days}d ago`;
-  return d.toLocaleString("en-US", { month: "short", day: "2-digit" });
+  return d.toLocaleString("en-US", { timeZone: DISPLAY_TIME_ZONE, month: "short", day: "2-digit" });
 }
 
 export function DashboardPage({

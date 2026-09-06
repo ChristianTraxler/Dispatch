@@ -3,6 +3,7 @@
 import { type CSSProperties } from "react";
 import { freeWindowStatus } from "@/lib/free-updates";
 import { FreeWindowStatusLabel } from "./FreeWindowStatusLabel";
+import { DISPLAY_TIME_ZONE } from "@/lib/datetime";
 
 export interface SiteWithStats {
   id: string;
@@ -24,7 +25,7 @@ export interface SitesPageProps {
 
 function formatDate(value: string | Date): string {
   const d = typeof value === "string" ? new Date(value) : value;
-  return d.toLocaleString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+  return d.toLocaleString("en-US", { timeZone: DISPLAY_TIME_ZONE, month: "short", day: "2-digit", year: "numeric" });
 }
 
 export function SitesPage({

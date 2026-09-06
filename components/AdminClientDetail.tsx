@@ -7,6 +7,7 @@ import { PresenceDot } from "./PresenceDot";
 import { StatusPill, type TicketStatus } from "./StatusPill";
 import { FreeWindowStatusLabel } from "./FreeWindowStatusLabel";
 import type { FreeWindowStatus } from "@/lib/free-updates";
+import { DISPLAY_TIME_ZONE } from "@/lib/datetime";
 
 export interface AdminClientDetailSite {
   id: string;
@@ -56,6 +57,7 @@ export interface AdminClientDetailProps {
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleString("en-US", {
+    timeZone: DISPLAY_TIME_ZONE,
     month: "short",
     day: "2-digit",
     year: "numeric",
@@ -73,7 +75,7 @@ function formatRelative(value: string | null | undefined): string {
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
   if (days < 7) return `${days}d ago`;
-  return d.toLocaleString("en-US", { month: "short", day: "2-digit" });
+  return d.toLocaleString("en-US", { timeZone: DISPLAY_TIME_ZONE, month: "short", day: "2-digit" });
 }
 
 export function AdminClientDetail({

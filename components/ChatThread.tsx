@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import type { CSSProperties } from "react";
 import { uploadFile } from "@/lib/upload-client";
-import { ensureUtcIso } from "@/lib/datetime";
+import { DISPLAY_TIME_ZONE, ensureUtcIso, zonedDayKey } from "@/lib/datetime";
 import { Avatar } from "./Avatar";
 
 export type SenderType = "CLIENT" | "ADMIN";
@@ -59,15 +59,19 @@ export interface ChatThreadProps {
 
 function formatTime(value: string | Date): string {
   const d = typeof value === "string" ? new Date(ensureUtcIso(value)) : value;
-  const now = new Date();
-  const sameDay =
-    d.getFullYear() === now.getFullYear() &&
-    d.getMonth() === now.getMonth() &&
-    d.getDate() === now.getDate();
+  // "Today" is the desk's day, not the runtime's: getDate() reads the local
+  // clock, which is UTC on the server and the viewer's zone in the browser, so
+  // a late-evening message would be "today" on one side and dated on the other.
+  const sameDay = zonedDayKey(d) === zonedDayKey(new Date());
   if (sameDay) {
-    return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    return d.toLocaleTimeString("en-US", {
+      timeZone: DISPLAY_TIME_ZONE,
+      hour: "numeric",
+      minute: "2-digit",
+    });
   }
   return d.toLocaleString("en-US", {
+    timeZone: DISPLAY_TIME_ZONE,
     month: "short",
     day: "2-digit",
     hour: "numeric",

@@ -2,6 +2,7 @@
 
 import { Fragment, type CSSProperties } from "react";
 import type { TicketStatus } from "./StatusPill";
+import { DISPLAY_TIME_ZONE } from "@/lib/datetime";
 
 export interface TicketTimestamps {
   createdAt: string | Date | null;
@@ -82,6 +83,7 @@ function formatStamp(value: string | Date | null | undefined): string | null {
   const d = typeof value === "string" ? new Date(value) : value;
   if (isNaN(d.getTime())) return null;
   return d.toLocaleString("en-US", {
+    timeZone: DISPLAY_TIME_ZONE,
     month: "short",
     day: "2-digit",
     hour: "numeric",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
+import { DISPLAY_TIME_ZONE } from "@/lib/datetime";
 
 export type InviteStatus = "PENDING" | "REDEEMED" | "EXPIRED" | "REVOKED";
 
@@ -39,7 +40,7 @@ const STATUS_COLORS: Record<InviteStatus, string> = {
 
 function formatDate(value: string | Date): string {
   const d = typeof value === "string" ? new Date(value) : value;
-  return d.toLocaleString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+  return d.toLocaleString("en-US", { timeZone: DISPLAY_TIME_ZONE, month: "short", day: "2-digit", year: "numeric" });
 }
 
 function formatRelative(value: string | Date): string {

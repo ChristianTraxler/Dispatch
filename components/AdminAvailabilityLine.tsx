@@ -1,6 +1,7 @@
 "use client";
 
 import { useAdminStatus } from "@/lib/realtime/use-admin-status";
+import { DISPLAY_TIME_ZONE } from "@/lib/datetime";
 
 export function AdminAvailabilityLine({ className = "" }: { className?: string }) {
   const status = useAdminStatus();
@@ -14,11 +15,13 @@ export function AdminAvailabilityLine({ className = "" }: { className?: string }
 
   const pulse = status.state === "online";
 
-  // If detail looks like "back {weekday hour:min}", localize using nextOpenAt
-  // so a customer in another timezone sees their own clock.
+  // "back {weekday hour:min}" is the desk's reopening time, so it reads in the
+  // desk's zone rather than the viewer's — a client in another timezone would
+  // otherwise be told a time the desk is not actually open at.
   const detail =
     status.state === "offline" && status.nextOpenAt
-      ? `back ${new Date(status.nextOpenAt).toLocaleString(undefined, {
+      ? `back ${new Date(status.nextOpenAt).toLocaleString("en-US", {
+          timeZone: DISPLAY_TIME_ZONE,
           weekday: "short", hour: "numeric", minute: "2-digit",
         })}`
       : status.detail;

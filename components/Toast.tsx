@@ -8,6 +8,7 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
+import { DISPLAY_TIME_ZONE } from "@/lib/datetime";
 
 export type ToastKind = "signin" | "signout" | "info" | "success" | "error";
 
@@ -131,6 +132,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
   })();
 
   const time = new Date(toast.createdAt).toLocaleTimeString("en-US", {
+    timeZone: DISPLAY_TIME_ZONE,
     hour: "numeric",
     minute: "2-digit",
   });
