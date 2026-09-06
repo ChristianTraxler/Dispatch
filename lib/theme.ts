@@ -59,6 +59,11 @@ const listeners = new Set<() => void>();
 export function subscribeThemeMode(onChange: () => void): () => void {
   listeners.add(onChange);
 
+  // Re-assert on mount. Anything that recreates <html> after the init script
+  // ran — a React hydration recovery, for instance — drops the attribute
+  // without touching localStorage, and this puts it back.
+  applyThemeMode(readThemeMode());
+
   // `storage` only fires in *other* tabs, so this is what keeps a second tab
   // in step — it has to re-apply the attribute itself, not just re-render.
   const onStorage = (event: StorageEvent) => {
