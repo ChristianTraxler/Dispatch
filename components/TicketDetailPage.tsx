@@ -197,7 +197,12 @@ export function TicketDetailPage({
               type="button"
               onClick={onConfirmFixed}
               className="btn-dispatch"
-              style={{ background: "var(--signal-green)" }}
+              // Green sits on top of .btn-dispatch's ink. Signal colours do not
+              // invert between themes, so the label uses the always-light token.
+              style={{
+                background: "rgb(var(--signal-green))",
+                color: "rgb(var(--on-inverse))",
+              }}
             >
               ✓ Confirm fixed → close
             </button>

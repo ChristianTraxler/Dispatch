@@ -100,12 +100,12 @@ export function AdminClientsPage({
         <Stat
           label="Online now"
           value={onlineCount}
-          accent={onlineCount > 0 ? "var(--signal-green)" : undefined}
+          accent={onlineCount > 0 ? "rgb(var(--signal-green))" : undefined}
         />
         <Stat
           label="Open tickets"
           value={totalOpenTickets}
-          accent={totalOpenTickets > 0 ? "var(--signal-red)" : undefined}
+          accent={totalOpenTickets > 0 ? "rgb(var(--signal-red))" : undefined}
         />
       </div>
 

@@ -272,7 +272,7 @@ function StatsRow({
       <Stat
         label="Open tickets"
         value={totals.openTickets}
-        accent={totals.openTickets > 0 ? "var(--signal-red)" : undefined}
+        accent={totals.openTickets > 0 ? "rgb(var(--signal-red))" : undefined}
       />
       <Stat label="Messages" value={totals.messages} />
     </div>
