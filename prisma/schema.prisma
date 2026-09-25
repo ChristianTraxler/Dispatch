@@ -97,6 +97,10 @@ model Ticket {
   confirmedAt        DateTime? @map("confirmed_at")
   reopenedAt         DateTime? @map("reopened_at")
 
+  // Set only when an admin closes a ticket (client-confirmed closes leave
+  // this null — the client's own confirmation is reason enough).
+  closedReason String? @map("closed_reason")
+
   // Per-viewer "last opened this ticket" marks, set by the mark-read routes.
   // The tickets lists compare these against message read state and the stage
   // timestamps above to decide which tickets have activity the viewer has not

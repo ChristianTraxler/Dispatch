@@ -16,6 +16,7 @@ import {
   type RawMessageRow,
 } from "@/lib/realtime/use-ticket-channel";
 import { useTicketDeletionWatch } from "@/lib/realtime/use-ticket-deletion-watch";
+import { useTicketStatusWatch } from "@/lib/realtime/use-ticket-status-watch";
 import { AdminAvailabilityLine } from "@/components/AdminAvailabilityLine";
 
 export function TicketDetailClient({
@@ -98,6 +99,11 @@ export function TicketDetailClient({
     window.alert("This ticket was deleted by support.");
     router.push("/portal/dashboard");
   });
+
+  // Admin can change status (mark fixed, close, etc.) while this page is
+  // open — refresh server data so the status pill and progress timeline
+  // reflect it without a manual reload.
+  useTicketStatusWatch(ticket.id, () => router.refresh());
 
   // Mark unread admin messages as read when the page first renders.
   useEffect(() => {

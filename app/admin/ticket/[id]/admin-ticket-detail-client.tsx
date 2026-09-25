@@ -14,6 +14,7 @@ import {
   useTicketChannel,
   type RawMessageRow,
 } from "@/lib/realtime/use-ticket-channel";
+import { useTicketStatusWatch } from "@/lib/realtime/use-ticket-status-watch";
 import { AddOnRequestBanner, type AddOnBannerData } from "./add-on-banner";
 
 export function AdminTicketDetailClient({
@@ -99,6 +100,11 @@ export function AdminTicketDetailClient({
     );
   }, [ticket.id]);
 
+  // The client can confirm/reopen (or a status can otherwise change) while
+  // this page is open — refresh server data so the status pill, progress
+  // timeline, and admin controls reflect it without a manual reload.
+  useTicketStatusWatch(ticket.id, () => router.refresh());
+
   async function onSendMessage({
     body,
     attachments,
@@ -132,11 +138,11 @@ export function AdminTicketDetailClient({
     );
   }
 
-  async function onStatusChange(newStatus: TicketStatus) {
+  async function onStatusChange(newStatus: TicketStatus, reason?: string) {
     const res = await fetch(`/api/admin/tickets/${ticket.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
+      body: JSON.stringify({ status: newStatus, reason }),
     });
     if (!res.ok) {
       const err = (await res.json().catch(() => ({}))) as { error?: string };

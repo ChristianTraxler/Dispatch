@@ -9,6 +9,7 @@ import {
   notifyTicketReviewing,
   notifyTicketFixing,
   notifyTicketFixed,
+  notifyTicketClosed,
   type NotifyTicket,
 } from "@/lib/notify";
 import { isTicketCategory } from "@/lib/ticket-categories";
@@ -18,10 +19,12 @@ const TIMESTAMP_FOR_STATUS = {
   REVIEWING: "reviewingStartedAt",
   FIXING: "fixingStartedAt",
   AWAITING_CONFIRMATION: "fixedAt",
+  CLOSED: "confirmedAt",
 } as const satisfies Partial<Record<string, string>>;
 
 // Mirrors TIMESTAMP_FOR_STATUS above. A status with no entry notifies nobody,
-// which keeps this total without a fallback branch.
+// which keeps this total without a fallback branch. CLOSED is handled
+// separately below since it also carries an optional close reason.
 const STATUS_NOTIFIER = {
   REVIEWING: notifyTicketReviewing,
   FIXING: notifyTicketFixing,
@@ -34,7 +37,12 @@ const ALLOWED_TRANSITIONS = new Set([
   "REVIEWING",
   "FIXING",
   "AWAITING_CONFIRMATION",
+  "CLOSED",
 ]);
+
+// Admin-entered reason for closing without a client confirmation. Keep it
+// short — it's surfaced in a push notification body, not a full message.
+const MAX_CLOSE_REASON_LENGTH = 300;
 
 export async function PATCH(
   req: Request,
@@ -50,14 +58,14 @@ export async function PATCH(
   }
 
   const { id } = await context.params;
-  let payload: { status?: string; category?: string };
+  let payload: { status?: string; category?: string; reason?: string };
   try {
     payload = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const { status, category } = payload;
+  const { status, category, reason } = payload;
 
   // PATCH accepts a status change, a category change, or both. At least one
   // must be present and any provided value must be valid.
@@ -75,6 +83,15 @@ export async function PATCH(
   }
   if (category !== undefined && !isTicketCategory(category)) {
     return NextResponse.json({ error: "Invalid category." }, { status: 400 });
+  }
+  if (
+    reason !== undefined &&
+    (typeof reason !== "string" || reason.length > MAX_CLOSE_REASON_LENGTH)
+  ) {
+    return NextResponse.json(
+      { error: `Reason must be ${MAX_CLOSE_REASON_LENGTH} characters or fewer.` },
+      { status: 400 },
+    );
   }
 
   const ticket = await prisma.ticket.findUnique({
@@ -105,6 +122,11 @@ export async function PATCH(
     if (tsField && !ticket[tsField as keyof typeof ticket]) {
       updateData[tsField] = new Date();
     }
+    if (status === "CLOSED") {
+      // reason is optional and only ever set by an admin close — the
+      // client-confirm route never touches this field.
+      updateData.closedReason = reason?.trim() || null;
+    }
   }
 
   const updated = await prisma.ticket.update({
@@ -123,18 +145,20 @@ export async function PATCH(
 
   if (status !== undefined) {
     const notifier = STATUS_NOTIFIER[status as keyof typeof STATUS_NOTIFIER];
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+    // `updated` carries the post-write scalars — including a category that
+    // may have changed in this same PATCH — while `ticket` carries the
+    // relations that prisma.ticket.update does not return. Merge so the
+    // copy always reflects what the ticket now IS.
+    const fresh = { ...ticket, ...updated };
+    // Wrapped in after(): the notifier sends email and/or push, and
+    // web-push has no default socket timeout, so a slow push service must
+    // never delay this response — the admin's UI update always returns
+    // immediately regardless of notification delivery.
     if (notifier) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
-      // `updated` carries the post-write scalars — including a category that
-      // may have changed in this same PATCH — while `ticket` carries the
-      // relations that prisma.ticket.update does not return. Merge so the
-      // copy always reflects what the ticket now IS.
-      const fresh = { ...ticket, ...updated };
-      // Wrapped in after(): the notifier sends email and/or push, and
-      // web-push has no default socket timeout, so a slow push service must
-      // never delay this response — the admin's UI update always returns
-      // immediately regardless of notification delivery.
       after(() => notifier(fresh, appUrl));
+    } else if (status === "CLOSED") {
+      after(() => notifyTicketClosed(fresh, appUrl, updated.closedReason));
     }
   }
 

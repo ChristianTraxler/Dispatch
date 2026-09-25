@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { StatusPill, type TicketStatus } from "./StatusPill";
 import {
   StatusTimeline,
@@ -48,8 +48,8 @@ export interface TicketDetailPageProps {
   onConfirmFixed?: () => void | Promise<void>;
   /** Client clicks "Issue Persists" — reopens the ticket */
   onReopen?: () => void | Promise<void>;
-  /** Admin status change handler */
-  onStatusChange?: (newStatus: TicketStatus) => void | Promise<void>;
+  /** Admin status change handler. `reason` is only ever passed alongside CLOSED. */
+  onStatusChange?: (newStatus: TicketStatus, reason?: string) => void | Promise<void>;
   /** Admin category (type) change handler */
   onCategoryChange?: (newCategory: string) => void | Promise<void>;
   /** Back navigation */
@@ -295,6 +295,8 @@ export function TicketDetailPage({
 /* ============================================
    ADMIN STATUS CHANGER
    ============================================ */
+const CLOSE_REASON_PRESETS = ["No response from requester", "Declined to proceed"];
+
 function AdminStatusChanger({
   currentStatus,
   onChange,
@@ -302,7 +304,7 @@ function AdminStatusChanger({
   onCategoryChange,
 }: {
   currentStatus: TicketStatus;
-  onChange?: (s: TicketStatus) => void | Promise<void>;
+  onChange?: (s: TicketStatus, reason?: string) => void | Promise<void>;
   currentCategory: string;
   onCategoryChange?: (c: string) => void | Promise<void>;
 }) {
@@ -314,6 +316,15 @@ function AdminStatusChanger({
     { status: "FIXING", label: `Start ${work.working}` },
     { status: "AWAITING_CONFIRMATION", label: `Mark ${work.done}` },
   ];
+  const canClose = currentStatus !== "CLOSED";
+  const [closing, setClosing] = useState(false);
+  const [closeReason, setCloseReason] = useState("");
+
+  function submitClose() {
+    onChange?.("CLOSED", closeReason.trim() || undefined);
+    setClosing(false);
+    setCloseReason("");
+  }
 
   return (
     <section className="mb-10 px-5 md:px-6 py-5 border-l-[3px] border-signal-red bg-parchment-warm">
@@ -374,7 +385,68 @@ function AdminStatusChanger({
             → {t.label}
           </button>
         ))}
+        {canClose && !closing && (
+          <button
+            type="button"
+            onClick={() => setClosing(true)}
+            className="btn-ghost"
+            style={{ color: "rgb(var(--signal-red))", borderColor: "rgb(var(--signal-red) / 0.45)" }}
+          >
+            ✕ Close ticket
+          </button>
+        )}
       </div>
+
+      {closing && (
+        <div className="mt-4 pt-4 border-t border-ruleSoft">
+          <label
+            htmlFor="admin-close-reason"
+            className="block font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mb-2"
+          >
+            Reason (shown to the requester — optional)
+          </label>
+          <input
+            id="admin-close-reason"
+            type="text"
+            value={closeReason}
+            onChange={(e) => setCloseReason(e.target.value)}
+            placeholder="e.g. No response from requester"
+            maxLength={300}
+            className="input-line bg-transparent max-w-md mb-2"
+          />
+          <div className="flex flex-wrap gap-2 mb-4">
+            {CLOSE_REASON_PRESETS.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setCloseReason(preset)}
+                className="btn-ghost"
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={submitClose}
+              className="btn-dispatch"
+            >
+              Confirm close
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setClosing(false);
+                setCloseReason("");
+              }}
+              className="btn-ghost"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

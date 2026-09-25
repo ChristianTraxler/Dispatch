@@ -134,6 +134,18 @@ export async function notifyTicketFixing(ticket: NotifyTicket, appUrl: string) {
   );
 }
 
+/** Admin closed the ticket. Push only, same as the other in-progress stages. */
+export async function notifyTicketClosed(
+  ticket: NotifyTicket,
+  appUrl: string,
+  reason?: string | null,
+) {
+  const body = reason
+    ? `Closed — ${forPushBody(reason)}`
+    : `Closed by our team — ${forPushBody(ticket.title)}`;
+  await pushToClient(ticket, appUrl, body);
+}
+
 export async function notifyTicketFixed(ticket: NotifyTicket, appUrl: string) {
   // Email first, push second: email is the reliable channel and push is
   // best-effort. web-push sets no default socket timeout, so a degraded push
