@@ -1,13 +1,10 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { findValidRequest } from "@/lib/email-change";
 import { sendEmailChangeCompletedEmail } from "@/lib/email";
+import { VerifyEmailView, type VerifyOutcome } from "./verify-email-view";
 
-type Outcome =
-  | { kind: "ok"; newEmail: string }
-  | { kind: "invalid" }
-  | { kind: "error" };
+type Outcome = VerifyOutcome;
 
 async function verifyToken(rawToken: string | undefined): Promise<Outcome> {
   if (!rawToken) return { kind: "invalid" };
@@ -87,77 +84,5 @@ export default async function VerifyEmailPage({
   const params = await searchParams;
   const outcome = await verifyToken(params.token);
 
-  return (
-    <div className="max-w-xl mx-auto px-5 md:px-10 py-12 md:py-16">
-      <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.8125rem] text-accent">
-          §
-        </span>
-        <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
-          Email verification
-        </span>
-      </div>
-
-      {outcome.kind === "ok" && (
-        <>
-          <h1
-            className="font-display text-3xl md:text-5xl leading-none mb-4"
-          >
-            Email updated
-          </h1>
-          <p className="font-display italic text-ink-mute mb-6">
-            Your Dispatch login is now <strong>{outcome.newEmail}</strong>. For
-            your security, all sessions have been signed out — sign in again
-            with the new address.
-          </p>
-          <Link href="/portal/login" className="btn-dispatch">
-            Sign in
-          </Link>
-        </>
-      )}
-
-      {outcome.kind === "invalid" && (
-        <>
-          <h1
-            className="font-display text-3xl md:text-5xl leading-none mb-4"
-          >
-            Link expired or invalid
-          </h1>
-          <p className="font-display italic text-ink-mute mb-6">
-            This verification link can&rsquo;t be used. It may have expired,
-            already been used, or been replaced by a newer request. Sign in
-            and request the change again if you still need to.
-          </p>
-          <Link href="/portal/login" className="btn-dispatch">
-            Sign in
-          </Link>
-        </>
-      )}
-
-      {outcome.kind === "error" && (
-        <>
-          <h1
-            className="font-display text-3xl md:text-5xl leading-none mb-4"
-          >
-            Something went wrong
-          </h1>
-          <p className="font-display italic text-ink-mute mb-6">
-            We couldn&rsquo;t finish the change. Try the link again, or
-            contact{" "}
-            <a
-              href="mailto:hello@developerofcode.com"
-              className="text-signal-red hover:underline"
-            >
-              hello@developerofcode.com
-            </a>
-            .
-          </p>
-          <Link href="/portal/login" className="btn-dispatch">
-            Sign in
-          </Link>
-        </>
-      )}
-    </div>
-  );
+  return <VerifyEmailView outcome={outcome} />;
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
-import { Masthead } from "./Masthead";
+import { Fragment, useState, type CSSProperties, type ReactNode } from "react";
+import { AuthLayout, PHOTO_OUTLINE_BUTTON } from "./AuthLayout";
 
 export type InviteState =
   | "INVALID"
@@ -29,6 +29,9 @@ export interface InviteRedemptionProps {
   style?: CSSProperties;
 }
 
+/** Outer styling handed through to the page frame. */
+type Frame = { className?: string; style?: CSSProperties };
+
 export function InviteRedemption({
   state,
   invite,
@@ -40,82 +43,100 @@ export function InviteRedemption({
   className = "",
   style,
 }: InviteRedemptionProps) {
+  const frame: Frame = { className, style };
+
+  if (state === "INVALID") return <InvalidState frame={frame} />;
+  // Every other state describes a real invite; without one there is nothing to show.
+  if (!invite) return null;
+
+  switch (state) {
+    case "NEW_SIGNUP":
+      return <NewSignupState frame={frame} invite={invite} onSubmit={onSignup} />;
+    case "EXISTING_NEEDS_LOGIN":
+      return <ExistingNeedsLoginState frame={frame} invite={invite} onSubmit={onLogin} />;
+    case "EXISTING_LOGGED_IN_MATCH":
+      return <ExistingMatchState frame={frame} invite={invite} onConfirm={onConfirmMerge} />;
+    case "EXISTING_LOGGED_IN_MISMATCH":
+      return (
+        <MismatchState
+          frame={frame}
+          invite={invite}
+          currentSessionEmail={currentSessionEmail ?? ""}
+          onSignOut={onSignOut}
+        />
+      );
+  }
+}
+
+/* ============================================
+   SHARED PIECES
+   ============================================ */
+
+/** The invite's particulars, locked: label on the left, value on the right. */
+function Particulars({ rows }: { rows: { label: string; value: ReactNode }[] }) {
   return (
-    <div className={`min-h-screen flex flex-col ${className}`} style={style}>
-      <Masthead />
-      <main className="flex-1 flex items-start md:items-center justify-center px-5 py-10 md:py-16">
-        <div className="w-full max-w-lg">
-          {state === "INVALID" && <InvalidState />}
-          {state === "NEW_SIGNUP" && invite && <NewSignupState invite={invite} onSubmit={onSignup} />}
-          {state === "EXISTING_NEEDS_LOGIN" && invite && (
-            <ExistingNeedsLoginState invite={invite} onSubmit={onLogin} />
-          )}
-          {state === "EXISTING_LOGGED_IN_MATCH" && invite && (
-            <ExistingMatchState invite={invite} onConfirm={onConfirmMerge} />
-          )}
-          {state === "EXISTING_LOGGED_IN_MISMATCH" && invite && (
-            <MismatchState
-              invite={invite}
-              currentSessionEmail={currentSessionEmail ?? ""}
-              onSignOut={onSignOut}
-            />
-          )}
-        </div>
-      </main>
-    </div>
+    <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 mb-10 rule-thin pb-6">
+      {rows.map((row) => (
+        <Fragment key={row.label}>
+          <dt className="font-mono text-[0.8125rem] text-ink-mute">{row.label}</dt>
+          <dd className="min-w-0">{row.value}</dd>
+        </Fragment>
+      ))}
+    </dl>
   );
+}
+
+function SiteValue({ invite }: { invite: InviteData }) {
+  return (
+    <span className="font-display text-base text-ink">
+      {invite.siteDisplayName}
+      <span className="block break-all font-mono text-xs text-ink-mute">{invite.siteUrl}</span>
+    </span>
+  );
+}
+
+function EmailValue({ email }: { email: string }) {
+  return <span className="break-all font-mono text-sm text-ink">{email}</span>;
 }
 
 /* ============================================
    STATE COMPONENTS
    ============================================ */
-function StateLabel({ section, label }: { section: string; label: string }) {
-  return (
-    <div className="flex items-center gap-3 mb-8">
-      <span className="font-mono text-[0.8125rem] text-accent">
-        {section}
-      </span>
-      <span className="h-px flex-1 bg-rule" />
-      <span className="font-mono text-[0.8125rem] text-ink-mute">
-        {label}
-      </span>
-    </div>
-  );
-}
 
 /* --- INVALID --- */
-function InvalidState() {
+function InvalidState({ frame }: { frame: Frame }) {
   return (
-    <>
-      <StateLabel section="§ ERR" label="Invitation Closed" />
-      <h2
-        className="font-display text-3xl md:text-4xl leading-tight mb-3"
-      >
-        This invite is no longer
-        <br />
-        <span className="">valid.</span>
-      </h2>
-      <p className="font-display text-ink-mute italic mb-10 text-base">
-        It may have expired (invites last 7 days) or already been used. If you
-        still need access, reach out and I'll send a fresh one.
-      </p>
-      <div className="rule-thin pt-6">
-        <a
-          href="mailto:hello@developerofcode.com"
-          className="btn-ghost"
-        >
-          Email me for a new invite →
-        </a>
-      </div>
-    </>
+    <AuthLayout
+      {...frame}
+      variant="message"
+      title={
+        <>
+          This invite is no longer
+          <br className="hidden lg:inline" />
+          valid.
+        </>
+      }
+      intro={
+        <>
+          It may have expired (invites last 7 days) or already been used. If you
+          still need access, reach out and I&rsquo;ll send a fresh one.
+        </>
+      }
+    >
+      <a href="mailto:hello@developerofcode.com" className={PHOTO_OUTLINE_BUTTON}>
+        Email me for a new invite →
+      </a>
+    </AuthLayout>
   );
 }
 
 /* --- NEW SIGNUP --- */
 function NewSignupState({
+  frame,
   invite,
   onSubmit,
 }: {
+  frame: Frame;
   invite: InviteData;
   onSubmit?: (data: { name: string; password: string }) => void | Promise<void>;
 }) {
@@ -135,41 +156,36 @@ function NewSignupState({
   }
 
   return (
-    <>
-      <StateLabel section="§ 01" label="Welcome" />
-      <h2
-        className="font-display text-3xl md:text-4xl leading-tight mb-3"
-      >
-        Set up your
-        <br />
-        <span className="">support desk.</span>
-      </h2>
-      <p className="font-display text-ink-mute italic mb-8 text-base">
-        Christian invited you to file dispatches for the site below. Pick a
-        password and you're in.
-      </p>
-
-      {/* Invite particulars, locked */}
-      <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 mb-10 rule-thin pb-6">
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
-          Site
-        </span>
-        <span className="font-display text-base text-ink">
-          {invite.siteDisplayName}{" "}
-          <span className="font-mono text-xs text-ink-mute">— {invite.siteUrl}</span>
-        </span>
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
-          Email
-        </span>
-        <span className="font-mono text-sm text-ink">{invite.email}</span>
-      </div>
+    <AuthLayout
+      {...frame}
+      title={
+        <>
+          Set up your
+          <br />
+          support desk.
+        </>
+      }
+      intro={
+        <>
+          Christian invited you to file dispatches for the site below. Pick a
+          password and you&rsquo;re in.
+        </>
+      }
+    >
+      <Particulars
+        rows={[
+          { label: "Site", value: <SiteValue invite={invite} /> },
+          { label: "Email", value: <EmailValue email={invite.email} /> },
+        ]}
+      />
 
       <form onSubmit={handle} className="space-y-7">
         <div>
-          <label className="block font-mono text-[0.8125rem] text-ink-mute mb-1">
+          <label htmlFor="invite-name" className="block font-mono text-[0.8125rem] text-ink-mute mb-1">
             Your name
           </label>
           <input
+            id="invite-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="First and last"
@@ -179,10 +195,11 @@ function NewSignupState({
           />
         </div>
         <div>
-          <label className="block font-mono text-[0.8125rem] text-ink-mute mb-1">
+          <label htmlFor="invite-password" className="block font-mono text-[0.8125rem] text-ink-mute mb-1">
             Pick a password
           </label>
           <input
+            id="invite-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -200,15 +217,17 @@ function NewSignupState({
           </button>
         </div>
       </form>
-    </>
+    </AuthLayout>
   );
 }
 
 /* --- EXISTING NEEDS LOGIN --- */
 function ExistingNeedsLoginState({
+  frame,
   invite,
   onSubmit,
 }: {
+  frame: Frame;
   invite: InviteData;
   onSubmit?: (data: { password: string }) => void | Promise<void>;
 }) {
@@ -227,38 +246,42 @@ function ExistingNeedsLoginState({
   }
 
   return (
-    <>
-      <StateLabel section="§ 02" label="Welcome Back" />
-      <h2
-        className="font-display text-3xl md:text-4xl leading-tight mb-3"
-      >
-        Log in to add
-        <br />
-        <span className="">{invite.siteDisplayName}</span>
-        <br />
-        to your account.
-      </h2>
-      <p className="font-display text-ink-mute italic mb-10 text-base">
-        You already have a Dispatch account at <strong>{invite.email}</strong>.
-        Sign in and the site will attach to your existing account.
-      </p>
-
+    <AuthLayout
+      {...frame}
+      title={
+        <>
+          Log in to add
+          <br />
+          {invite.siteDisplayName}
+          <br />
+          to your account.
+        </>
+      }
+      intro={
+        <>
+          You already have a Dispatch account at <strong>{invite.email}</strong>.
+          Sign in and the site will attach to your existing account.
+        </>
+      }
+    >
       <form onSubmit={handle} className="space-y-7">
         <div>
-          <label className="block font-mono text-[0.8125rem] text-ink-mute mb-1">
+          <label htmlFor="invite-login-email" className="block font-mono text-[0.8125rem] text-ink-mute mb-1">
             Email
           </label>
           <input
+            id="invite-login-email"
             value={invite.email}
             disabled
             className="input-line opacity-60"
           />
         </div>
         <div>
-          <label className="block font-mono text-[0.8125rem] text-ink-mute mb-1">
+          <label htmlFor="invite-login-password" className="block font-mono text-[0.8125rem] text-ink-mute mb-1">
             Password
           </label>
           <input
+            id="invite-login-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -280,15 +303,17 @@ function ExistingNeedsLoginState({
           </button>
         </div>
       </form>
-    </>
+    </AuthLayout>
   );
 }
 
 /* --- EXISTING LOGGED-IN MATCH --- */
 function ExistingMatchState({
+  frame,
   invite,
   onConfirm,
 }: {
+  frame: Frame;
   invite: InviteData;
   onConfirm?: () => void | Promise<void>;
 }) {
@@ -305,84 +330,66 @@ function ExistingMatchState({
   }
 
   return (
-    <>
-      <StateLabel section="§ 03" label="Confirm Merge" />
-      <h2
-        className="font-display text-3xl md:text-4xl leading-tight mb-3"
-      >
-        Add{" "}
-        <span className="">{invite.siteDisplayName}</span>{" "}
-        to your account?
-      </h2>
-      <p className="font-display text-ink-mute italic mb-8 text-base">
-        You'll be able to file tickets for this site alongside your existing sites.
-      </p>
-
-      <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 mb-10 rule-thin pb-6">
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
-          Site to add
-        </span>
-        <span className="font-display text-base text-ink">
-          {invite.siteDisplayName}{" "}
-          <span className="font-mono text-xs text-ink-mute">— {invite.siteUrl}</span>
-        </span>
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
-          Account
-        </span>
-        <span className="font-mono text-sm text-ink">{invite.email}</span>
-      </div>
+    <AuthLayout
+      {...frame}
+      title={<>Add {invite.siteDisplayName} to your account?</>}
+      intro={<>You&rsquo;ll be able to file tickets for this site alongside your existing sites.</>}
+    >
+      <Particulars
+        rows={[
+          { label: "Site to add", value: <SiteValue invite={invite} /> },
+          { label: "Account", value: <EmailValue email={invite.email} /> },
+        ]}
+      />
 
       <div className="flex items-center justify-end gap-3">
-        <a
-          href="/portal/dashboard"
-          className="btn-ghost"
-        >
+        <a href="/portal/dashboard" className="btn-ghost">
           Cancel
         </a>
         <button type="button" onClick={handle} disabled={submitting} className="btn-dispatch">
           {submitting ? "Adding…" : "Add site →"}
         </button>
       </div>
-    </>
+    </AuthLayout>
   );
 }
 
 /* --- MISMATCH --- */
 function MismatchState({
+  frame,
   invite,
   currentSessionEmail,
   onSignOut,
 }: {
+  frame: Frame;
   invite: InviteData;
   currentSessionEmail: string;
   onSignOut?: () => void | Promise<void>;
 }) {
   return (
-    <>
-      <StateLabel section="§ ERR" label="Account Mismatch" />
-      <h2
-        className="font-display text-3xl md:text-4xl leading-tight mb-3"
-      >
-        This invite isn't for
-        <br />
-        <span className="">your current account.</span>
-      </h2>
-      <p className="font-display text-ink-mute italic mb-10 text-base">
-        You're signed in as <strong>{currentSessionEmail}</strong>, but this invite
-        was sent to <strong>{invite.email}</strong>. Sign out and click the invite
-        link again, or contact me if this is a mistake.
-      </p>
-
-      <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 mb-10 rule-thin pb-6">
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
-          Invite is for
-        </span>
-        <span className="font-mono text-sm text-ink">{invite.email}</span>
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
-          You're signed in as
-        </span>
-        <span className="font-mono text-sm text-ink">{currentSessionEmail}</span>
-      </div>
+    <AuthLayout
+      {...frame}
+      title={
+        <>
+          This invite isn&rsquo;t for
+          <br className="hidden lg:inline" />
+          your current account.
+        </>
+      }
+      intro={
+        <>
+          You&rsquo;re signed in as <strong>{currentSessionEmail}</strong>, but this invite
+          was sent to <strong>{invite.email}</strong>. Sign out and click the invite
+          link again, or contact me if this is a mistake.
+        </>
+      }
+    >
+      <Particulars
+        rows={[
+          { label: "Invite is for", value: <EmailValue email={invite.email} /> },
+          { label: "You're signed in as", value: <EmailValue email={currentSessionEmail} /> },
+        ]}
+      />
 
       <div className="flex items-center justify-end gap-3">
         <a href="/portal/dashboard" className="btn-ghost">
@@ -392,6 +399,6 @@ function MismatchState({
           Sign out & retry →
         </button>
       </div>
-    </>
+    </AuthLayout>
   );
 }
