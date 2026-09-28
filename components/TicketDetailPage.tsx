@@ -44,9 +44,9 @@ export interface TicketDetailPageProps {
   onSendMessage?: (data: { body: string; attachments: never[] }) => void | Promise<void>;
   /** Fired when the viewer's typing state changes (forwarded to chat thread) */
   onTypingChange?: (isTyping: boolean) => void;
-  /** Client clicks "Confirm Fixed" — closes the ticket */
+  /** Client clicks "Confirm Fixed", closes the ticket */
   onConfirmFixed?: () => void | Promise<void>;
-  /** Client clicks "Issue Persists" — reopens the ticket */
+  /** Client clicks "Issue Persists", reopens the ticket */
   onReopen?: () => void | Promise<void>;
   /** Admin status change handler. `reason` is only ever passed alongside CLOSED. */
   onStatusChange?: (newStatus: TicketStatus, reason?: string) => void | Promise<void>;
@@ -93,7 +93,7 @@ export function TicketDetailPage({
 }: TicketDetailPageProps) {
   const isClient = viewerType === "client";
   const showConfirmActions = isClient && ticket.status === "AWAITING_CONFIRMATION";
-  // Client component, so this formats in the viewer's own zone — same as the
+  // Client component, so this formats in the viewer's own zone, same as the
   // per-stage stamps in the timeline below.
   const filedAt = formatFiledAt(ticket.createdAt);
 
@@ -104,7 +104,7 @@ export function TicketDetailPage({
         <button
           type="button"
           onClick={onBack}
-          className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors mb-4"
+          className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors mb-4"
         >
           ← Back to ledger
         </button>
@@ -114,11 +114,11 @@ export function TicketDetailPage({
       <header className="mb-8 rule-double pb-6">
         <div className="flex items-center gap-3 mb-3 flex-wrap">
           <StatusPill status={ticket.status} />
-          <span className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-fade">
+          <span className="font-mono text-[0.8125rem] text-ink-fade">
             {ticket.ticketNumber}
           </span>
           <span className="text-ink-fade">·</span>
-          <span className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-mute">
+          <span className="font-mono text-[0.8125rem] text-ink-mute">
             {categoryShortLabel(ticket.category)}
           </span>
           {headerBadge}
@@ -126,7 +126,6 @@ export function TicketDetailPage({
 
         <h1
           className="font-display text-3xl md:text-5xl leading-tight mb-2"
-          style={{ fontVariationSettings: '"opsz" 144' }}
         >
           {ticket.title}
         </h1>
@@ -135,13 +134,13 @@ export function TicketDetailPage({
           <span className="font-display italic text-ink-mute">
             Filed for {ticket.siteDisplayName}
           </span>
-          <span className="font-mono text-[0.65rem] uppercase tracking-wider text-ink-fade">
+          <span className="font-mono text-[0.8125rem] text-ink-fade">
             {ticket.siteUrl}
           </span>
           {ticket.clientName && (
             <>
               <span className="text-ink-fade">·</span>
-              <span className="font-mono text-[0.65rem] uppercase tracking-wider text-ink-mute">
+              <span className="font-mono text-[0.8125rem] text-ink-mute">
                 {ticket.clientName}
               </span>
             </>
@@ -149,7 +148,7 @@ export function TicketDetailPage({
         </div>
 
         {filedAt && (
-          <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade mt-3">
+          <p className="font-mono text-[0.8125rem] text-ink-fade mt-3">
             Filed {filedAt}
           </p>
         )}
@@ -158,10 +157,10 @@ export function TicketDetailPage({
       {/* Status timeline */}
       <section className="mb-10">
         <div className="flex items-center gap-3 mb-5">
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">
+          <span className="font-mono text-[0.8125rem] text-accent">
             §
           </span>
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+          <span className="font-mono text-[0.8125rem] text-ink-mute">
             Progress
           </span>
           <span className="h-px flex-1 bg-ruleSoft" />
@@ -169,22 +168,21 @@ export function TicketDetailPage({
         <StatusTimeline ticket={ticket} status={ticket.status} category={ticket.category} />
       </section>
 
-      {/* Confirm / reopen actions — only for client when AWAITING_CONFIRMATION */}
+      {/* Confirm / reopen actions, only for client when AWAITING_CONFIRMATION */}
       {showConfirmActions && (
         <section
-          className="mb-10 px-5 md:px-6 py-5 md:py-6 border-l-[3px] border-signal-green bg-parchment-warm"
+          className="mb-10 px-5 md:px-6 py-5 md:py-6 border border-signal-green/25 bg-parchment-warm rounded-xl"
           aria-labelledby="confirm-heading"
         >
           <div className="flex items-center gap-2 mb-2">
             <span className="presence-dot online pulse" aria-hidden="true" />
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-green">
+            <span className="font-mono text-[0.8125rem] text-signal-green">
               Awaiting your confirmation
             </span>
           </div>
           <h2
             id="confirm-heading"
             className="font-display text-xl md:text-2xl mb-2"
-            style={{ fontVariationSettings: '"opsz" 144' }}
           >
             Is everything fixed on your end?
           </h2>
@@ -197,10 +195,11 @@ export function TicketDetailPage({
               type="button"
               onClick={onConfirmFixed}
               className="btn-dispatch"
-              // Green sits on top of .btn-dispatch's ink. Signal colours do not
-              // invert between themes, so the label uses the always-light token.
+              // Green sits on top of .btn-dispatch's orange. The fill token stays
+              // deep in both themes (plain signal green turns mint after hours),
+              // so the label uses the always-light token.
               style={{
-                background: "rgb(var(--signal-green))",
+                background: "rgb(var(--signal-green-fill))",
                 color: "rgb(var(--on-inverse))",
               }}
             >
@@ -225,13 +224,13 @@ export function TicketDetailPage({
 
       {/* Two-column: original report + chat */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-8 items-start">
-        {/* Original report — sidebar */}
+        {/* Original report, sidebar */}
         <aside className="lg:sticky lg:top-4">
           <div className="flex items-center gap-3 mb-3">
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">
+            <span className="font-mono text-[0.8125rem] text-accent">
               §
             </span>
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+            <span className="font-mono text-[0.8125rem] text-ink-mute">
               Original Report
             </span>
           </div>
@@ -243,7 +242,7 @@ export function TicketDetailPage({
 
           {ticketAttachments.length > 0 && (
             <div className="mt-5">
-              <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mb-2">
+              <p className="font-mono text-[0.8125rem] text-ink-mute mb-2">
                 Filed with
               </p>
               <ul className="space-y-2">
@@ -260,14 +259,14 @@ export function TicketDetailPage({
         {/* Chat */}
         <section>
           <div className="flex items-center gap-3 mb-3">
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">
+            <span className="font-mono text-[0.8125rem] text-accent">
               §
             </span>
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+            <span className="font-mono text-[0.8125rem] text-ink-mute">
               Conversation
             </span>
             <span className="h-px flex-1 bg-ruleSoft" />
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade">
+            <span className="font-mono text-[0.8125rem] text-ink-fade">
               {messages.length} message{messages.length === 1 ? "" : "s"}
             </span>
           </div>
@@ -327,24 +326,24 @@ function AdminStatusChanger({
   }
 
   return (
-    <section className="mb-10 px-5 md:px-6 py-5 border-l-[3px] border-signal-red bg-parchment-warm">
+    <section className="mb-10 px-5 md:px-6 py-5 border border-rule-soft bg-parchment-warm rounded-2xl">
       <div className="flex items-center gap-2 mb-3">
-        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">
+        <span className="font-mono text-[0.8125rem] text-accent">
           Admin controls
         </span>
         <span className="text-ink-fade">·</span>
-        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           Currently: {currentStatus}
         </span>
       </div>
 
-      {/* Type changer — fix a mis-filed ticket so the progress wording and
+      {/* Type changer, fix a mis-filed ticket so the progress wording and
           queue grouping match what the work actually is. */}
       {onCategoryChange && (
         <div className="mb-4">
           <label
             htmlFor="admin-category"
-            className="block font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mb-2"
+            className="block font-mono text-[0.8125rem] text-ink-mute mb-2"
           >
             Type
           </label>
@@ -401,7 +400,7 @@ function AdminStatusChanger({
         <div className="mt-4 pt-4 border-t border-ruleSoft">
           <label
             htmlFor="admin-close-reason"
-            className="block font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mb-2"
+            className="block font-mono text-[0.8125rem] text-ink-mute mb-2"
           >
             Reason (shown to the requester — optional)
           </label>
@@ -454,7 +453,7 @@ function AdminStatusChanger({
 /* ============================================
    ATTACHMENT ROW
    ============================================
-   Used in the Original Report sidebar — image thumb for image MIME types,
+   Used in the Original Report sidebar, image thumb for image MIME types,
    filename + download link for PDFs.
    ============================================ */
 function AttachmentRow({ attachment }: { attachment: ChatAttachment }) {
@@ -470,9 +469,9 @@ function AttachmentRow({ attachment }: { attachment: ChatAttachment }) {
         <img
           src={attachment.url}
           alt={attachment.filename}
-          className="block max-w-full h-auto border border-rule group-hover:border-signal-red transition-colors"
+          className="block max-w-full h-auto border border-rule group-hover:border-accent transition-colors rounded-2xl"
         />
-        <span className="block mt-1 font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade group-hover:text-signal-red transition-colors truncate">
+        <span className="block mt-1 font-mono text-[0.8125rem] text-ink-fade group-hover:text-accent transition-colors truncate">
           {attachment.filename}
         </span>
       </a>
@@ -483,7 +482,7 @@ function AttachmentRow({ attachment }: { attachment: ChatAttachment }) {
       href={attachment.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-2 px-2 py-1 border border-rule hover:border-signal-red bg-parchment font-mono text-[0.65rem] uppercase tracking-wider text-ink-mute hover:text-signal-red transition-colors"
+      className="inline-flex items-center gap-2 px-2 py-1 border border-rule hover:border-accent bg-parchment font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors rounded-full"
     >
       ↳ {attachment.filename}
     </a>

@@ -87,11 +87,11 @@ export function EmergencyFixModal({ open, feeCents, onConfirm, onCancel }: Emerg
       />
       <div
         ref={dialogRef}
-        className="relative bg-parchment border border-ink max-w-lg w-full p-8 shadow-xl"
+        className="relative bg-parchment border border-ink max-w-lg w-full p-8 shadow-xl rounded-2xl"
       >
         <div className="flex items-center gap-3 mb-3">
-          <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">⚠</span>
-          <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+          <span className="font-mono text-[0.8125rem] text-accent">⚠</span>
+          <span className="font-mono text-[0.8125rem] text-ink-mute">
             Outside business hours
           </span>
         </div>
@@ -99,7 +99,6 @@ export function EmergencyFixModal({ open, feeCents, onConfirm, onCancel }: Emerg
         <h2
           id={titleId}
           className="font-display text-3xl leading-tight mb-3"
-          style={{ fontVariationSettings: '"opsz" 144' }}
         >
           Emergency fix
         </h2>

@@ -32,7 +32,7 @@ export function Avatar({ src, name, size = 32, tone = "client", className = "" }
   if (!src) {
     return (
       <span
-        className={`inline-flex items-center justify-center rounded-full font-mono uppercase tracking-wider shrink-0 ${baseRing} ${className}`}
+        className={`inline-flex items-center justify-center rounded-full font-mono shrink-0 ${baseRing} ${className}`}
         style={{ width: dim, height: dim, fontSize: `${fontSize}px` }}
         aria-label={name}
         title={name}

@@ -141,7 +141,7 @@ export function AddOnRequestBanner({
     <div className="max-w-6xl mx-auto px-5 md:px-10 pt-6">
       <div className="border-2 border-signal-red bg-parchment-warm px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div className="min-w-0">
-          <div className="font-mono text-[0.55rem] uppercase tracking-widest text-signal-red mb-1">
+          <div className="font-mono text-[0.75rem] text-accent mb-1">
             Add-on request
           </div>
           <div className="font-display text-lg">
@@ -157,7 +157,7 @@ export function AddOnRequestBanner({
           </div>
         </div>
         {alreadyActive ? (
-          <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+          <span className="font-mono text-[0.8125rem] text-ink-mute">
             Already active
           </span>
         ) : (
@@ -173,18 +173,18 @@ export function AddOnRequestBanner({
           onClick={() => !busy && setOpen(false)}
         >
           <div
-            className="bg-parchment border border-rule max-w-md w-full p-5 md:p-6"
+            className="bg-parchment border border-rule max-w-md w-full p-5 md:p-6 rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="font-display text-xl mb-4">Activate {data.addOn.name}</h3>
 
             {data.addOn.scope === "PER_SITE" && (
               <label className="block mb-3">
-                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">Site</span>
+                <span className="font-mono text-[0.8125rem] text-ink-mute">Site</span>
                 <select
                   value={siteId}
                   onChange={(e) => setSiteId(e.target.value)}
-                  className="mt-1 w-full border border-rule bg-parchment-warm px-3 py-2 font-display"
+                  className="mt-1 w-full border border-rule bg-parchment-warm px-3 py-2 font-display rounded-2xl"
                 >
                   <option value="">— pick a site —</option>
                   {data.clientSites.map((s) => (
@@ -195,7 +195,7 @@ export function AddOnRequestBanner({
             )}
 
             <label className="block mb-3">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+              <span className="font-mono text-[0.8125rem] text-ink-mute">
                 Snapshot price (USD)
               </span>
               <input
@@ -204,40 +204,40 @@ export function AddOnRequestBanner({
                 min="0"
                 value={priceDollars}
                 onChange={(e) => setPriceDollars(e.target.value)}
-                className="mt-1 w-full border border-rule bg-parchment-warm px-3 py-2 font-mono"
+                className="mt-1 w-full border border-rule bg-parchment-warm px-3 py-2 font-mono rounded-2xl"
               />
               {effectiveShape.priceType === "PERCENTAGE" && effectiveShape.pricePercentBp !== null && (
-                <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute">
+                <span className="block mt-1 font-mono text-[0.75rem] text-ink-mute">
                   Modifier for this client: {formatPercentBp(effectiveShape.pricePercentBp)}{priceUnitSuffix(data.addOn.priceUnit)} — enter the resulting dollar amount.
                 </span>
               )}
               {effectiveShape.priceType === "RANGE" && effectiveShape.priceMaxCents != null && (
-                <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute">
+                <span className="block mt-1 font-mono text-[0.75rem] text-ink-mute">
                   Range for this client: {formatPriceRange(effectiveShape.priceCents, effectiveShape.priceMaxCents)}{priceUnitSuffix(data.addOn.priceUnit)} — enter the agreed amount.
                 </span>
               )}
             </label>
 
             <label className="block mb-3">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+              <span className="font-mono text-[0.8125rem] text-ink-mute">
                 Note (admin-only)
               </span>
               <input
                 type="text"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                className="mt-1 w-full border border-rule bg-parchment-warm px-3 py-2 font-display"
+                className="mt-1 w-full border border-rule bg-parchment-warm px-3 py-2 font-display rounded-2xl"
               />
             </label>
 
-            {error && <p className="text-sm text-signal-red font-mono mb-3">{error}</p>}
+            {error && <p className="text-sm text-accent font-mono mb-3">{error}</p>}
 
             <div className="flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 disabled={busy}
-                className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink"
+                className="font-mono text-[0.8125rem] text-ink-mute hover:text-ink"
               >
                 Cancel
               </button>

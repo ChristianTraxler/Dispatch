@@ -38,17 +38,16 @@ export function SitesPage({
   return (
     <div className={`max-w-5xl mx-auto px-5 md:px-10 py-8 md:py-12 ${className}`} style={style}>
       <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">
+        <span className="font-mono text-[0.8125rem] text-accent">
           §
         </span>
         <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           Registered Sites
         </span>
       </div>
       <h1
         className="font-display text-3xl md:text-5xl leading-none mb-2"
-        style={{ fontVariationSettings: '"opsz" 144' }}
       >
         Your sites
       </h1>
@@ -70,7 +69,6 @@ export function SitesPage({
             <div className="flex-1 min-w-0">
               <h2
                 className="font-display text-xl md:text-2xl leading-tight"
-                style={{ fontVariationSettings: '"opsz" 144' }}
               >
                 {site.displayName}
               </h2>
@@ -78,11 +76,11 @@ export function SitesPage({
                 href={`https://${site.url}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono text-xs uppercase tracking-wider text-ink-mute hover:text-signal-red transition-colors inline-flex items-center gap-1.5 mt-1"
+                className="font-mono text-xs text-ink-mute hover:text-accent transition-colors inline-flex items-center gap-1.5 mt-1"
               >
                 {site.url} ↗
               </a>
-              <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade mt-2">
+              <div className="font-mono text-[0.8125rem] text-ink-fade mt-2">
                 Added {formatDate(site.addedAt)}
               </div>
               <div className="mt-1">
@@ -100,7 +98,7 @@ export function SitesPage({
                 <div className="font-display text-2xl text-ink leading-none">
                   {site.totalTickets}
                 </div>
-                <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mt-1">
+                <div className="font-mono text-[0.75rem] text-ink-mute mt-1">
                   Total filed
                 </div>
               </div>
@@ -108,12 +106,12 @@ export function SitesPage({
                 <div
                   className={[
                     "font-display text-2xl leading-none",
-                    site.openTickets > 0 ? "text-signal-red" : "text-ink-fade",
+                    site.openTickets > 0 ? "text-accent" : "text-ink-fade",
                   ].join(" ")}
                 >
                   {site.openTickets}
                 </div>
-                <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mt-1">
+                <div className="font-mono text-[0.75rem] text-ink-mute mt-1">
                   Currently open
                 </div>
               </div>

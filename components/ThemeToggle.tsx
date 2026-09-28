@@ -50,7 +50,7 @@ function ThemeIcon({ mode }: { mode: ThemeMode }) {
 /**
  * Three-state theme control: System → Light → Dark → System.
  *
- * Keeping an explicit "System" position is the point of the cycle — a plain
+ * Keeping an explicit "System" position is the point of the cycle, a plain
  * light/dark switch can never hand control back to the OS once it is clicked.
  *
  * The server has no way to know the stored preference, so the first paint of
@@ -61,7 +61,7 @@ function ThemeIcon({ mode }: { mode: ThemeMode }) {
  */
 export function ThemeToggle({ className = "" }: { className?: string }) {
   // localStorage is an external store, so it is subscribed to rather than
-  // mirrored into state — which also keeps a second tab in step for free.
+  // mirrored into state, which also keeps a second tab in step for free.
   const mode = useSyncExternalStore(
     subscribeThemeMode,
     readThemeMode,
@@ -81,7 +81,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       onClick={cycle}
       aria-label={`Theme: ${label}. Switch to ${upcoming}.`}
       title={`Theme: ${label} — click for ${upcoming}`}
-      className={`inline-flex items-center gap-1.5 font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-signal-red focus-visible:ring-offset-2 focus-visible:ring-offset-parchment ${className}`}
+      className={`inline-flex items-center gap-1.5 font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-parchment ${className}`}
     >
       <span className="theme-toggle-in inline-flex items-center gap-1.5">
         <ThemeIcon mode={mode} />

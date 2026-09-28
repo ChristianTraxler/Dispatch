@@ -145,7 +145,7 @@ function AddOnCard({
     const el = descRef.current;
     const parent = el?.parentElement;
     if (!el || !parent) return;
-    // Measure the wrapper so the <p>'s own margins (mt-1) are included —
+    // Measure the wrapper so the <p>'s own margins (mt-1) are included,
     // otherwise descenders on the last line get clipped by overflow-hidden.
     const measure = () => setFullHeight(parent.scrollHeight);
     measure();
@@ -164,7 +164,7 @@ function AddOnCard({
 
   return (
     <li
-      className={`border border-rule bg-parchment-warm/30 ${row.isActive ? "" : "opacity-60"}`}
+      className={`border border-rule bg-parchment-warm/30 rounded-2xl ${row.isActive ? "" : "opacity-60"}`}
     >
       <button
         type="button"
@@ -220,13 +220,13 @@ function AddOnCard({
           </div>
           <div className="text-right shrink-0">
             <div className="font-mono text-sm whitespace-nowrap">{priceDisplay}</div>
-            <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mt-0.5">
+            <div className="font-mono text-[0.75rem] text-ink-mute mt-0.5">
               {unitLabel}
             </div>
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute">
+        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[0.75rem] text-ink-mute">
           <span>{row.kind === "RECURRING" ? "Recurring" : "One-time"}</span>
           <span className="text-ink-fade">·</span>
           <span>{row.scope === "PER_SITE" ? "Per site" : "Per client"}</span>
@@ -246,7 +246,7 @@ function AddOnCard({
           type="button"
           onClick={onEdit}
           disabled={editDisabled}
-          className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink disabled:opacity-50"
+          className="font-mono text-[0.8125rem] text-ink-mute hover:text-ink disabled:opacity-50"
         >
           Edit
         </button>
@@ -254,7 +254,7 @@ function AddOnCard({
           type="button"
           onClick={onToggleActive}
           disabled={busy}
-          className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink disabled:opacity-50"
+          className="font-mono text-[0.8125rem] text-ink-mute hover:text-ink disabled:opacity-50"
         >
           {row.isActive ? "Retire" : "Unretire"}
         </button>
@@ -262,7 +262,7 @@ function AddOnCard({
           type="button"
           onClick={onDelete}
           disabled={busy}
-          className="ml-auto font-mono text-[0.65rem] uppercase tracking-widest text-signal-red hover:opacity-80 disabled:opacity-50"
+          className="ml-auto font-mono text-[0.8125rem] text-accent hover:opacity-80 disabled:opacity-50"
         >
           Delete
         </button>
@@ -468,9 +468,9 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
   return (
     <div className="max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12">
       <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">§</span>
+        <span className="font-mono text-[0.8125rem] text-accent">§</span>
         <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           Catalog
         </span>
       </div>
@@ -479,7 +479,6 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
         <div>
           <h1
             className="font-display text-3xl md:text-5xl leading-none mb-2"
-            style={{ fontVariationSettings: '"opsz" 144' }}
           >
             Add-Ons
           </h1>
@@ -499,14 +498,14 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
       </div>
 
       {editingId !== null && (
-        <div className="border border-rule bg-parchment-warm/40 p-5 md:p-6 mb-8">
+        <div className="border border-rule bg-parchment-warm/40 p-5 md:p-6 mb-8 rounded-2xl">
           <h2 className="font-display text-xl mb-4">
             {editingId === "new" ? "New add-on" : "Edit add-on"}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label className="block">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+              <span className="font-mono text-[0.8125rem] text-ink-mute">
                 Name
               </span>
               <input
@@ -514,21 +513,21 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
                 value={form.name}
                 onChange={(e) => updateForm("name", e.target.value)}
                 maxLength={120}
-                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display"
+                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display rounded-2xl"
               />
             </label>
 
             <label className="block">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+              <span className="font-mono text-[0.8125rem] text-ink-mute">
                 Display order
               </span>
               <input
                 type="number"
                 value={form.sortOrder}
                 onChange={(e) => updateForm("sortOrder", e.target.value)}
-                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono rounded-2xl"
               />
-              <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute leading-snug">
+              <span className="block mt-1 font-mono text-[0.75rem] text-ink-mute leading-snug">
                 Where this add-on appears in the client&rsquo;s catalog. Lower numbers
                 first. Use spaced values (10, 20, 30…) so you can slot new add-ons
                 between later.
@@ -536,25 +535,25 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
             </label>
 
             <label className="block md:col-span-2">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+              <span className="font-mono text-[0.8125rem] text-ink-mute">
                 Description (visible to clients)
               </span>
               <textarea
                 value={form.description}
                 onChange={(e) => updateForm("description", e.target.value)}
                 rows={3}
-                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display"
+                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display rounded-2xl"
               />
             </label>
 
             <label className="block">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+              <span className="font-mono text-[0.8125rem] text-ink-mute">
                 Kind
               </span>
               <select
                 value={form.kind}
                 onChange={(e) => updateForm("kind", e.target.value as AddOnKind)}
-                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono rounded-2xl"
               >
                 <option value="RECURRING">Recurring</option>
                 <option value="ONE_TIME">One-time</option>
@@ -562,13 +561,13 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
             </label>
 
             <label className="block">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+              <span className="font-mono text-[0.8125rem] text-ink-mute">
                 Scope
               </span>
               <select
                 value={form.scope}
                 onChange={(e) => updateForm("scope", e.target.value as AddOnScope)}
-                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono rounded-2xl"
               >
                 <option value="PER_SITE">Per site</option>
                 <option value="PER_CLIENT">Per client account</option>
@@ -576,13 +575,13 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
             </label>
 
             <label className="block md:col-span-2">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+              <span className="font-mono text-[0.8125rem] text-ink-mute">
                 Pricing style
               </span>
               <select
                 value={form.priceType}
                 onChange={(e) => updateForm("priceType", e.target.value as AddOnPriceType)}
-                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono rounded-2xl"
               >
                 <option value="FIXED">Fixed — single price (e.g. $500)</option>
                 <option value="RANGE">Range — depends on scope (e.g. $500 – $1500)</option>
@@ -592,7 +591,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
 
             {form.priceType !== "PERCENTAGE" && (
               <label className="block">
-                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                <span className="font-mono text-[0.8125rem] text-ink-mute">
                   {form.priceType === "RANGE" ? "Starting price (USD)" : "Price (USD)"}
                 </span>
                 <input
@@ -601,14 +600,14 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
                   min="0"
                   value={form.priceDollars}
                   onChange={(e) => updateForm("priceDollars", e.target.value)}
-                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono rounded-2xl"
                 />
               </label>
             )}
 
             {form.priceType === "RANGE" && (
               <label className="block">
-                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                <span className="font-mono text-[0.8125rem] text-ink-mute">
                   Max price (USD)
                 </span>
                 <input
@@ -617,14 +616,14 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
                   min="0"
                   value={form.priceMaxDollars}
                   onChange={(e) => updateForm("priceMaxDollars", e.target.value)}
-                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono rounded-2xl"
                 />
               </label>
             )}
 
             {form.priceType === "PERCENTAGE" && (
               <label className="block md:col-span-2">
-                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                <span className="font-mono text-[0.8125rem] text-ink-mute">
                   Percent modifier
                 </span>
                 <input
@@ -633,9 +632,9 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
                   value={form.pricePercent}
                   onChange={(e) => updateForm("pricePercent", e.target.value)}
                   placeholder="e.g. 25 or +25"
-                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono rounded-2xl"
                 />
-                <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute leading-snug">
+                <span className="block mt-1 font-mono text-[0.75rem] text-ink-mute leading-snug">
                   Renders as &ldquo;+25%&rdquo; on the client side. Use a negative number
                   (e.g. -10) for a discount. The actual dollar amount is calculated
                   per-project at activation time.
@@ -644,13 +643,13 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
             )}
 
             <label className="block">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+              <span className="font-mono text-[0.8125rem] text-ink-mute">
                 Price unit
               </span>
               <select
                 value={form.priceUnit}
                 onChange={(e) => updateForm("priceUnit", e.target.value as AddOnPriceUnit)}
-                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono rounded-2xl"
               >
                 {form.kind === "RECURRING" ? (
                   <>
@@ -669,7 +668,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
             </label>
 
             <label className="block md:col-span-2">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+              <span className="font-mono text-[0.8125rem] text-ink-mute">
                 Display label (optional)
               </span>
               <input
@@ -678,9 +677,9 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
                 value={form.priceUnitLabel}
                 onChange={(e) => updateForm("priceUnitLabel", e.target.value)}
                 placeholder='e.g. "Per page", "Per form", "On total build fee"'
-                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display"
+                className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display rounded-2xl"
               />
-              <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute leading-snug">
+              <span className="block mt-1 font-mono text-[0.75rem] text-ink-mute leading-snug">
                 Shown beside the price on catalog cards (e.g. &ldquo;$75 — Per page&rdquo;).
                 Leave blank to use the default for the selected unit
                 (&ldquo;One-time&rdquo;, &ldquo;Per month&rdquo;, &ldquo;On total build&rdquo;, etc.).
@@ -689,7 +688,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
           </div>
 
           {error && (
-            <p className="mt-4 text-sm text-signal-red font-mono">{error}</p>
+            <p className="mt-4 text-sm text-accent font-mono">{error}</p>
           )}
 
           <div className="mt-5 flex items-center gap-3">
@@ -705,7 +704,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
               type="button"
               onClick={cancelEdit}
               disabled={busy}
-              className="font-mono text-[0.7rem] uppercase tracking-widest text-ink-mute hover:text-ink transition-colors"
+              className="font-mono text-[0.875rem] text-ink-mute hover:text-ink transition-colors"
             >
               Cancel
             </button>
@@ -714,7 +713,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
       )}
 
       {initialAddOns.length === 0 ? (
-        <div className="border border-dashed border-rule px-6 py-12 text-center">
+        <div className="border border-dashed border-rule px-6 py-12 text-center rounded-2xl">
           <p className="font-display italic text-ink-mute">
             No add-ons yet. Click <strong>+ New Add-On</strong> to create your first one.
           </p>

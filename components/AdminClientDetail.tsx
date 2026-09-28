@@ -94,17 +94,17 @@ export function AdminClientDetail({
     >
       <Link
         href="/admin/clients"
-        className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors"
+        className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors"
       >
         ← Clients
       </Link>
 
       <div className="flex items-center gap-3 mb-3 mt-3">
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">
+        <span className="font-mono text-[0.8125rem] text-accent">
           §
         </span>
         <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           Subscriber Profile
         </span>
       </div>
@@ -173,7 +173,6 @@ function IdentityHeader({
       <div className="min-w-0 flex-1">
         <h1
           className="flex items-center gap-3 font-display text-3xl md:text-5xl leading-none mb-2"
-          style={{ fontVariationSettings: '"opsz" 144' }}
         >
           <span>{client.name}</span>
           <PresenceDot
@@ -181,14 +180,14 @@ function IdentityHeader({
             pulse={client.isOnline}
           />
         </h1>
-        <div className="font-mono text-[0.65rem] uppercase tracking-wider text-ink-soft mt-1">
+        <div className="font-mono text-[0.8125rem] text-ink-soft mt-1">
           {editingEmail ? (
             <span className="flex flex-wrap items-center gap-2">
               <input
                 type="email"
                 value={draftEmail}
                 onChange={(e) => setDraftEmail(e.target.value)}
-                className="font-mono text-[0.7rem] uppercase tracking-wider text-ink-soft bg-parchment border border-rule px-2 py-1 min-w-[240px]"
+                className="font-mono text-[0.875rem] text-ink-soft bg-parchment border border-rule px-2 py-1 min-w-[240px] rounded-full"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === "Escape") {
@@ -206,7 +205,7 @@ function IdentityHeader({
                 type="button"
                 onClick={() => void handleSaveEmail()}
                 disabled={emailBusy}
-                className="font-mono text-[0.55rem] uppercase tracking-widest text-signal-red hover:underline disabled:opacity-50"
+                className="font-mono text-[0.75rem] text-accent hover:underline disabled:opacity-50"
               >
                 {emailBusy ? "Saving…" : "Save"}
               </button>
@@ -218,7 +217,7 @@ function IdentityHeader({
                   setEmailErr(null);
                 }}
                 disabled={emailBusy}
-                className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute hover:text-signal-red"
+                className="font-mono text-[0.75rem] text-ink-mute hover:text-accent"
               >
                 Cancel
               </button>
@@ -234,7 +233,7 @@ function IdentityHeader({
                     setDraftEmail(client.email);
                     setEmailErr(null);
                   }}
-                  className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-fade hover:text-signal-red transition-colors"
+                  className="font-mono text-[0.75rem] text-ink-fade hover:text-accent transition-colors"
                   aria-label={`Edit email for ${client.name}`}
                 >
                   Edit
@@ -248,7 +247,7 @@ function IdentityHeader({
             </span>
           )}
         </div>
-        <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-fade mt-1">
+        <div className="font-mono text-[0.75rem] text-ink-fade mt-1">
           Joined {formatDate(client.joinedAt)}
           {!client.isOnline && client.lastSeenAt && (
             <> · last seen {formatRelative(client.lastSeenAt)}</>
@@ -272,7 +271,7 @@ function StatsRow({
       <Stat
         label="Open tickets"
         value={totals.openTickets}
-        accent={totals.openTickets > 0 ? "rgb(var(--signal-red))" : undefined}
+        accent={totals.openTickets > 0 ? "rgb(var(--accent))" : undefined}
       />
       <Stat label="Messages" value={totals.messages} />
     </div>
@@ -292,11 +291,11 @@ function Stat({
     <div>
       <div
         className="font-display text-3xl md:text-4xl leading-none"
-        style={{ color: accent, fontVariationSettings: '"opsz" 144' }}
+        style={{ color: accent }}
       >
         {value}
       </div>
-      <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mt-1">
+      <div className="font-mono text-[0.75rem] text-ink-mute mt-1">
         {label}
       </div>
     </div>
@@ -317,7 +316,7 @@ function SitesSection({
   return (
     <section className="mb-10">
       <div className="flex items-center gap-3 mb-4">
-        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           Sites
         </span>
         <span className="h-px flex-1 bg-rule" />
@@ -390,13 +389,13 @@ function SiteRow({
   }
 
   return (
-    <div className="border border-ruleSoft bg-parchment-warm px-4 md:px-5 py-4">
+    <div className="border border-ruleSoft bg-parchment-warm px-4 md:px-5 py-4 rounded-2xl">
       <div className="flex flex-col md:flex-row md:items-center gap-4">
         <div className="flex-1 min-w-0">
           <div className="font-display text-lg text-ink truncate">
             {site.displayName}
           </div>
-          <div className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-mute truncate">
+          <div className="font-mono text-[0.8125rem] text-ink-mute truncate">
             {site.url}
           </div>
         </div>
@@ -405,7 +404,7 @@ function SiteRow({
             <div className="font-display text-base text-ink leading-none">
               {site.totalTickets}
             </div>
-            <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mt-1">
+            <div className="font-mono text-[0.75rem] text-ink-mute mt-1">
               Tickets
             </div>
           </div>
@@ -413,12 +412,12 @@ function SiteRow({
             <div
               className={[
                 "font-display text-base leading-none",
-                site.openTickets > 0 ? "text-signal-red" : "text-ink-fade",
+                site.openTickets > 0 ? "text-accent" : "text-ink-fade",
               ].join(" ")}
             >
               {site.openTickets}
             </div>
-            <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mt-1">
+            <div className="font-mono text-[0.75rem] text-ink-mute mt-1">
               Open
             </div>
           </div>
@@ -449,7 +448,7 @@ function SiteRow({
               type="button"
               onClick={() => void handleReset()}
               disabled={busy}
-              className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-fade hover:text-signal-red disabled:opacity-50"
+              className="font-mono text-[0.75rem] text-ink-fade hover:text-accent disabled:opacity-50"
             >
               Reset
             </button>
@@ -471,7 +470,7 @@ function RecentTicketsSection({
   return (
     <section>
       <div className="flex items-center gap-3 mb-4">
-        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           Recent tickets
         </span>
         <span className="h-px flex-1 bg-rule" />
@@ -494,11 +493,11 @@ function RecentTicketsSection({
                     <span className="truncate">{t.title}</span>
                     {t.outOfFreeWindow && <OutOfFreeWindowBadge />}
                   </div>
-                  <div className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-mute mt-0.5">
+                  <div className="font-mono text-[0.8125rem] text-ink-mute mt-0.5">
                     {t.siteDisplayName}
                   </div>
                 </div>
-                <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade shrink-0">
+                <div className="font-mono text-[0.8125rem] text-ink-fade shrink-0">
                   {formatRelative(t.createdAt)}
                 </div>
               </Link>
@@ -514,8 +513,8 @@ export function OutOfFreeWindowBadge({ className = "" }: { className?: string })
   return (
     <span
       className={[
-        "inline-flex items-center font-mono text-[0.55rem] uppercase tracking-widest",
-        "text-signal-red border border-signal-red px-1.5 py-0.5",
+        "inline-flex items-center font-mono text-[0.75rem]",
+        "text-accent border border-accent/40 px-2 py-0.5 rounded-full",
         className,
       ].join(" ")}
       title="This ticket was filed after the 30-day free-updates window expired."

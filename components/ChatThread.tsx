@@ -24,7 +24,7 @@ export interface ChatAttachment {
   url: string;
   contentType: string;
   sizeBytes: number;
-  /** Stable storage key — present after upload; sent to the server on POST. */
+  /** Stable storage key, present after upload; sent to the server on POST. */
   path?: string;
 }
 
@@ -41,7 +41,7 @@ export interface ChatThreadProps {
   otherPartyTyping?: boolean;
   /** Other party's display name (for header) */
   otherPartyName?: string;
-  /** Submit handler — replaced with real /api call in production */
+  /** Submit handler, replaced with real /api call in production */
   onSendMessage?: (data: { body: string; attachments: ChatAttachment[] }) => void | Promise<void>;
   /** Fired with true when the viewer starts typing, false ~3s after they stop */
   onTypingChange?: (isTyping: boolean) => void;
@@ -216,16 +216,16 @@ export function ChatThread({
 
   return (
     <div
-      className={`flex flex-col bg-parchment-warm border border-rule ${className}`}
+      className={`flex flex-col bg-parchment-warm border border-rule rounded-2xl ${className}`}
       style={style}
     >
-      {/* Header — newsroom dateline */}
-      <div className="flex items-center justify-between px-4 py-3 rule-thin">
+      {/* Header, newsroom dateline */}
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-4 py-3 rule-thin">
         <div className="flex items-center gap-3 min-w-0">
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">
+          <span className="font-mono text-[0.8125rem] text-accent">
             §
           </span>
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute truncate">
+          <span className="font-mono text-[0.8125rem] text-ink-mute">
             Correspondence
           </span>
           {otherPartyName && (
@@ -243,7 +243,7 @@ export function ChatThread({
               className={`presence-dot ${otherPartyOnline ? "online pulse" : "offline"}`}
               aria-hidden="true"
             />
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+            <span className="font-mono text-[0.8125rem] text-ink-mute">
               {otherPartyOnline ? onlineLabel : offlineLabel}
             </span>
           </div>
@@ -274,7 +274,7 @@ export function ChatThread({
 
         {otherPartyTyping && (
           <div
-            className="flex items-center gap-2 font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute italic pt-1"
+            className="flex items-center gap-2 font-mono text-[0.8125rem] text-ink-mute italic pt-1"
             aria-live="polite"
           >
             <span className="inline-flex items-end gap-[2px] not-italic" aria-hidden="true">
@@ -324,7 +324,7 @@ export function ChatThread({
               {pendingAttachments.map((a, i) => (
                 <span
                   key={i}
-                  className="inline-flex items-center gap-2 px-2 py-1 border border-rule bg-parchment font-mono text-[0.6rem] uppercase tracking-wider text-ink-mute"
+                  className="inline-flex items-center gap-2 px-2 py-1 border border-rule bg-parchment font-mono text-[0.8125rem] text-ink-mute rounded-full"
                 >
                   ↳ {a.filename}
                   <button
@@ -332,7 +332,7 @@ export function ChatThread({
                     onClick={() =>
                       setPendingAttachments((prev) => prev.filter((_, j) => j !== i))
                     }
-                    className="hover:text-signal-red transition-colors"
+                    className="hover:text-accent transition-colors"
                     aria-label={`Remove ${a.filename}`}
                   >
                     ×
@@ -346,13 +346,13 @@ export function ChatThread({
         {uploadError && (
           <div
             role="alert"
-            className="mx-4 mb-2 border-l-[3px] border-signal-red bg-signal-red/5 px-3 py-2 font-mono text-[0.6rem] uppercase tracking-wider text-signal-redDeep"
+            className="mx-4 mb-2 border border-signal-red/20 bg-signal-red/5 px-3 py-2 font-mono text-[0.8125rem] text-signal-redDeep rounded-xl"
           >
             {uploadError}
           </div>
         )}
 
-        <div className="flex items-center justify-between px-4 py-2 rule-thin border-t border-ruleSoft bg-parchment">
+        <div className="flex items-center justify-between gap-2 px-4 py-2 rule-thin border-t border-ruleSoft bg-parchment">
           <input
             ref={fileInputRef}
             type="file"
@@ -363,21 +363,21 @@ export function ChatThread({
           />
           <button
             type="button"
-            className="btn-ghost"
+            className="btn-ghost whitespace-nowrap shrink-0"
             disabled={uploading}
             onClick={() => fileInputRef.current?.click()}
           >
             {uploading ? "Uploading…" : "↳ Attach"}
           </button>
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade hidden md:inline">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="font-mono text-[0.8125rem] text-ink-fade hidden md:inline truncate min-w-0">
               Enter to send · Shift+Enter newline
             </span>
             <button
               type="button"
               onClick={handleSend}
               disabled={sending || uploading || (!draft.trim() && pendingAttachments.length === 0)}
-              className="btn-dispatch"
+              className="btn-dispatch whitespace-nowrap shrink-0"
             >
               {sending ? "Sending…" : "Send →"}
             </button>
@@ -420,7 +420,7 @@ function MessageBlock({
     <article
       className={`flex flex-col ${isFromViewer ? "items-end text-right" : "items-start"}`}
     >
-      {/* Byline — avatar + sender + time */}
+      {/* Byline, avatar + sender + time */}
       <div
         className={`flex items-center gap-2 mb-1 ${
           isFromViewer ? "flex-row-reverse" : ""
@@ -434,8 +434,8 @@ function MessageBlock({
         />
         <span
           className={[
-            "font-mono text-[0.6rem] uppercase tracking-widest",
-            isAdmin ? "text-signal-red" : "text-ink-soft",
+            "font-mono text-[0.8125rem]",
+            isAdmin ? "text-accent" : "text-ink-soft",
           ].join(" ")}
         >
           {message.senderName}
@@ -447,7 +447,7 @@ function MessageBlock({
               ? message.createdAt
               : message.createdAt.toISOString()
           }
-          className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute"
+          className="font-mono text-[0.8125rem] text-ink-mute"
         >
           {formatTime(message.createdAt)}
         </time>
@@ -462,11 +462,12 @@ function MessageBlock({
       >
         <p
           className={[
-            "font-display text-base leading-relaxed",
-            isAdmin ? "text-ink" : "text-ink-soft",
-            "border-l-[3px] pl-3",
-            isFromViewer ? "border-r-[3px] border-l-0 pr-3 pl-0" : "",
-            isAdmin ? "border-signal-red" : "border-rule",
+            // Workbench bubbles: the viewer's own messages sit in orange,
+            // the other side's in white on the panel.
+            "inline-block max-w-full break-words text-left text-[0.975rem] leading-relaxed px-4 py-2.5 rounded-[20px]",
+            isFromViewer
+              ? "bg-accent-fill text-onAccent rounded-br-md"
+              : "bg-parchment text-ink border border-rule-soft rounded-bl-md",
           ].join(" ")}
         >
           {message.body}
@@ -483,7 +484,7 @@ function MessageBlock({
               <a
                 key={i}
                 href={a.url}
-                className="inline-flex items-center gap-2 px-2 py-1 border border-rule bg-parchment font-mono text-[0.6rem] uppercase tracking-wider text-ink-mute hover:border-signal-red hover:text-signal-red transition-colors"
+                className="inline-flex items-center gap-2 px-2 py-1 border border-rule bg-parchment font-mono text-[0.8125rem] text-ink-mute hover:border-accent hover:text-accent transition-colors rounded-full"
               >
                 ↳ {a.filename}
               </a>
@@ -491,9 +492,9 @@ function MessageBlock({
           </div>
         )}
 
-        {/* Read receipt — only for sent messages */}
+        {/* Read receipt, only for sent messages */}
         {isFromViewer && message.readAt && (
-          <span className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-fade mt-1 inline-block">
+          <span className="font-mono text-[0.75rem] text-ink-fade mt-1 inline-block">
             ─ read {formatTime(message.readAt)}
           </span>
         )}

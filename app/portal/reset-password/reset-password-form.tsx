@@ -46,7 +46,7 @@ export function ResetPasswordForm() {
       <div>
         <label
           htmlFor="password"
-          className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-1"
+          className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
         >
           New password
         </label>
@@ -66,7 +66,7 @@ export function ResetPasswordForm() {
       <div>
         <label
           htmlFor="confirm"
-          className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-1"
+          className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
         >
           Confirm password
         </label>
@@ -86,7 +86,7 @@ export function ResetPasswordForm() {
       {error && (
         <div
           role="alert"
-          className="border-l-[3px] border-signal-red bg-signal-red/5 px-4 py-3 font-mono text-xs uppercase tracking-wider text-signal-redDeep"
+          className="border border-signal-red/20 bg-signal-red/5 px-4 py-3 font-mono text-xs text-signal-redDeep rounded-xl"
         >
           {error}
         </div>

@@ -50,7 +50,7 @@ export function NewTicketPage({
   const [attachments, setAttachments] = useState<UploadedAttachment[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
-  // Real-time emergency state from the AdminStatusProvider — refetches on the
+  // Real-time emergency state from the AdminStatusProvider, refetches on the
   // shared `settings-changed` broadcast, so flipping admin "Out of town"
   // updates the button visibility on connected portals immediately.
   const emergency = useEmergencyState();
@@ -96,17 +96,16 @@ export function NewTicketPage({
     <div className={`max-w-3xl mx-auto px-5 md:px-10 py-8 md:py-12 ${className}`} style={style}>
       {/* Section header */}
       <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">
+        <span className="font-mono text-[0.8125rem] text-accent">
           §
         </span>
         <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           New Filing
         </span>
       </div>
       <h1
         className="font-display text-3xl md:text-5xl leading-tight mb-2"
-        style={{ fontVariationSettings: '"opsz" 144' }}
       >
         File a new dispatch.
       </h1>
@@ -117,13 +116,13 @@ export function NewTicketPage({
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Site dropdown */}
         <div>
-          <label className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-2">
+          <label className="block font-mono text-[0.8125rem] text-ink-mute mb-2">
             Which site?
           </label>
           {sites.length === 1 ? (
             <div className="flex items-baseline gap-3 pb-2 rule-thin">
               <span className="font-display text-lg text-ink">{sites[0].displayName}</span>
-              <span className="font-mono text-[0.65rem] uppercase tracking-wider text-ink-mute">
+              <span className="font-mono text-[0.8125rem] text-ink-mute">
                 {sites[0].url}
               </span>
             </div>
@@ -154,7 +153,7 @@ export function NewTicketPage({
         <div>
           <label
             htmlFor="title"
-            className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-2"
+            className="block font-mono text-[0.8125rem] text-ink-mute mb-2"
           >
             Headline
           </label>
@@ -171,7 +170,7 @@ export function NewTicketPage({
 
         {/* Category */}
         <div>
-          <label className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-3">
+          <label className="block font-mono text-[0.8125rem] text-ink-mute mb-3">
             Type
           </label>
           <div className="grid sm:grid-cols-2 gap-2">
@@ -179,7 +178,7 @@ export function NewTicketPage({
               <label
                 key={c.value}
                 className={[
-                  "flex items-center gap-3 px-3 py-2.5 border cursor-pointer transition-colors",
+                  "flex items-center gap-3 px-3 py-2.5 border cursor-pointer transition-colors rounded-2xl",
                   category === c.value
                     ? "border-ink bg-parchment-warm"
                     : "border-rule hover:border-ink-mute",
@@ -195,8 +194,8 @@ export function NewTicketPage({
                 />
                 <span
                   className={[
-                    "w-3 h-3 border flex-shrink-0",
-                    category === c.value ? "bg-signal-red border-signal-red" : "border-rule",
+                    "w-3 h-3 border flex-shrink-0 rounded-2xl",
+                    category === c.value ? "bg-accent-fill border-accent-fill" : "border-rule",
                   ].join(" ")}
                   aria-hidden="true"
                 />
@@ -210,7 +209,7 @@ export function NewTicketPage({
         <div>
           <label
             htmlFor="description"
-            className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-2"
+            className="block font-mono text-[0.8125rem] text-ink-mute mb-2"
           >
             Details
           </label>
@@ -227,7 +226,7 @@ export function NewTicketPage({
 
         {/* Attachments */}
         <div>
-          <label className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-2">
+          <label className="block font-mono text-[0.8125rem] text-ink-mute mb-2">
             Attachments (optional)
           </label>
           <AttachmentDropzone
@@ -263,19 +262,19 @@ export function NewTicketPage({
         {emergencyAvailable ? (
           <div className="pt-2">
             {resumedNotice ? (
-              <p className="font-mono text-[0.7rem] uppercase tracking-widest text-ink-mute mb-3">
+              <p className="font-mono text-[0.875rem] text-ink-mute mb-3">
                 Business hours resumed — emergency fee removed.
               </p>
             ) : null}
             {isEmergency ? (
-              <div className="flex items-center justify-between gap-3 border border-signal-red bg-parchment-warm px-4 py-3">
+              <div className="flex items-center justify-between gap-3 border border-signal-red bg-parchment-warm px-4 py-3 rounded-2xl">
                 <span className="font-display text-ink">
                   Filing with <strong className="text-signal-red">${(feeCents / 100).toFixed(0)} emergency fee</strong>.
                 </span>
                 <button
                   type="button"
                   onClick={() => setIsEmergency(false)}
-                  className="font-mono text-[0.7rem] uppercase tracking-widest text-ink-mute hover:text-signal-red underline underline-offset-2"
+                  className="font-mono text-[0.875rem] text-ink-mute hover:text-accent underline underline-offset-2"
                 >
                   Undo
                 </button>
@@ -284,7 +283,7 @@ export function NewTicketPage({
               <button
                 type="button"
                 onClick={() => setModalOpen(true)}
-                className="w-full font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-3 hover:bg-signal-red hover:text-parchment-warm transition-colors"
+                className="w-full font-mono text-[0.875rem] border border-accent text-accent px-4 py-3 hover:bg-accent-fillHover hover:text-parchment-warm transition-colors rounded-full"
               >
                 Emergency Fix — outside business hours (${(feeCents / 100).toFixed(0)} fee)
               </button>

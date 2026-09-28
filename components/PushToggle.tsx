@@ -75,7 +75,7 @@ export default function PushToggle({ showHeading = true }: { showHeading?: boole
       // NEXT_PUBLIC_* env vars are inlined into the bundle at BUILD time. If
       // the VAPID key was added in Vercel after the last deploy, this bundle
       // still has it baked in as undefined. Check before requesting
-      // permission, not after — on iOS a consumed permission prompt can't be
+      // permission, not after, on iOS a consumed permission prompt can't be
       // re-requested from the page, so failing after the prompt would strand
       // the user rather than let them retry once the deploy catches up.
       if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
@@ -83,7 +83,7 @@ export default function PushToggle({ showHeading = true }: { showHeading?: boole
         return;
       }
 
-      // Must be called from this click handler — iOS grants permission only
+      // Must be called from this click handler, iOS grants permission only
       // in response to a real user gesture.
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
@@ -174,7 +174,7 @@ export default function PushToggle({ showHeading = true }: { showHeading?: boole
             type="button"
             onClick={state === "on" ? disable : enable}
             disabled={busy}
-            className="px-3 py-2 border border-rule font-mono text-[0.6rem] uppercase tracking-widest text-ink-soft hover:border-signal-red hover:text-signal-red transition-colors disabled:opacity-50"
+            className="px-3 py-2 border border-rule font-mono text-[0.8125rem] text-ink-soft hover:border-accent hover:text-accent transition-colors disabled:opacity-50 rounded-full whitespace-nowrap shrink-0"
           >
             {busy ? "Working…" : state === "on" ? "Turn off" : "Turn on"}
           </button>

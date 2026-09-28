@@ -197,9 +197,9 @@ export function QuickChatLauncher({
             : "Have a question?"
         }
         title="Have a question?"
-        className={`group fixed bottom-6 right-6 z-50 w-[60px] h-[60px] rounded-full bg-signal-red text-onInverse flex items-center justify-center origin-bottom-right shadow-[0_10px_28px_-6px_rgb(var(--signal-red)/0.45),_0_2px_6px_-1px_rgb(var(--shadow-tint)/0.12)] ring-1 ring-inset ring-white/15 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-2 focus-visible:ring-offset-parchment ${
+        className={`group fixed bottom-6 right-6 z-50 w-[60px] h-[60px] rounded-full bg-accent-fill text-onAccent flex items-center justify-center origin-bottom-right shadow-[0_10px_28px_-6px_rgb(var(--accent-fill)/0.45),_0_2px_6px_-1px_rgb(var(--shadow-tint)/0.12)] ring-1 ring-inset ring-white/15 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-parchment ${
           isCollapsed
-            ? "opacity-100 scale-100 hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-8px_rgb(var(--signal-red)/0.55),_0_4px_10px_-2px_rgb(var(--shadow-tint)/0.16)] active:translate-y-0 active:scale-95"
+            ? "opacity-100 scale-100 hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-8px_rgb(var(--accent-fill)/0.55),_0_4px_10px_-2px_rgb(var(--shadow-tint)/0.16)] active:translate-y-0 active:scale-95"
             : "opacity-0 scale-50 pointer-events-none"
         }`}
       >
@@ -219,7 +219,7 @@ export function QuickChatLauncher({
         </svg>
         {isCollapsed && unreadCount > 0 && (
           <span
-            className="badge-wiggle absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full bg-ink text-parchment-warm font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center ring-2 ring-parchment shadow-md"
+            className="badge-wiggle absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full bg-ink text-parchment-warm font-mono text-[0.8125rem] font-medium leading-none flex items-center justify-center ring-2 ring-parchment shadow-md"
             aria-hidden="true"
           >
             {unreadCount > 99 ? "99+" : unreadCount}
@@ -229,14 +229,14 @@ export function QuickChatLauncher({
 
       <div
         aria-hidden={isCollapsed}
-        className={`fixed bottom-6 right-6 z-50 w-[360px] max-w-[calc(100vw-2rem)] h-[480px] max-h-[calc(100vh-2rem)] bg-parchment-warm border border-rule shadow-2xl flex flex-col origin-bottom-right transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] ${
+        className={`fixed bottom-6 right-6 z-50 w-[360px] max-w-[calc(100vw-2rem)] h-[480px] max-h-[calc(100vh-2rem)] bg-parchment-warm border border-rule rounded-[24px] overflow-hidden shadow-2xl flex flex-col origin-bottom-right transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] rounded-2xl ${
           isCollapsed
             ? "opacity-0 scale-90 translate-y-2 pointer-events-none"
             : "opacity-100 scale-100 translate-y-0"
         }`}
       >
       <div className="flex items-center justify-between px-4 py-3 border-b border-rule bg-band text-onInverse">
-        <div className="font-mono text-[0.65rem] uppercase tracking-widest">
+        <div className="font-mono text-[0.8125rem]">
           Quick chat
         </div>
         <div className="flex items-center gap-2">
@@ -245,18 +245,18 @@ export function QuickChatLauncher({
               <button
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
-                className="px-2 py-1 hover:text-signal-red transition-colors"
+                className="px-2 py-1 hover:text-accent transition-colors"
                 aria-label="Chat options"
               >
                 ⋯
               </button>
               {menuOpen && (
-                <div className="absolute top-full right-0 mt-1 w-48 bg-parchment-warm text-ink border border-rule shadow-lg z-10">
+                <div className="absolute top-full right-0 mt-1 w-48 bg-parchment-warm text-ink border border-rule shadow-lg z-10 rounded-2xl">
                   <button
                     type="button"
                     onClick={promote}
                     disabled={busy}
-                    className="block w-full text-left px-3 py-2 font-mono text-[0.6rem] uppercase tracking-widest hover:bg-parchment-deep transition-colors disabled:opacity-50"
+                    className="block w-full text-left px-3 py-2 font-mono text-[0.8125rem] hover:bg-parchment-deep transition-colors disabled:opacity-50"
                   >
                     Promote to ticket
                   </button>
@@ -264,14 +264,14 @@ export function QuickChatLauncher({
                     type="button"
                     onClick={endChat}
                     disabled={busy}
-                    className="block w-full text-left px-3 py-2 font-mono text-[0.6rem] uppercase tracking-widest hover:bg-parchment-deep transition-colors disabled:opacity-50"
+                    className="block w-full text-left px-3 py-2 font-mono text-[0.8125rem] hover:bg-parchment-deep transition-colors disabled:opacity-50"
                   >
                     End chat
                   </button>
                   <button
                     type="button"
                     onClick={loadHistory}
-                    className="block w-full text-left px-3 py-2 font-mono text-[0.6rem] uppercase tracking-widest hover:bg-parchment-deep transition-colors border-t border-rule-soft"
+                    className="block w-full text-left px-3 py-2 font-mono text-[0.8125rem] hover:bg-parchment-deep transition-colors border-t border-rule-soft"
                   >
                     View past chats
                   </button>
@@ -282,7 +282,7 @@ export function QuickChatLauncher({
           <button
             type="button"
             onClick={collapse}
-            className="px-2 py-1 hover:text-signal-red transition-colors"
+            className="px-2 py-1 hover:text-accent transition-colors"
             aria-label="Close panel"
           >
             ×
@@ -302,7 +302,7 @@ export function QuickChatLauncher({
           <button
             type="button"
             onClick={open}
-            className="px-3 py-2 border border-rule font-mono text-[0.6rem] uppercase tracking-widest hover:border-signal-red hover:text-signal-red transition-colors"
+            className="px-3 py-2 border border-rule font-mono text-[0.8125rem] hover:border-accent hover:text-accent transition-colors rounded-full"
           >
             Try again
           </button>
@@ -314,14 +314,14 @@ export function QuickChatLauncher({
           <p className="font-display text-lg text-ink">This chat is now a tracked ticket.</p>
           <Link
             href={`/portal/ticket/${state.ticketId}`}
-            className="px-4 py-2 bg-ink text-parchment-warm font-mono text-[0.65rem] uppercase tracking-widest hover:bg-signal-red transition-colors"
+            className="px-4 py-2 bg-accent-fill text-onAccent font-mono text-[0.8125rem] hover:bg-accent-fillHover transition-colors"
           >
             Open the ticket →
           </Link>
           <button
             type="button"
             onClick={collapse}
-            className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-ink transition-colors"
+            className="font-mono text-[0.8125rem] text-ink-mute hover:text-ink transition-colors"
           >
             Close
           </button>
@@ -337,7 +337,7 @@ export function QuickChatLauncher({
             </div>
           )}
           {state.ended && (
-            <div className="px-4 py-3 bg-parchment-deep border-b border-rule-soft font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+            <div className="px-4 py-3 bg-parchment-deep border-b border-rule-soft font-mono text-[0.8125rem] text-ink-mute">
               This chat has ended. Close and reopen the launcher to start a new one.
             </div>
           )}
@@ -360,11 +360,11 @@ export function QuickChatLauncher({
       {historyOpen && (
         <div className="absolute inset-0 bg-parchment-warm overflow-y-auto">
           <div className="flex items-center justify-between px-4 py-3 border-b border-rule">
-            <div className="font-mono text-[0.65rem] uppercase tracking-widest">Past chats</div>
+            <div className="font-mono text-[0.8125rem]">Past chats</div>
             <button
               type="button"
               onClick={() => setHistoryOpen(false)}
-              className="px-2 py-1 hover:text-signal-red transition-colors"
+              className="px-2 py-1 hover:text-accent transition-colors"
               aria-label="Close history"
             >
               ×
@@ -376,7 +376,7 @@ export function QuickChatLauncher({
             <ul className="divide-y divide-rule-soft">
               {history.map((h) => (
                 <li key={h.id} className="px-4 py-3">
-                  <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                  <div className="font-mono text-[0.8125rem] text-ink-mute">
                     {new Date(h.endedAt).toLocaleString("en-US", { month: "short", day: "2-digit", year: "numeric" })}
                   </div>
                   <div className="font-display text-sm text-ink">

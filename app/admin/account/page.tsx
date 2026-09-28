@@ -56,15 +56,14 @@ export default async function AccountPage() {
   return (
     <div className="max-w-3xl mx-auto px-5 md:px-10 py-10 md:py-14">
       <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">§</span>
+        <span className="font-mono text-[0.8125rem] text-accent">§</span>
         <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           Editorial Desk
         </span>
       </div>
       <h1
         className="font-display text-4xl md:text-5xl leading-none mb-3"
-        style={{ fontVariationSettings: '"opsz" 144' }}
       >
         Account
       </h1>

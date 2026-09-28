@@ -77,11 +77,11 @@ export function AdminInvitesPage({
     <div className={`max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12 ${className}`} style={style}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">
+        <span className="font-mono text-[0.8125rem] text-accent">
           §
         </span>
         <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           Invitation Roster
         </span>
       </div>
@@ -90,7 +90,6 @@ export function AdminInvitesPage({
         <div>
           <h1
             className="font-display text-3xl md:text-5xl leading-none mb-2"
-            style={{ fontVariationSettings: '"opsz" 144' }}
           >
             Invites
           </h1>
@@ -105,7 +104,7 @@ export function AdminInvitesPage({
 
       {/* Filter chips */}
       <div className="flex flex-wrap items-center gap-2 mb-6 rule-thin pb-5">
-        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mr-2">
+        <span className="font-mono text-[0.8125rem] text-ink-mute mr-2">
           Status
         </span>
         {(["ALL", "PENDING", "REDEEMED", "EXPIRED", "REVOKED"] as Filter[]).map((s) => (
@@ -114,10 +113,10 @@ export function AdminInvitesPage({
             type="button"
             onClick={() => setFilter(s)}
             className={[
-              "font-mono text-[0.65rem] uppercase tracking-widest px-3 py-1.5 transition-colors whitespace-nowrap",
+              "font-mono text-[0.8125rem] px-3 py-1.5 transition-colors whitespace-nowrap",
               filter === s
                 ? "bg-ink text-parchment-warm"
-                : "border border-rule text-ink-soft hover:border-ink",
+                : "border border-rule text-ink-soft hover:border-ink rounded-2xl",
             ].join(" ")}
           >
             {s.charAt(0) + s.slice(1).toLowerCase()}
@@ -170,14 +169,14 @@ function InviteRow({
 
   return (
     <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6 px-2 md:px-3 py-4 border-b border-ruleSoft hover:bg-parchment-warm transition-colors">
-      {/* Status pill — left column */}
+      {/* Status pill, left column */}
       <div className="md:w-40 flex-shrink-0 flex items-center gap-3">
         <span className="status-pill" style={{ color }}>
           {invite.status}
         </span>
       </div>
 
-      {/* Email + site — middle */}
+      {/* Email + site, middle */}
       <div className="flex-1 min-w-0">
         <div className="font-display text-base text-ink leading-tight">
           {invite.recipientName ? (
@@ -190,23 +189,23 @@ function InviteRow({
             <span className="font-mono text-sm">{invite.email}</span>
           )}
         </div>
-        <div className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-mute mt-0.5">
+        <div className="font-mono text-[0.8125rem] text-ink-mute mt-0.5">
           → {invite.siteDisplayName} · {invite.siteUrl}
         </div>
       </div>
 
-      {/* Dates — right column */}
+      {/* Dates, right column */}
       <div className="md:w-44 md:text-right flex-shrink-0">
-        <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+        <div className="font-mono text-[0.8125rem] text-ink-mute">
           Sent {formatDate(invite.createdAt)}
         </div>
         {invite.status === "PENDING" && (
-          <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade">
+          <div className="font-mono text-[0.8125rem] text-ink-fade">
             Expires {formatRelative(invite.expiresAt)}
           </div>
         )}
         {invite.status === "REDEEMED" && invite.redeemedAt && (
-          <div className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-green">
+          <div className="font-mono text-[0.8125rem] text-signal-green">
             Redeemed {formatDate(invite.redeemedAt)}
           </div>
         )}
@@ -235,7 +234,7 @@ function InviteRow({
                 setRenewing(false);
               }
             }}
-            className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-green transition-colors px-2"
+            className="font-mono text-[0.8125rem] text-ink-mute hover:text-signal-green transition-colors px-2"
           >
             {renewing ? "Renewing…" : "↻ Renew"}
           </button>
@@ -253,7 +252,7 @@ function InviteRow({
                 setRevoking(false);
               }
             }}
-            className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors px-2"
+            className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors px-2"
           >
             {revoking ? "Revoking…" : "Revoke"}
           </button>

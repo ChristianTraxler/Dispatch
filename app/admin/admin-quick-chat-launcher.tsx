@@ -412,7 +412,7 @@ export function AdminQuickChatLauncher() {
             : "Start a quick chat"
         }
         title="Start a quick chat"
-        className={`group fixed bottom-6 right-6 z-50 w-[60px] h-[60px] rounded-full bg-band text-onInverse flex items-center justify-center origin-bottom-right shadow-[0_10px_28px_-6px_rgb(var(--shadow-tint)/0.45),_0_2px_6px_-1px_rgb(var(--shadow-tint)/0.18)] ring-1 ring-inset ring-signal-red/45 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-2 focus-visible:ring-offset-parchment ${
+        className={`group fixed bottom-6 right-6 z-50 w-[60px] h-[60px] rounded-full bg-accent-fill text-onAccent flex items-center justify-center origin-bottom-right shadow-[0_10px_28px_-6px_rgb(var(--accent-fill)/0.45),_0_2px_6px_-1px_rgb(var(--shadow-tint)/0.18)] ring-1 ring-inset ring-signal-red/45 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-parchment ${
           isCollapsed
             ? "opacity-100 scale-100 hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-8px_rgb(var(--shadow-tint)/0.55),_0_4px_10px_-2px_rgb(var(--shadow-tint)/0.22)] active:translate-y-0 active:scale-95"
             : "opacity-0 scale-50 pointer-events-none"
@@ -434,8 +434,7 @@ export function AdminQuickChatLauncher() {
         </svg>
         {isCollapsed && unreadCount > 0 && (
           <span
-            className="badge-wiggle absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full text-parchment-warm font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center ring-2 ring-parchment shadow-md"
-            style={{ backgroundColor: "#FF4500" }}
+            className="badge-wiggle absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full bg-ink text-parchment-warm font-mono text-[0.8125rem] font-medium leading-none flex items-center justify-center ring-2 ring-parchment shadow-md"
             aria-hidden="true"
           >
             {unreadCount > 99 ? "99+" : unreadCount}
@@ -445,7 +444,7 @@ export function AdminQuickChatLauncher() {
 
       <div
         aria-hidden={isCollapsed}
-        className={`fixed bottom-6 right-6 z-50 w-[360px] max-w-[calc(100vw-2rem)] h-[480px] max-h-[calc(100vh-2rem)] bg-parchment-warm border border-rule shadow-2xl flex flex-col origin-bottom-right transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] ${
+        className={`fixed bottom-6 right-6 z-50 w-[360px] max-w-[calc(100vw-2rem)] h-[480px] max-h-[calc(100vh-2rem)] bg-parchment-warm border border-rule rounded-[24px] overflow-hidden shadow-2xl flex flex-col origin-bottom-right transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] rounded-2xl ${
           isCollapsed
             ? "opacity-0 scale-90 translate-y-2 pointer-events-none"
             : "opacity-100 scale-100 translate-y-0"
@@ -457,14 +456,14 @@ export function AdminQuickChatLauncher() {
             <button
               type="button"
               onClick={openPicker}
-              className="px-1 py-1 -ml-1 hover:text-signal-red transition-colors shrink-0"
+              className="px-1 py-1 -ml-1 hover:text-accent transition-colors shrink-0"
               aria-label="Back to client list"
               title="Back to client list"
             >
               ←
             </button>
           )}
-          <div className="font-mono text-[0.65rem] uppercase tracking-widest truncate">
+          <div className="font-mono text-[0.8125rem] truncate">
             {state.kind === "open" ? `Quick chat · ${state.clientName}` : "Quick chat"}
           </div>
         </div>
@@ -474,18 +473,18 @@ export function AdminQuickChatLauncher() {
               <button
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
-                className="px-2 py-1 hover:text-signal-red transition-colors"
+                className="px-2 py-1 hover:text-accent transition-colors"
                 aria-label="Chat options"
               >
                 ⋯
               </button>
               {menuOpen && (
-                <div className="absolute top-full right-0 mt-1 w-48 bg-parchment-warm text-ink border border-rule shadow-lg z-10">
+                <div className="absolute top-full right-0 mt-1 w-48 bg-parchment-warm text-ink border border-rule shadow-lg z-10 rounded-2xl">
                   <button
                     type="button"
                     onClick={promote}
                     disabled={busy}
-                    className="block w-full text-left px-3 py-2 font-mono text-[0.6rem] uppercase tracking-widest hover:bg-parchment-deep transition-colors disabled:opacity-50"
+                    className="block w-full text-left px-3 py-2 font-mono text-[0.8125rem] hover:bg-parchment-deep transition-colors disabled:opacity-50"
                   >
                     Promote to ticket
                   </button>
@@ -493,14 +492,14 @@ export function AdminQuickChatLauncher() {
                     type="button"
                     onClick={endChat}
                     disabled={busy}
-                    className="block w-full text-left px-3 py-2 font-mono text-[0.6rem] uppercase tracking-widest hover:bg-parchment-deep transition-colors disabled:opacity-50"
+                    className="block w-full text-left px-3 py-2 font-mono text-[0.8125rem] hover:bg-parchment-deep transition-colors disabled:opacity-50"
                   >
                     End chat
                   </button>
                   <button
                     type="button"
                     onClick={openPicker}
-                    className="block w-full text-left px-3 py-2 font-mono text-[0.6rem] uppercase tracking-widest hover:bg-parchment-deep transition-colors border-t border-rule-soft"
+                    className="block w-full text-left px-3 py-2 font-mono text-[0.8125rem] hover:bg-parchment-deep transition-colors border-t border-rule-soft"
                   >
                     Chat with another client
                   </button>
@@ -511,7 +510,7 @@ export function AdminQuickChatLauncher() {
           <button
             type="button"
             onClick={collapse}
-            className="px-2 py-1 hover:text-signal-red transition-colors"
+            className="px-2 py-1 hover:text-accent transition-colors"
             aria-label="Close panel"
           >
             ×
@@ -527,7 +526,7 @@ export function AdminQuickChatLauncher() {
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               placeholder="Search clients…"
-              className="w-full px-3 py-2 border border-rule bg-parchment text-ink font-display text-sm focus:outline-none focus:border-signal-red"
+              className="w-full px-3 py-2 border border-rule bg-parchment text-ink font-display text-sm focus:outline-none focus:border-accent rounded-full"
             />
           </div>
           <div className="flex-1 overflow-y-auto">
@@ -570,7 +569,7 @@ export function AdminQuickChatLauncher() {
                             </p>
                             {isTyping ? (
                               <p
-                                className="flex items-baseline gap-1.5 font-display italic text-sm text-signal-red"
+                                className="flex items-baseline gap-1.5 font-display italic text-sm text-accent"
                                 aria-live="polite"
                               >
                                 <span>typing</span>
@@ -579,18 +578,18 @@ export function AdminQuickChatLauncher() {
                                   aria-hidden="true"
                                 >
                                   <span
-                                    className="block w-[3px] h-[3px] rounded-full bg-signal-red"
+                                    className="block w-[3px] h-[3px] rounded-full bg-accent"
                                     style={{ animation: "typing-bounce 1.2s ease-in-out infinite" }}
                                   />
                                   <span
-                                    className="block w-[3px] h-[3px] rounded-full bg-signal-red"
+                                    className="block w-[3px] h-[3px] rounded-full bg-accent"
                                     style={{
                                       animation: "typing-bounce 1.2s ease-in-out infinite",
                                       animationDelay: "0.15s",
                                     }}
                                   />
                                   <span
-                                    className="block w-[3px] h-[3px] rounded-full bg-signal-red"
+                                    className="block w-[3px] h-[3px] rounded-full bg-accent"
                                     style={{
                                       animation: "typing-bounce 1.2s ease-in-out infinite",
                                       animationDelay: "0.3s",
@@ -609,21 +608,21 @@ export function AdminQuickChatLauncher() {
                                 {preview}
                               </p>
                             ) : (
-                              <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade truncate">
+                              <p className="font-mono text-[0.8125rem] text-ink-fade truncate">
                                 {c.email}
                               </p>
                             )}
                           </div>
                           {c.unreadCount > 0 ? (
                             <span
-                              className="badge-wiggle min-w-[20px] h-[20px] px-1.5 rounded-full text-parchment-warm font-mono text-[0.65rem] font-medium leading-none flex items-center justify-center shrink-0"
+                              className="badge-wiggle min-w-[20px] h-[20px] px-1.5 rounded-full text-parchment-warm font-mono text-[0.8125rem] font-medium leading-none flex items-center justify-center shrink-0"
                               style={{ backgroundColor: "#FF4500" }}
                               aria-label={`${c.unreadCount} unread`}
                             >
                               {c.unreadCount > 99 ? "99+" : c.unreadCount}
                             </span>
                           ) : c.hasActiveInquiry ? (
-                            <span className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute shrink-0">
+                            <span className="font-mono text-[0.75rem] text-ink-mute shrink-0">
                               Open
                             </span>
                           ) : null}
@@ -650,7 +649,7 @@ export function AdminQuickChatLauncher() {
           <button
             type="button"
             onClick={openPicker}
-            className="px-3 py-2 border border-rule font-mono text-[0.6rem] uppercase tracking-widest hover:border-signal-red hover:text-signal-red transition-colors"
+            className="px-3 py-2 border border-rule font-mono text-[0.8125rem] hover:border-accent hover:text-accent transition-colors rounded-full"
           >
             Try again
           </button>
@@ -664,14 +663,14 @@ export function AdminQuickChatLauncher() {
           </p>
           <Link
             href={`/admin/ticket/${state.ticketId}`}
-            className="px-4 py-2 bg-ink text-parchment-warm font-mono text-[0.65rem] uppercase tracking-widest hover:bg-signal-red transition-colors"
+            className="px-4 py-2 bg-accent-fill text-onAccent font-mono text-[0.8125rem] hover:bg-accent-fillHover transition-colors"
           >
             Open the ticket →
           </Link>
           <button
             type="button"
             onClick={collapse}
-            className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-ink transition-colors"
+            className="font-mono text-[0.8125rem] text-ink-mute hover:text-ink transition-colors"
           >
             Close
           </button>
@@ -686,7 +685,7 @@ export function AdminQuickChatLauncher() {
             </div>
           )}
           {state.ended && (
-            <div className="px-4 py-3 bg-parchment-deep border-b border-rule-soft font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+            <div className="px-4 py-3 bg-parchment-deep border-b border-rule-soft font-mono text-[0.8125rem] text-ink-mute">
               This chat has ended.
             </div>
           )}

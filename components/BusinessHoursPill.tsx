@@ -139,11 +139,11 @@ export function BusinessHoursPill() {
   const todayHours = settings.hours[todayKey];
   const tzAbbrev = getTzAbbrev(now, settings.timezone);
 
-  // Inline secondary text — what shows after the status label.
+  // Inline secondary text, what shows after the status label.
   // When OOO and there's no custom message, we leave this blank so the pill
   // doesn't read "OUT OF OFFICE · OUT OF OFFICE".
   // When out-of-town we mirror the chat widget's "back May 13" so the pill
-  // doesn't contradict itself with "OFFLINE · Today 9 AM – 5 PM ET" while
+  // doesn't contradict itself with "OFFLINE · Today 9 AM to 5 PM ET" while
   // the admin is actually away.
   let inlineDetail: string;
   if (status.state === "ooo") {
@@ -175,18 +175,18 @@ export function BusinessHoursPill() {
           }`}
           aria-hidden="true"
         />
-        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           {statusShort(status.state)}
         </span>
         {inlineDetail && (
           <>
             <span
               aria-hidden="true"
-              className="hidden md:inline font-mono text-[0.6rem] tracking-wider text-ink-fade"
+              className="hidden md:inline font-mono text-[0.8125rem] text-ink-fade"
             >
               ·
             </span>
-            <span className="hidden md:inline font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute truncate max-w-[24ch]">
+            <span className="hidden md:inline font-mono text-[0.8125rem] text-ink-mute truncate max-w-[24ch]">
               {inlineDetail}
             </span>
           </>
@@ -209,25 +209,25 @@ export function BusinessHoursPill() {
           onTransitionEnd={(e) => {
             if (!open && e.propertyName === "opacity") setMounted(false);
           }}
-          className={`absolute right-0 top-[calc(100%+6px)] z-50 w-[260px] origin-top-right border border-rule bg-parchment-warm shadow-[0_14px_40px_-18px_rgb(var(--shadow-tint)/0.35)] transition ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+          className={`absolute right-0 top-[calc(100%+6px)] z-50 w-[260px] origin-top-right border border-rule bg-parchment-warm shadow-[0_14px_40px_-18px_rgb(var(--shadow-tint)/0.35)] transition ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none rounded-2xl ${
             visible
               ? "opacity-100 translate-y-0 scale-100 duration-[340ms]"
               : "opacity-0 -translate-y-2 scale-[0.96] pointer-events-none duration-[200ms]"
           }`}
         >
           <div className="flex items-center gap-2 px-3 py-2 border-b border-rule-soft">
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">§</span>
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink">
+            <span className="font-mono text-[0.8125rem] text-accent">§</span>
+            <span className="font-mono text-[0.8125rem] text-ink">
               Business Hours
             </span>
-            <span className="ml-auto font-mono text-[0.55rem] tracking-wider text-ink-mute">
+            <span className="ml-auto font-mono text-[0.75rem] text-ink-mute">
               {tzAbbrev}
             </span>
           </div>
 
           {status.state === "ooo" && (
             <div className="px-3 py-2 border-b border-rule-soft bg-signal-red/5">
-              <p className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red mb-1">
+              <p className="font-mono text-[0.8125rem] text-accent mb-1">
                 Out of office
               </p>
               <p className="font-display italic text-sm text-ink leading-snug">
@@ -248,14 +248,14 @@ export function BusinessHoursPill() {
                   }`}
                 >
                   <span
-                    className={`font-mono text-[0.65rem] uppercase tracking-widest w-10 ${
+                    className={`font-mono text-[0.8125rem] w-10 ${
                       isToday ? "text-signal-red" : "text-ink-mute"
                     }`}
                   >
                     {label}
                   </span>
                   <span
-                    className={`font-mono text-[0.7rem] ml-auto ${
+                    className={`font-mono text-[0.875rem] ml-auto ${
                       day?.enabled ? "text-ink" : "text-ink-fade italic"
                     }`}
                   >
@@ -268,7 +268,7 @@ export function BusinessHoursPill() {
 
           {isHoliday && (
             <div className="px-3 py-2 border-t border-rule-soft">
-              <p className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute">
+              <p className="font-mono text-[0.75rem] text-ink-mute">
                 Today is a holiday — closed.
               </p>
             </div>

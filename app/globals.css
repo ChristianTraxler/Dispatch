@@ -3,16 +3,21 @@
 @tailwind utilities;
 
 /* ==========================================================================
-   PALETTE
+   PALETTE (Workbench: walnut, white and plaster, with Dispatch orange as the primary)
 
    Values are space-separated RGB channels, not hex, because tailwind.config.ts
    composes them as `rgb(var(--token) / <alpha-value>)` so that alpha modifiers
    (`bg-signal-red/5`) keep working. Anything reading a token directly in this
    file must therefore wrap it: `rgb(var(--ink))`, never `var(--ink)`.
 
-   :root is the light theme. Dark is applied two ways:
-     - :root[data-theme="dark"]                     — an explicit choice
-     - prefers-color-scheme, when no choice is set  — "System"
+   Token names are unchanged from the newsroom theme so every component keeps
+   working: `parchment` is now the page white, `ink` is walnut, and signal red
+   is kept for errors, offline and destructive actions. Interactive accents use
+   the `accent` tokens (Dispatch orange). Status colours are unchanged.
+
+   :root is the light theme. Dark ("after hours") is applied two ways:
+     - :root[data-theme="dark"]                     : an explicit choice
+     - prefers-color-scheme, when no choice is set  : "System"
 
    The media block is guarded with :not([data-theme="light"]) so that picking
    Light explicitly wins on a machine set to dark, not just the other way round.
@@ -21,69 +26,88 @@
 :root {
   color-scheme: light;
 
-  --parchment: 245 241 232;
-  --parchment-deep: 237 230 214;
-  --parchment-warm: 250 246 236;
-  --ink: 26 24 21;
-  --ink-soft: 61 58 53;
-  --ink-mute: 107 102 94;
-  --ink-fade: 168 163 154;
-  --rule: 201 192 171;
-  --rule-soft: 221 214 194;
-  --signal-red: 200 52 26;
-  --signal-red-deep: 158 38 20;
-  --signal-green: 46 125 63;
-  --signal-green-light: 74 157 92;
+  --parchment: 255 255 255;
+  --parchment-deep: 242 240 237;
+  --parchment-warm: 248 246 243;
+  --ink: 58 42 33;
+  --ink-soft: 88 72 62;
+  --ink-mute: 110 98 88;
+  --ink-fade: 163 152 142;
+  --rule: 226 219 211;
+  --rule-soft: 237 232 226;
+  --signal-red: 196 62 46;
+  --signal-red-deep: 160 46 34;
+  --signal-green: 47 110 79;
+  --signal-green-light: 60 203 127;
+  /* Bed for the green "Confirm fixed" button. --signal-green turns mint after
+     hours, so this stays deep in both themes to keep the light label readable. */
+  --signal-green-fill: 47 110 79;
+
+  /* Primary accent: Dispatch orange, the same values as the live site's signal
+     red. --accent is for text, links and active states; --accent-fill is the
+     button bed, kept at the deeper orange in both themes so white labels read. */
+  --accent: 200 52 26;
+  --accent-fill: 200 52 26;
+  --accent-fill-hover: 158 38 20;
+  --on-accent: 255 255 255;
 
   /* Recessed chrome (admin sub-nav, chat headers). Identical to --ink in
-     light mode, which is why this theme looks unchanged. */
-  --band: 26 24 21;
+     light mode. */
+  --band: 58 42 33;
   /* Label on a signal colour. Stays light in both themes. */
-  --on-inverse: 250 246 236;
+  --on-inverse: 250 247 243;
   /* Modal scrim. Stays dark in both themes. */
-  --scrim: 26 24 21;
+  --scrim: 28 19 14;
 
   /* Ticket statuses that are not already a signal colour. */
-  --status-reviewing: 122 78 31;
-  --status-awaiting: 91 107 31;
+  --status-reviewing: 150 96 28;
+  --status-awaiting: 94 110 36;
 
-  /* Paper texture, drop-shadow tint, and the translucent status-pill bed. */
-  --grain: 201 192 171;
-  --grain-strong: 0.08;
-  --grain-soft: 0.06;
-  --shadow-tint: 26 24 21;
+  /* Paper grain is switched off in this theme; the tokens stay so nothing breaks. */
+  --grain: 0 0 0;
+  --grain-strong: 0;
+  --grain-soft: 0;
+  --shadow-tint: 58 42 33;
   --pill-bed: 255 255 255;
-  --pill-bed-alpha: 0.45;
+  --pill-bed-alpha: 0.6;
 }
 
-/* Deep navy ink — an explicit dark choice. */
+/* After hours: an explicit dark choice. */
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --parchment: 18 21 28;
-  --parchment-deep: 13 15 21;
-  --parchment-warm: 26 30 39;
-  --ink: 228 231 237;
-  --ink-soft: 195 200 210;
-  --ink-mute: 155 161 173;
-  --ink-fade: 108 115 130;
-  --rule: 44 50 64;
-  --rule-soft: 34 39 54;
-  --signal-red: 228 89 61;
-  --signal-red-deep: 240 120 92;
-  --signal-green: 79 168 98;
-  --signal-green-light: 109 196 127;
+  --parchment: 36 26 20;
+  --parchment-deep: 29 21 16;
+  --parchment-warm: 45 33 26;
+  --ink: 242 236 228;
+  --ink-soft: 222 212 200;
+  --ink-mute: 196 184 170;
+  --ink-fade: 150 137 124;
+  --rule: 76 60 49;
+  --rule-soft: 60 46 38;
+  --signal-red: 236 104 84;
+  --signal-red-deep: 246 134 114;
+  --signal-green: 111 207 151;
+  --signal-green-light: 111 207 151;
+  --signal-green-fill: 47 110 79;
 
-  --band: 35 41 54;
-  --on-inverse: 240 243 247;
-  --scrim: 4 6 10;
+  /* Lighter than the day accent so orange text still clears AA on the
+     after-hours cards (parchment-warm). */
+  --accent: 232 96 68;
+  --accent-fill: 200 52 26;
+  --accent-fill-hover: 158 38 20;
+  --on-accent: 255 255 255;
 
-  --status-reviewing: 217 160 91;
-  --status-awaiting: 168 191 82;
+  --band: 52 38 30;
+  --on-inverse: 250 247 243;
+  --scrim: 12 8 6;
 
-  --grain: 155 161 173;
-  --grain-strong: 0.05;
-  --grain-soft: 0.04;
+  --status-reviewing: 224 170 100;
+  --status-awaiting: 176 196 96;
+
+  --grain: 0 0 0;
+  --grain-strong: 0;
+  --grain-soft: 0;
   --shadow-tint: 0 0 0;
   --pill-bed: 255 255 255;
   --pill-bed-alpha: 0.06;
@@ -94,30 +118,36 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --parchment: 18 21 28;
-    --parchment-deep: 13 15 21;
-    --parchment-warm: 26 30 39;
-    --ink: 228 231 237;
-    --ink-soft: 195 200 210;
-    --ink-mute: 155 161 173;
-    --ink-fade: 108 115 130;
-    --rule: 44 50 64;
-    --rule-soft: 34 39 54;
-    --signal-red: 228 89 61;
-    --signal-red-deep: 240 120 92;
-    --signal-green: 79 168 98;
-    --signal-green-light: 109 196 127;
+    --parchment: 36 26 20;
+    --parchment-deep: 29 21 16;
+    --parchment-warm: 45 33 26;
+    --ink: 242 236 228;
+    --ink-soft: 222 212 200;
+    --ink-mute: 196 184 170;
+    --ink-fade: 150 137 124;
+    --rule: 76 60 49;
+    --rule-soft: 60 46 38;
+    --signal-red: 236 104 84;
+    --signal-red-deep: 246 134 114;
+    --signal-green: 111 207 151;
+    --signal-green-light: 111 207 151;
+    --signal-green-fill: 47 110 79;
 
-    --band: 35 41 54;
-    --on-inverse: 240 243 247;
-    --scrim: 4 6 10;
+    --accent: 232 96 68;
+    --accent-fill: 200 52 26;
+    --accent-fill-hover: 158 38 20;
+    --on-accent: 255 255 255;
 
-    --status-reviewing: 217 160 91;
-    --status-awaiting: 168 191 82;
+    --band: 52 38 30;
+    --on-inverse: 250 247 243;
+    --scrim: 12 8 6;
 
-    --grain: 155 161 173;
-    --grain-strong: 0.05;
-    --grain-soft: 0.04;
+    --status-reviewing: 224 170 100;
+    --status-awaiting: 176 196 96;
+
+    --grain: 0 0 0;
+    --grain-strong: 0;
+    --grain-soft: 0;
     --shadow-tint: 0 0 0;
     --pill-bed: 255 255 255;
     --pill-bed-alpha: 0.06;
@@ -129,9 +159,9 @@ body,
 #root {
   background: rgb(var(--parchment));
   color: rgb(var(--ink));
-  font-family: var(--font-fraunces), Georgia, serif;
+  font-family: var(--font-ui), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  font-feature-settings: "liga" 1, "kern" 1;
+  font-feature-settings: "kern" 1;
   min-height: 100vh;
 }
 
@@ -150,14 +180,46 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-body {
-  background-image:
-    radial-gradient(circle at 12% 18%, rgb(var(--grain) / var(--grain-strong)) 0px, transparent 1px),
-    radial-gradient(circle at 88% 72%, rgb(var(--grain) / var(--grain-soft)) 0px, transparent 1px);
-  background-size: 7px 7px, 11px 11px;
+/* UI face. Mona Sans stands in for the old monospace labels: a touch wider and
+   heavier than reading text, with even-width numerals for times and counts.
+   :where() keeps these at zero specificity so any Tailwind utility still wins. */
+:where(.font-mono) {
+  font-stretch: 112%;
+  font-weight: 560;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+:where(.font-display) {
+  letter-spacing: -0.012em;
+}
+:where(h1, h2, h3).font-display {
+  font-weight: 300;
 }
 
-/* PRESENCE DOT — SONAR PULSE */
+/* Wordmark, matching the public page: expanded Mona Sans and an orange dot. */
+.wordmark {
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-stretch: 125%;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1;
+}
+.wordmark-dot {
+  display: inline-block;
+  width: 0.2em;
+  height: 0.2em;
+  margin-left: 0.14em;
+  border-radius: 999px;
+  background: rgb(var(--accent-fill));
+  vertical-align: 0.08em;
+}
+
+:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+  outline-offset: 2px;
+}
+
+/* PRESENCE DOT, SONAR PULSE */
 .presence-dot {
   position: relative;
   width: 9px;
@@ -167,8 +229,8 @@ body {
   flex-shrink: 0;
 }
 .presence-dot.online {
-  background: rgb(var(--signal-green));
-  box-shadow: 0 0 0 1px rgb(var(--signal-green) / 0.15);
+  background: rgb(var(--signal-green-light));
+  box-shadow: 0 0 0 1px rgb(var(--signal-green-light) / 0.2);
 }
 .presence-dot.offline {
   background: rgb(var(--signal-red));
@@ -180,7 +242,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: rgb(var(--signal-green));
+  background: rgb(var(--signal-green-light));
   animation: sonar 2.4s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
   pointer-events: none;
 }
@@ -199,13 +261,13 @@ body {
   100% { transform: scale(2.2); opacity: 0; }
 }
 
-/* TYPING INDICATOR — three bouncing dots */
+/* TYPING INDICATOR, three bouncing dots */
 @keyframes typing-bounce {
   0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
   40% { transform: translateY(-3px); opacity: 1; }
 }
 
-/* UNREAD BADGE — periodic attention-grabbing wiggle every 3s. Combines a
+/* UNREAD BADGE, periodic attention-grabbing wiggle every 3s. Combines a
    rotate sweep with a small scale pulse so the badge clearly "shakes" rather
    than subtly tilting. */
 @keyframes badge-wiggle {
@@ -231,7 +293,7 @@ body {
   .badge-wiggle { animation: none; }
 }
 
-/* THEME TOGGLE — settles in on load.
+/* THEME TOGGLE, settles in on load.
    The server cannot know the stored preference, so the control renders
    "System" for the first frame and resolves on hydration. Fading it in hides
    that swap without needing a state flag to track mounting. */
@@ -246,85 +308,89 @@ body {
   .theme-toggle-in { animation: none; }
 }
 
-/* RULES */
-.rule-thin { border-bottom: 1px solid rgb(var(--rule)); }
+/* RULES: soft single lines instead of newsroom hairlines and double rules */
+.rule-thin { border-bottom: 1px solid rgb(var(--rule-soft)); }
 .rule-soft { border-bottom: 1px solid rgb(var(--rule-soft)); }
-.rule-double {
-  border-top: 1px solid rgb(var(--rule));
-  border-bottom: 1px solid rgb(var(--rule));
-  border-style: double;
-  border-width: 3px 0;
-}
+.rule-double { border-bottom: 1px solid rgb(var(--rule-soft)); }
 
-/* STATUS PILL */
+/* STATUS PILL: a rounded pill tinted from its own text colour */
 .status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0.65rem 0.25rem 0.45rem;
-  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  border-left: 3px solid currentColor;
-  background: rgb(var(--pill-bed) / var(--pill-bed-alpha));
+  gap: 0.45rem;
+  padding: 0.3rem 0.75rem 0.3rem 0.55rem;
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-stretch: 112%;
+  font-size: 0.75rem;
+  font-weight: 620;
+  letter-spacing: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 11%, transparent);
   white-space: nowrap;
 }
 
-/* INPUTS */
+/* INPUTS: soft rounded fields with a green focus ring */
 .input-line {
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgb(var(--rule));
-  padding: 0.5rem 0;
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-size: 1.0625rem;
+  background: rgb(var(--parchment));
+  border: 1px solid rgb(var(--rule));
+  border-radius: 14px;
+  padding: 0.72rem 0.95rem;
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-size: 1rem;
   color: rgb(var(--ink));
   width: 100%;
   outline: none;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.input-line:focus { border-bottom-color: rgb(var(--signal-red)); }
-.input-line::placeholder { color: rgb(var(--ink-fade)); font-style: italic; }
+.input-line:focus {
+  border-color: rgb(var(--accent));
+  box-shadow: 0 0 0 3px rgb(var(--accent) / 0.16);
+}
+.input-line::placeholder { color: rgb(var(--ink-fade)); }
 
-/* BUTTONS */
+/* BUTTONS: orange pills, sentence case, like the public page */
 .btn-dispatch {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.7rem 1.25rem;
-  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  background: rgb(var(--ink));
-  color: rgb(var(--parchment-warm));
+  min-height: 2.75rem;
+  padding: 0.7rem 1.3rem;
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-stretch: 112%;
+  font-size: 0.9375rem;
+  font-weight: 620;
+  letter-spacing: 0;
+  background: rgb(var(--accent-fill));
+  color: rgb(var(--on-accent));
   border: none;
+  border-radius: 999px;
   cursor: pointer;
   transition: background 0.15s ease;
 }
-/* On hover the bed becomes signal red, which does not invert between themes —
-   so the label switches to the always-light token rather than the inverting one. */
-.btn-dispatch:hover { background: rgb(var(--signal-red)); color: rgb(var(--on-inverse)); }
+.btn-dispatch:hover { background: rgb(var(--accent-fill-hover)); color: rgb(var(--on-accent)); }
 .btn-dispatch:disabled { background: rgb(var(--ink-fade)); cursor: not-allowed; }
+/* Tighter pill for crowded rows on phones (the portal nav's New Ticket button). */
+@media (max-width: 767px) {
+  .btn-compact { min-height: 2.35rem; padding: 0.5rem 0.95rem; font-size: 0.875rem; }
+}
 
 .btn-ghost {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.85rem;
-  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  min-height: 2.5rem;
+  padding: 0.55rem 1.05rem;
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-stretch: 112%;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0;
   background: transparent;
-  color: rgb(var(--ink-soft));
-  border: 1px solid rgb(var(--rule));
+  color: rgb(var(--ink));
+  border: 1.5px solid rgb(var(--rule));
+  border-radius: 999px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
-.btn-ghost:hover { color: rgb(var(--signal-red)); border-color: rgb(var(--signal-red)); }
+.btn-ghost:hover { color: rgb(var(--accent)); border-color: rgb(var(--accent)); }

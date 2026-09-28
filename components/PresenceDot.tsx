@@ -52,7 +52,7 @@ export function PresenceDot({
     >
       <span className={dotClasses} aria-hidden="true" />
       {showLabel && (
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-soft">
+        <span className="font-mono text-[0.8125rem] text-ink-soft">
           {resolvedLabel}
         </span>
       )}

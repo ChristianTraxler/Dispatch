@@ -112,7 +112,7 @@ export function StatusTimeline({
 
   // Prefer the explicit status (so backward transitions move the marker too).
   // Fall back to the latest stage with a timestamp for callers that don't
-  // pass status — keeps the original behaviour for legacy uses.
+  // pass status, keeps the original behaviour for legacy uses.
   let activeIndex = status ? statusToStageIndex(status, ticket) : -1;
   if (activeIndex < 0) {
     stages.forEach((s, i) => {
@@ -145,7 +145,7 @@ export function StatusTimeline({
           : !!stage.timestamp;
         const isActive = i === activeIndex;
         const isLast = i === stages.length - 1;
-        // Hide the timestamp text on stages we've rolled back past — keeps
+        // Hide the timestamp text on stages we've rolled back past, keeps
         // the visual story consistent with the box state.
         const stamp =
           showTimestamps && filled ? formatStamp(stage.timestamp) : null;
@@ -190,7 +190,7 @@ function StageNode({ label, number, filled, isActive, timestamp }: StageNodeProp
       <div className="relative flex items-center justify-center flex-shrink-0">
         <span
           className={[
-            "relative flex items-center justify-center w-7 h-7 font-mono text-[0.6rem] font-medium border z-10",
+            "relative flex items-center justify-center w-7 h-7 font-mono text-[0.8125rem] font-medium border z-10 rounded-2xl",
             filled
               ? "bg-ink text-parchment-warm border-ink"
               : "bg-parchment-warm text-ink-fade border-rule",
@@ -203,7 +203,7 @@ function StageNode({ label, number, filled, isActive, timestamp }: StageNodeProp
         {/* Sonar ring on active filled marker */}
         {isActive && filled && (
           <span
-            className="absolute inset-0 -m-[3px] border border-signal-red pointer-events-none"
+            className="absolute inset-0 -m-[3px] border border-accent pointer-events-none rounded-full"
             style={{ animation: "sonar-square 2.4s ease-out infinite" }}
             aria-hidden="true"
           />
@@ -222,11 +222,11 @@ function StageNode({ label, number, filled, isActive, timestamp }: StageNodeProp
           {label}
         </span>
         {timestamp ? (
-          <span className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-mute mt-1 whitespace-nowrap">
+          <span className="font-mono text-[0.8125rem] text-ink-mute mt-1 whitespace-nowrap">
             {timestamp}
           </span>
         ) : (
-          <span className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-fade mt-1">
+          <span className="font-mono text-[0.8125rem] text-ink-fade mt-1">
             —
           </span>
         )}
@@ -262,9 +262,9 @@ function Connector({ filled }: { filled: boolean }) {
     >
       <span
         className={[
-          // Mobile: vertical line — w-px tall, with my-0.5 gap from markers above/below (~2px each end)
+          // Mobile: vertical line, w-px tall, with my-0.5 gap from markers above/below (~2px each end)
           "w-px h-full my-0.5",
-          // Desktop: horizontal line — h-px wide, with mx-0.5 gap from markers left/right (~2px each end)
+          // Desktop: horizontal line, h-px wide, with mx-0.5 gap from markers left/right (~2px each end)
           "md:h-px md:w-full md:my-0 md:mx-0.5",
           filled ? "bg-ink" : "bg-rule",
         ].join(" ")}

@@ -141,7 +141,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
     <div
       className={[
         "pointer-events-auto bg-parchment-warm border-l-[3px] shadow-[2px_2px_0_rgb(var(--shadow-tint)/0.08)]",
-        "border border-rule",
+        "border border-rule rounded-2xl",
         accent,
         "transform transition-all duration-200 ease-out",
         entering ? "translate-x-[-12px] opacity-0" : "translate-x-0 opacity-100",
@@ -159,7 +159,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
             <span className="font-display text-sm text-ink truncate">{toast.title}</span>
           </div>
           {toast.detail && (
-            <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mt-0.5">
+            <div className="font-mono text-[0.8125rem] text-ink-mute mt-0.5">
               {toast.detail} · {time}
             </div>
           )}
@@ -167,7 +167,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
         <button
           type="button"
           onClick={onDismiss}
-          className="flex-shrink-0 font-mono text-xs text-ink-fade hover:text-signal-red transition-colors leading-none mt-1"
+          className="flex-shrink-0 font-mono text-xs text-ink-fade hover:text-accent transition-colors leading-none mt-1"
           aria-label="Dismiss"
         >
           ×

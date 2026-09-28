@@ -197,9 +197,9 @@ export function AddOnsClient({
   return (
     <div className="max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12">
       <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">§</span>
+        <span className="font-mono text-[0.8125rem] text-accent">§</span>
         <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           Services
         </span>
       </div>
@@ -207,14 +207,13 @@ export function AddOnsClient({
       <div className="mb-8">
         <h1
           className="font-display text-3xl md:text-5xl leading-none mb-2"
-          style={{ fontVariationSettings: '"opsz" 144' }}
         >
           Add-Ons
         </h1>
         <p className="font-display italic text-ink-mute text-base">
           Services and upgrades you can add to your account.
         </p>
-        <p className="mt-3 font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+        <p className="mt-3 font-mono text-[0.8125rem] text-ink-mute">
           Payment up front — once your invoice is paid, work begins.
         </p>
       </div>
@@ -227,11 +226,11 @@ export function AddOnsClient({
             {activeAddOns.map((row) => (
               <li
                 key={row.id}
-                className="border border-rule bg-parchment-warm/50 px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2"
+                className="border border-rule bg-parchment-warm/50 px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2 rounded-2xl"
               >
                 <div className="min-w-0">
                   <div className="font-display text-base">{row.addOnName}</div>
-                  <div className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mt-0.5">
+                  <div className="font-mono text-[0.8125rem] text-ink-mute mt-0.5">
                     {row.siteName ? `${row.siteName} · ` : ""}
                     Active since {formatDate(row.startedAt)}
                   </div>
@@ -240,14 +239,14 @@ export function AddOnsClient({
                   <span className="font-mono text-sm">
                     {formatCents(row.priceCents)}
                   </span>
-                  <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                  <span className="font-mono text-[0.8125rem] text-ink-mute">
                     {resolveUnitLabel(row.priceUnit, row.priceUnitLabel)}
                   </span>
                   <span
                     className={[
-                      "font-mono text-[0.6rem] uppercase tracking-widest px-1.5 py-0.5",
+                      "font-mono text-[0.8125rem] px-1.5 py-0.5",
                       row.status === "ACTIVE"
-                        ? "bg-signal-green text-onInverse"
+                        ? "bg-signal-green/15 text-signal-green"
                         : "bg-ink-mute text-parchment-warm",
                     ].join(" ")}
                   >
@@ -265,7 +264,7 @@ export function AddOnsClient({
         <h2 className="font-display text-xl mb-4">Available Add-Ons</h2>
 
         {visibleCatalog.length === 0 ? (
-          <div className="border border-dashed border-rule px-6 py-12 text-center">
+          <div className="border border-dashed border-rule px-6 py-12 text-center rounded-2xl">
             <p className="font-display italic text-ink-mute">
               Nothing available right now — get in touch if you have something in mind.
             </p>
@@ -297,11 +296,11 @@ export function AddOnsClient({
               return (
                 <article
                   key={addOn.id}
-                  className="border border-rule bg-parchment-warm p-5 flex flex-col gap-3"
+                  className="border border-rule bg-parchment-warm p-5 flex flex-col gap-3 rounded-2xl"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <h3 className="font-display text-lg leading-tight">{addOn.name}</h3>
-                    <span className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute shrink-0">
+                    <span className="font-mono text-[0.75rem] text-ink-mute shrink-0">
                       {scopeLabel(addOn.scope)}
                     </span>
                   </div>
@@ -317,10 +316,10 @@ export function AddOnsClient({
                         <span className="font-mono text-base text-ink whitespace-nowrap">
                           {formatPriceShape(effective)}
                         </span>
-                        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute border-l border-rule pl-2">
+                        <span className="font-mono text-[0.8125rem] text-ink-mute border-l border-rule pl-2">
                           {resolveUnitLabel(addOn.priceUnit, addOn.priceUnitLabel)}
                         </span>
-                        <span className="font-mono text-[0.55rem] uppercase tracking-widest bg-signal-green text-onInverse px-1.5 py-0.5">
+                        <span className="font-mono text-[0.75rem] bg-signal-green/15 text-signal-green px-2 py-0.5 rounded-full">
                           Your rate
                         </span>
                       </>
@@ -329,7 +328,7 @@ export function AddOnsClient({
                         <span className="font-mono text-base text-ink whitespace-nowrap">
                           {formatPriceShape(effective)}
                         </span>
-                        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute border-l border-rule pl-2">
+                        <span className="font-mono text-[0.8125rem] text-ink-mute border-l border-rule pl-2">
                           {resolveUnitLabel(addOn.priceUnit, addOn.priceUnitLabel)}
                         </span>
                       </>
@@ -341,16 +340,16 @@ export function AddOnsClient({
                       <button
                         type="button"
                         onClick={() => router.push(`/portal/ticket/${openTicketId}`)}
-                        className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink transition-colors"
+                        className="font-mono text-[0.8125rem] text-ink-mute hover:text-ink transition-colors"
                       >
                         Requested — view ticket →
                       </button>
                     ) : allSitesActive ? (
-                      <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+                      <span className="font-mono text-[0.8125rem] text-ink-mute">
                         Active on all your sites
                       </span>
                     ) : sites.length === 0 ? (
-                      <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+                      <span className="font-mono text-[0.8125rem] text-ink-mute">
                         Add a site first to request
                       </span>
                     ) : (
@@ -377,17 +376,17 @@ export function AddOnsClient({
           onClick={() => !submitting && setModal({ kind: "closed" })}
         >
           <div
-            className="bg-parchment border border-rule max-w-md w-full p-5 md:p-6"
+            className="bg-parchment border border-rule max-w-md w-full p-5 md:p-6 rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="font-display text-xl mb-1">Request {modal.addOn.name}</h3>
-            <p className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-3">
+            <p className="font-mono text-[0.8125rem] text-ink-mute mb-3">
               {modal.effectiveType === "PERCENTAGE" && modal.effectivePercentBp !== null
                 ? formatPercentBp(modal.effectivePercentBp)
                 : formatPriceRange(modal.effectiveCents, modal.effectiveMaxCents)}
               {priceUnitSuffix(modal.addOn.priceUnit)} · {scopeLabel(modal.addOn.scope)}
             </p>
-            <div className="border-l-2 border-signal-red pl-3 py-1 mb-4 bg-parchment-warm/60">
+            <div className="border border-signal-red/20 pl-3 py-1 mb-4 bg-parchment-warm/60 rounded-xl">
               <p className="font-display text-sm text-ink-soft leading-snug">
                 {modal.effectiveType === "PERCENTAGE" && modal.effectivePercentBp !== null ? (
                   <>
@@ -419,13 +418,13 @@ export function AddOnsClient({
 
             {modal.addOn.scope === "PER_SITE" && (
               <label className="block mb-4">
-                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                <span className="font-mono text-[0.8125rem] text-ink-mute">
                   Site
                 </span>
                 <select
                   value={selectedSiteId}
                   onChange={(e) => setSelectedSiteId(e.target.value)}
-                  className="mt-1 w-full border border-rule bg-parchment-warm px-3 py-2 font-display"
+                  className="mt-1 w-full border border-rule bg-parchment-warm px-3 py-2 font-display rounded-2xl"
                 >
                   <option value="">— pick a site —</option>
                   {sites
@@ -438,7 +437,7 @@ export function AddOnsClient({
             )}
 
             <label className="block mb-4">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+              <span className="font-mono text-[0.8125rem] text-ink-mute">
                 Notes (optional)
               </span>
               <textarea
@@ -446,12 +445,12 @@ export function AddOnsClient({
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
                 placeholder="Anything you'd like us to know?"
-                className="mt-1 w-full border border-rule bg-parchment-warm px-3 py-2 font-display"
+                className="mt-1 w-full border border-rule bg-parchment-warm px-3 py-2 font-display rounded-2xl"
               />
             </label>
 
             {submitError && (
-              <p className="text-sm text-signal-red font-mono mb-3">{submitError}</p>
+              <p className="text-sm text-accent font-mono mb-3">{submitError}</p>
             )}
 
             <div className="flex items-center justify-end gap-3">
@@ -459,7 +458,7 @@ export function AddOnsClient({
                 type="button"
                 onClick={() => setModal({ kind: "closed" })}
                 disabled={submitting}
-                className="font-mono text-[0.7rem] uppercase tracking-widest text-ink-mute hover:text-ink"
+                className="font-mono text-[0.875rem] text-ink-mute hover:text-ink"
               >
                 Cancel
               </button>

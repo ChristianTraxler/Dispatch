@@ -53,18 +53,17 @@ export default async function AdminLedgerPage() {
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">
+        <span className="font-mono text-[0.8125rem] text-accent">
           §
         </span>
         <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           Editorial Desk
         </span>
       </div>
 
       <h1
         className="font-display text-4xl md:text-6xl leading-none mb-3"
-        style={{ fontVariationSettings: '"opsz" 144' }}
       >
         Live Ledger
       </h1>
@@ -73,7 +72,7 @@ export default async function AdminLedgerPage() {
       </p>
 
       {/* Stat strip */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-px bg-rule border border-rule mb-12">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-px bg-rule border border-rule mb-12 rounded-2xl overflow-hidden">
         <Stat label="Open Tickets" value={openCount} accent="signal-red" />
         <Stat label="Awaiting Confirm" value={awaitingCount} />
         <Stat label="Open Inquiries" value={inquiryCount} />
@@ -85,16 +84,16 @@ export default async function AdminLedgerPage() {
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 items-start">
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red shrink-0">
+            <span className="font-mono text-[0.8125rem] text-accent shrink-0">
               §
             </span>
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute whitespace-nowrap">
+            <span className="font-mono text-[0.8125rem] text-ink-mute whitespace-nowrap">
               Recent Dispatches
             </span>
             <span className="h-px flex-1 bg-rule-soft min-w-[1rem]" />
             <Link
               href="/admin/tickets"
-              className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors whitespace-nowrap shrink-0"
+              className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors whitespace-nowrap shrink-0"
             >
               All →
             </Link>
@@ -116,18 +115,18 @@ export default async function AdminLedgerPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-1 min-w-0">
                           <StatusPill status={t.status} className="shrink-0" />
-                          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade truncate">
+                          <span className="font-mono text-[0.8125rem] text-ink-fade truncate">
                             {ticketNumber(t.id, t.createdAt)}
                           </span>
                         </div>
                         <p className="font-display text-base text-ink truncate">
                           {t.title}
                         </p>
-                        <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mt-1 truncate">
+                        <p className="font-mono text-[0.8125rem] text-ink-mute mt-1 truncate">
                           {t.clientAccount.name} · {t.site.displayName}
                         </p>
                       </div>
-                      <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade md:text-right shrink-0 mt-1 md:mt-0">
+                      <div className="font-mono text-[0.8125rem] text-ink-fade md:text-right shrink-0 mt-1 md:mt-0">
                         {formatRelative(t.createdAt)}
                       </div>
                     </div>
@@ -146,10 +145,10 @@ export default async function AdminLedgerPage() {
 
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">
+              <span className="font-mono text-[0.8125rem] text-accent">
                 §
               </span>
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+              <span className="font-mono text-[0.8125rem] text-ink-mute">
                 On Deck
               </span>
               <span className="h-px flex-1 bg-rule-soft" />
@@ -168,12 +167,12 @@ export default async function AdminLedgerPage() {
 
 function BillingRulesNote() {
   return (
-    <div className="border-l-2 border-signal-red bg-parchment-warm px-4 py-4">
+    <div className="border border-rule-soft bg-parchment-warm px-5 py-5 rounded-2xl">
       <div className="flex items-center gap-2 mb-3">
-        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">
+        <span className="font-mono text-[0.8125rem] text-accent">
           §
         </span>
-        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">
+        <span className="font-mono text-[0.8125rem] text-accent">
           Before You Start Work
         </span>
       </div>
@@ -184,7 +183,7 @@ function BillingRulesNote() {
 
       <ul className="space-y-2.5 text-xs text-ink-soft leading-snug">
         <li>
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-0.5">
+          <span className="font-mono text-[0.8125rem] text-ink-mute block mb-0.5">
             Small one-time &lt; $500
           </span>
           <span className="font-display">
@@ -192,7 +191,7 @@ function BillingRulesNote() {
           </span>
         </li>
         <li>
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-0.5">
+          <span className="font-mono text-[0.8125rem] text-ink-mute block mb-0.5">
             Larger one-time $500+
           </span>
           <span className="font-display">
@@ -201,7 +200,7 @@ function BillingRulesNote() {
           </span>
         </li>
         <li>
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-0.5">
+          <span className="font-mono text-[0.8125rem] text-ink-mute block mb-0.5">
             Recurring (monthly)
           </span>
           <span className="font-display">
@@ -231,14 +230,13 @@ function Stat({
 }) {
   return (
     <div className="bg-parchment-warm px-5 py-4">
-      <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mb-1">
+      <p className="font-mono text-[0.8125rem] text-ink-mute mb-1">
         {label}
       </p>
       <p
         className={`font-display text-3xl md:text-4xl leading-none ${
-          accent === "signal-red" ? "text-signal-red" : "text-ink"
+          accent === "signal-red" ? "text-accent" : "text-ink"
         }`}
-        style={{ fontVariationSettings: '"opsz" 144' }}
       >
         {value}
       </p>
@@ -251,7 +249,7 @@ function QuickAction({ href, label }: { href: string; label: string }) {
     <li>
       <Link
         href={href}
-        className="block px-4 py-3 border border-rule hover:border-signal-red transition-colors font-mono text-[0.7rem] uppercase tracking-wider text-ink-soft hover:text-signal-red"
+        className="block px-4 py-3 border border-rule hover:border-accent transition-colors font-mono text-[0.875rem] text-ink-soft hover:text-accent rounded-full"
       >
         {label}
       </Link>

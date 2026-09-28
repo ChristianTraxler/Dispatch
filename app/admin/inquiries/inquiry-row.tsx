@@ -122,14 +122,14 @@ export function InquiryRow({ row, onDelete }: Props) {
 
   const metaSlot = confirming ? (
     <div className="flex items-center gap-1 shrink-0">
-      <span className="font-mono text-[0.7rem] uppercase tracking-widest text-ink-mute mr-1">
+      <span className="font-mono text-[0.875rem] text-ink-mute mr-1">
         Delete?
       </span>
       <button
         type="button"
         onClick={commitDelete}
         disabled={busy}
-        className="inline-flex items-center justify-center min-w-[32px] min-h-[32px] text-sm leading-none text-signal-red hover:bg-signal-red/10 active:bg-signal-red/20 rounded disabled:opacity-50 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-1 transition-colors"
+        className="inline-flex items-center justify-center min-w-[32px] min-h-[32px] text-sm leading-none text-signal-red hover:bg-signal-red/10 active:bg-signal-red/20 rounded disabled:opacity-50 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 transition-colors"
         aria-label="Confirm delete"
       >
         ✓
@@ -144,7 +144,7 @@ export function InquiryRow({ row, onDelete }: Props) {
       </button>
     </div>
   ) : (
-    <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade text-right shrink-0">
+    <div className="font-mono text-[0.8125rem] text-ink-fade text-right shrink-0">
       {row.messageCount} msg{row.messageCount === 1 ? "" : "s"} ·{" "}
       {formatRelative(row.activityIso)}
     </div>
@@ -161,7 +161,7 @@ export function InquiryRow({ row, onDelete }: Props) {
       <div className="flex-1 min-w-0">
         <p className="font-display text-lg text-ink">{row.clientName}</p>
         <p className="font-display italic text-ink-mute text-sm mt-1 truncate">
-          <span className="font-mono not-italic text-[0.55rem] uppercase tracking-widest text-ink-fade mr-2">
+          <span className="font-mono not-italic text-[0.75rem] text-ink-fade mr-2">
             {row.lastSenderTag}:
           </span>
           {row.preview}
@@ -172,7 +172,7 @@ export function InquiryRow({ row, onDelete }: Props) {
         <button
           type="button"
           onClick={startConfirm}
-          className="text-ink-mute hover:text-signal-red opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0 p-1 -m-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-1"
+          className="text-ink-mute hover:text-accent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0 p-1 -m-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"
           aria-label="Delete inquiry"
         >
           <TrashIcon />

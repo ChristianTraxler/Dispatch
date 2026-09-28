@@ -19,7 +19,7 @@ export interface AdminInviteNewPageProps {
 
 function suggestDisplayName(rawUrl: string): string {
   if (!rawUrl) return "";
-  // Strip protocol, www, path, trailing slashes — get the bare hostname
+  // Strip protocol, www, path, trailing slashes, get the bare hostname
   let host = rawUrl
     .replace(/^https?:\/\//, "")
     .replace(/^www\./, "")
@@ -90,22 +90,21 @@ export function AdminInviteNewPage({
     <div className={`max-w-2xl mx-auto px-5 md:px-10 py-8 md:py-12 ${className}`} style={style}>
       {/* Section label */}
       <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">
+        <span className="font-mono text-[0.8125rem] text-accent">
           §
         </span>
         <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           New Invitation
         </span>
       </div>
 
       <h1
         className="font-display text-3xl md:text-5xl leading-tight mb-2"
-        style={{ fontVariationSettings: '"opsz" 144' }}
       >
         Send a new
         <br />
-        <span className="italic text-signal-red">dispatch invite.</span>
+        <span className="">dispatch invite.</span>
       </h1>
       <p className="font-display italic text-ink-mute mb-10 text-base">
         The recipient receives a link valid for 7 days. They set up their account
@@ -117,7 +116,7 @@ export function AdminInviteNewPage({
         <div>
           <label
             htmlFor="recipientName"
-            className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-1"
+            className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
           >
             Recipient name
           </label>
@@ -137,7 +136,7 @@ export function AdminInviteNewPage({
         <div>
           <label
             htmlFor="email"
-            className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-1"
+            className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
           >
             Recipient email *
           </label>
@@ -154,7 +153,7 @@ export function AdminInviteNewPage({
         </div>
 
         <div className="rule-thin pt-7">
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mb-3 block">
+          <span className="font-mono text-[0.8125rem] text-ink-mute mb-3 block">
             Site to grant access to
           </span>
         </div>
@@ -162,7 +161,7 @@ export function AdminInviteNewPage({
         <div>
           <label
             htmlFor="siteUrl"
-            className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-1"
+            className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
           >
             URL *
           </label>
@@ -183,7 +182,7 @@ export function AdminInviteNewPage({
         <div>
           <label
             htmlFor="siteDisplayName"
-            className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-1"
+            className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
           >
             Display name *
           </label>
@@ -207,7 +206,7 @@ export function AdminInviteNewPage({
         <div className="rule-thin pt-7">
           <label
             htmlFor="note"
-            className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-1"
+            className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
           >
             Note (optional)
           </label>

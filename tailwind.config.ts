@@ -47,7 +47,7 @@ const config: Config = {
           green: token("signal-green"),
           greenLight: token("signal-green-light"),
         },
-        // Structural chrome that must stay recessed against the page — the
+        // Structural chrome that must stay recessed against the page, the
         // admin sub-nav and the chat panel headers. Plain `ink` is the
         // maximum-contrast mark and flips to near-white in dark mode, which
         // is right for buttons and selected chips but would turn these bands
@@ -58,10 +58,22 @@ const config: Config = {
         onInverse: token("on-inverse"),
         // Modal scrim. Always dark: an inverted `ink` scrim would go white.
         scrim: token("scrim"),
+        // Workbench accent: `text-accent` for links and active states,
+        // `bg-accent-fill` for button beds, `text-onAccent` for their labels.
+        accent: {
+          DEFAULT: token("accent"),
+          fill: token("accent-fill"),
+          fillHover: token("accent-fill-hover"),
+        },
+        onAccent: token("on-accent"),
       },
       fontFamily: {
-        display: ["var(--font-fraunces)", "Georgia", "serif"],
-        mono: ["var(--font-jetbrains-mono)", "ui-monospace", "monospace"],
+        // Spectral for headings and quiet serif text.
+        display: ["var(--font-display)", "Georgia", "serif"],
+        // `font-mono` keeps its name so no component changes, but it now sets
+        // Mona Sans, the Workbench UI face (see :where(.font-mono) in globals.css).
+        mono: ["var(--font-ui)", "system-ui", "sans-serif"],
+        sans: ["var(--font-ui)", "system-ui", "sans-serif"],
       },
       letterSpacing: {
         wider: "0.08em",

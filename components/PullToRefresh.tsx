@@ -194,7 +194,7 @@ export function PullToRefresh({ children }: Props) {
         <div
           className={[
             "w-10 h-10 rounded-full bg-parchment-warm shadow-[0_8px_20px_-6px_rgb(var(--shadow-tint)/0.25)] flex items-center justify-center mt-2 transition-shadow",
-            reachedHard ? "ring-2 ring-signal-red" : "ring-1 ring-rule",
+            reachedHard ? "ring-2 ring-accent" : "ring-1 ring-rule",
           ].join(" ")}
         >
           <svg

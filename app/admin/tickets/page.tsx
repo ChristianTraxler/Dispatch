@@ -24,7 +24,7 @@ function formatRelative(value: Date): string {
 }
 
 export default async function AdminTicketsPage() {
-  // Stamps are formatted server-side, so they need the admin's own zone —
+  // Stamps are formatted server-side, so they need the admin's own zone,
   // otherwise they render in the deploy region's clock (UTC).
   const settingsRow = await prisma.adminSettings.findUnique({
     where: { id: "global" },
@@ -55,18 +55,17 @@ export default async function AdminTicketsPage() {
     <div className="max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12">
       <RefreshTicketsOnChange />
       <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">
+        <span className="font-mono text-[0.8125rem] text-accent">
           §
         </span>
         <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           Ticket Queue
         </span>
       </div>
 
       <h1
         className="font-display text-3xl md:text-5xl leading-none mb-3"
-        style={{ fontVariationSettings: '"opsz" 144' }}
       >
         Tickets
       </h1>
@@ -95,7 +94,7 @@ export default async function AdminTicketsPage() {
                           const unread = unreadByTicket.get(t.id) ?? 0;
                           if (unread > 0) {
                             return (
-                              <span className="font-mono text-[0.55rem] uppercase tracking-widest bg-signal-red text-onInverse px-1.5 py-0.5">
+                              <span className="font-mono text-[0.75rem] bg-signal-red text-onInverse px-1.5 py-0.5">
                                 {unread} new
                               </span>
                             );
@@ -107,12 +106,12 @@ export default async function AdminTicketsPage() {
                             reopenedAt: t.reopenedAt,
                             confirmedAt: t.confirmedAt,
                           }) ? (
-                            <span className="font-mono text-[0.55rem] uppercase tracking-widest border border-signal-red text-signal-red px-1.5 py-0.5">
+                            <span className="font-mono text-[0.75rem] border border-accent text-accent px-1.5 py-0.5 rounded-full">
                               Updated
                             </span>
                           ) : null;
                         })()}
-                        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                        <span className="font-mono text-[0.8125rem] text-ink-mute">
                           {ticketNumber(t.id, t.createdAt)}
                         </span>
                       </div>
@@ -122,15 +121,15 @@ export default async function AdminTicketsPage() {
                           <OutOfFreeWindowBadge />
                         )}
                       </p>
-                      <p className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mt-1">
+                      <p className="font-mono text-[0.8125rem] text-ink-mute mt-1">
                         {t.clientAccount.name} · {t.site.displayName}
                       </p>
                     </div>
-                    <div className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-fade md:text-right shrink-0 mt-2 md:mt-0">
+                    <div className="font-mono text-[0.8125rem] text-ink-fade md:text-right shrink-0 mt-2 md:mt-0">
                       <span className="block">Filed {formatRelative(t.createdAt)}</span>
                       <time
                         dateTime={t.createdAt.toISOString()}
-                        className="block mt-0.5 text-[0.6rem] tracking-wider"
+                        className="block mt-0.5 text-[0.8125rem]"
                       >
                         {formatFiledAt(t.createdAt, tz)}
                       </time>

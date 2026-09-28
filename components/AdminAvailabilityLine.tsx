@@ -16,7 +16,7 @@ export function AdminAvailabilityLine({ className = "" }: { className?: string }
   const pulse = status.state === "online";
 
   // "back {weekday hour:min}" is the desk's reopening time, so it reads in the
-  // desk's zone rather than the viewer's — a client in another timezone would
+  // desk's zone rather than the viewer's, a client in another timezone would
   // otherwise be told a time the desk is not actually open at.
   const detail =
     status.state === "offline" && status.nextOpenAt
@@ -36,7 +36,7 @@ export function AdminAvailabilityLine({ className = "" }: { className?: string }
         className={`inline-block w-2 h-2 rounded-full ${dotColor} ${pulse ? "animate-pulse" : ""}`}
         aria-hidden="true"
       />
-      <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute truncate">
+      <span className="font-mono text-[0.8125rem] text-ink-mute truncate">
         {status.label} — {detail}
       </span>
     </div>

@@ -144,9 +144,9 @@ export function AttachmentDropzone({
         }}
         className={[
           "relative px-5 py-8 md:py-10 cursor-pointer transition-all duration-150 select-none",
-          "border border-dashed",
+          "border border-dashed rounded-2xl",
           dragOver
-            ? "border-signal-red bg-signal-red/[0.04]"
+            ? "border-accent bg-accent/[0.05]"
             : full
               ? "border-rule bg-parchment-deep cursor-not-allowed"
               : "border-rule hover:border-ink hover:bg-parchment-warm",
@@ -166,7 +166,7 @@ export function AttachmentDropzone({
         />
 
         <div className="flex flex-col items-center text-center gap-2">
-          {/* Icon — paperclip-style ASCII */}
+          {/* Icon, paperclip-style ASCII */}
           <span
             className={[
               "font-mono text-2xl leading-none",
@@ -179,7 +179,7 @@ export function AttachmentDropzone({
 
           <span
             className={[
-              "font-mono text-[0.65rem] uppercase tracking-widest",
+              "font-mono text-[0.8125rem]",
               dragOver ? "text-signal-red" : full ? "text-ink-fade" : "text-ink-soft",
             ].join(" ")}
           >
@@ -208,7 +208,7 @@ export function AttachmentDropzone({
       {error && (
         <div
           role="alert"
-          className="mt-3 border-l-[3px] border-signal-red bg-signal-red/5 px-4 py-2 font-mono text-[0.65rem] uppercase tracking-wider text-signal-redDeep"
+          className="mt-3 border border-signal-red/20 bg-signal-red/5 px-4 py-2 font-mono text-[0.8125rem] text-signal-redDeep rounded-xl"
         >
           {error}
         </div>
@@ -218,11 +218,11 @@ export function AttachmentDropzone({
       {attachments.length > 0 && (
         <div className="mt-4 space-y-2">
           <div className="flex items-center gap-3 mb-2">
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+            <span className="font-mono text-[0.8125rem] text-ink-mute">
               Attached
             </span>
             <span className="h-px flex-1 bg-ruleSoft" />
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade">
+            <span className="font-mono text-[0.8125rem] text-ink-fade">
               {attachments.length} of {maxFiles}
             </span>
           </div>
@@ -252,16 +252,16 @@ function AttachmentRow({
   const isImage = attachment.contentType.startsWith("image/");
 
   return (
-    <div className="flex items-center gap-3 px-3 py-2 border border-ruleSoft bg-parchment-warm group">
+    <div className="flex items-center gap-3 px-3 py-2 border border-ruleSoft bg-parchment-warm group rounded-2xl">
       {/* Thumbnail or icon */}
       {isImage && attachment.previewUrl ? (
         <img
           src={attachment.previewUrl}
           alt={attachment.filename}
-          className="w-10 h-10 object-cover border border-rule flex-shrink-0"
+          className="w-10 h-10 object-cover border border-rule flex-shrink-0 rounded-2xl"
         />
       ) : (
-        <div className="w-10 h-10 flex items-center justify-center bg-parchment-deep border border-rule flex-shrink-0 font-mono text-[0.55rem] uppercase tracking-wider text-ink-mute">
+        <div className="w-10 h-10 flex items-center justify-center bg-parchment-deep border border-rule flex-shrink-0 font-mono text-[0.75rem] text-ink-mute rounded-2xl">
           {isImage ? "IMG" : "DOC"}
         </div>
       )}
@@ -271,7 +271,7 @@ function AttachmentRow({
         <div className="font-display text-sm text-ink truncate leading-tight">
           {attachment.filename}
         </div>
-        <div className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-mute mt-0.5">
+        <div className="font-mono text-[0.8125rem] text-ink-mute mt-0.5">
           {formatSize(attachment.sizeBytes)} ·{" "}
           {attachment.contentType.split("/")[1]?.toUpperCase() ?? attachment.contentType}
         </div>
@@ -284,7 +284,7 @@ function AttachmentRow({
             e.stopPropagation();
             onRemove();
           }}
-          className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade hover:text-signal-red transition-colors px-2 opacity-0 group-hover:opacity-100"
+          className="font-mono text-[0.8125rem] text-ink-fade hover:text-accent transition-colors px-2 opacity-0 group-hover:opacity-100"
           aria-label={`Remove ${attachment.filename}`}
         >
           Remove

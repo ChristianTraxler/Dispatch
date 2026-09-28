@@ -1,25 +1,27 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, JetBrains_Mono } from "next/font/google";
+import { Spectral, Mona_Sans } from "next/font/google";
 import "./globals.css";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { BadgeClearer } from "@/components/BadgeClearer";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 // Self-hosted via next/font so there is no runtime Google Fonts request.
-// Fraunces needs the `opsz` axis (headings set font-variation-settings: "opsz" …)
-// and italic (font-display italic is used across the app).
-const fraunces = Fraunces({
+// Spectral sets headings; Mona Sans (with its width axis) sets everything else.
+const spectral = Spectral({
   subsets: ["latin"],
-  axes: ["opsz"],
+  // 300 for headings, 400 for serif body text, 500 for the <strong> words
+  // inside it (the browser bolds up from the nearest weight it has).
+  weight: ["300", "400", "500"],
   style: ["normal", "italic"],
   display: "swap",
-  variable: "--font-fraunces",
+  variable: "--font-display",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const monaSans = Mona_Sans({
   subsets: ["latin"],
+  axes: ["wdth"],
   display: "swap",
-  variable: "--font-jetbrains-mono",
+  variable: "--font-ui",
 });
 
 export const metadata: Metadata = {
@@ -37,10 +39,10 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   // Paired so the iOS PWA status bar and the browser chrome follow the theme.
-  // These are the resolved --parchment values from globals.css.
+  // These are the resolved --parchment values from globals.css (Workbench white and after-hours walnut).
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F5F1E8" },
-    { media: "(prefers-color-scheme: dark)", color: "#12151C" },
+    { media: "(prefers-color-scheme: light)", color: "#FFFFFF" },
+    { media: "(prefers-color-scheme: dark)", color: "#241A14" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -56,7 +58,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`h-full antialiased ${fraunces.variable} ${jetbrainsMono.variable}`}
+      className={`h-full antialiased ${spectral.variable} ${monaSans.variable}`}
       // The init script below stamps data-theme onto <html> before React sees
       // it, which is exactly the kind of difference this suppresses.
       suppressHydrationWarning

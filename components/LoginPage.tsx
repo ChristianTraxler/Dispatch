@@ -34,11 +34,11 @@ export function LoginPage({ onSubmit, error }: LoginPageProps) {
         <div className="w-full max-w-md">
           {/* Section label */}
           <div className="flex items-center gap-3 mb-8">
-            <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">
+            <span className="font-mono text-[0.8125rem] text-accent">
               §01
             </span>
             <span className="h-px flex-1 bg-rule" />
-            <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+            <span className="font-mono text-[0.8125rem] text-ink-mute">
               Authorized Access
             </span>
           </div>
@@ -46,11 +46,10 @@ export function LoginPage({ onSubmit, error }: LoginPageProps) {
           {/* Headline */}
           <h2
             className="font-display text-3xl md:text-4xl leading-[1.05] mb-3"
-            style={{ fontVariationSettings: '"opsz" 144' }}
           >
             Sign in to file
             <br />
-            <span className="italic text-signal-red">a new dispatch.</span>
+            <span className="">a new dispatch.</span>
           </h2>
           <p className="font-display text-ink-mute italic mb-10">
             Use the credentials sent with your invitation. New here?
@@ -63,7 +62,7 @@ export function LoginPage({ onSubmit, error }: LoginPageProps) {
             <div>
               <label
                 htmlFor="email"
-                className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-1"
+                className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
               >
                 Email
               </label>
@@ -82,7 +81,7 @@ export function LoginPage({ onSubmit, error }: LoginPageProps) {
             <div>
               <label
                 htmlFor="password"
-                className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-1"
+                className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
               >
                 Password
               </label>
@@ -101,7 +100,7 @@ export function LoginPage({ onSubmit, error }: LoginPageProps) {
             {error && (
               <div
                 role="alert"
-                className="border-l-[3px] border-signal-red bg-signal-red/5 px-4 py-3 font-mono text-xs uppercase tracking-wider text-signal-redDeep"
+                className="border border-signal-red/20 bg-signal-red/5 px-4 py-3 font-mono text-xs text-signal-redDeep rounded-xl"
               >
                 {error}
               </div>
@@ -110,7 +109,7 @@ export function LoginPage({ onSubmit, error }: LoginPageProps) {
             <div className="flex items-center justify-between gap-4 pt-2">
               <a
                 href="/portal/forgot-password"
-                className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors underline-offset-4 hover:underline"
+                className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors underline-offset-4 hover:underline"
               >
                 Forgot password?
               </a>
@@ -123,7 +122,7 @@ export function LoginPage({ onSubmit, error }: LoginPageProps) {
 
           {/* Footer */}
           <div className="mt-16 pt-6 rule-thin">
-            <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-fade leading-relaxed">
+            <p className="font-mono text-[0.8125rem] text-ink-fade leading-relaxed">
               Developer of Code, LLC ── Support Desk
               <br />
               No public submissions. Invite only.

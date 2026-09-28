@@ -76,7 +76,7 @@ export function VacationCalendar({ initial, timezone, onOutOfTownChange }: Props
       setPendingEnd(day.date);
       return;
     }
-    // Already had a range — clicking a new day starts over.
+    // Already had a range, clicking a new day starts over.
     setPendingStart(day.date);
     setPendingEnd(null);
   }
@@ -158,8 +158,8 @@ export function VacationCalendar({ initial, timezone, onOutOfTownChange }: Props
   return (
     <section>
       <div className="flex items-center gap-3 mb-4">
-        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">§</span>
-        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-accent">§</span>
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           Scheduled Vacations
         </span>
         <span className="h-px flex-1 bg-rule-soft" />
@@ -168,13 +168,13 @@ export function VacationCalendar({ initial, timezone, onOutOfTownChange }: Props
         Pick the days you&rsquo;ll be away. Out-of-Town flips on automatically at midnight on the start day, and off the day after the last day.
       </p>
 
-      <div className="border border-rule p-4 space-y-6">
+      <div className="border border-rule p-4 space-y-6 rounded-2xl">
         {/* Window controls */}
-        <div className="flex items-center justify-between font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+        <div className="flex items-center justify-between font-mono text-[0.8125rem] text-ink-mute">
           <button
             type="button"
             onClick={() => setWindowStart(monthBefore(windowStart))}
-            className="hover:text-signal-red transition-colors"
+            className="hover:text-accent transition-colors"
             aria-label="Previous month"
           >
             ‹ prev
@@ -183,7 +183,7 @@ export function VacationCalendar({ initial, timezone, onOutOfTownChange }: Props
           <button
             type="button"
             onClick={() => setWindowStart(monthAfter(windowStart))}
-            className="hover:text-signal-red transition-colors"
+            className="hover:text-accent transition-colors"
             aria-label="Next month"
           >
             next ›
@@ -216,13 +216,13 @@ export function VacationCalendar({ initial, timezone, onOutOfTownChange }: Props
 
         {/* Selection summary + label + Add */}
         <div className="border-t border-rule-soft pt-4 space-y-3">
-          <div className="font-mono text-[0.7rem] uppercase tracking-widest text-ink">
+          <div className="font-mono text-[0.875rem] text-ink">
             {previewRange
               ? `Selected: ${formatDateRange(previewRange.startDate, previewRange.endDate)}`
               : "Click a start day, then an end day."}
           </div>
           <label className="block">
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-1">
+            <span className="font-mono text-[0.8125rem] text-ink-mute block mb-1">
               Label (optional, max 80 chars)
             </span>
             <input
@@ -230,7 +230,7 @@ export function VacationCalendar({ initial, timezone, onOutOfTownChange }: Props
               value={label}
               onChange={(e) => setLabel(e.target.value.slice(0, 80))}
               placeholder="Beach trip"
-              className="w-full font-display text-base border border-rule bg-parchment px-3 py-2"
+              className="w-full font-display text-base border border-rule bg-parchment px-3 py-2 rounded-2xl"
             />
           </label>
           <div className="flex justify-end gap-3">
@@ -238,7 +238,7 @@ export function VacationCalendar({ initial, timezone, onOutOfTownChange }: Props
               <button
                 type="button"
                 onClick={clearSelection}
-                className="font-mono text-[0.7rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors"
+                className="font-mono text-[0.875rem] text-ink-mute hover:text-accent transition-colors"
               >
                 Clear
               </button>
@@ -247,7 +247,7 @@ export function VacationCalendar({ initial, timezone, onOutOfTownChange }: Props
               type="button"
               disabled={!canAdd}
               onClick={addVacation}
-              className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-onInverse transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-signal-red"
+              className="font-mono text-[0.875rem] border border-accent text-accent px-4 py-2 hover:bg-accent-fillHover hover:text-onInverse transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-accent rounded-full"
             >
               {adding ? "Saving…" : "Add vacation"}
             </button>
@@ -257,13 +257,13 @@ export function VacationCalendar({ initial, timezone, onOutOfTownChange }: Props
 
       {/* Upcoming list */}
       <div className="mt-6">
-        <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mb-2">
+        <div className="font-mono text-[0.8125rem] text-ink-mute mb-2">
           Upcoming
         </div>
         {vacations.length === 0 ? (
           <p className="font-display italic text-ink-mute">No vacations scheduled.</p>
         ) : (
-          <ul className="border border-rule divide-y divide-rule-soft">
+          <ul className="border border-rule divide-y divide-rule-soft rounded-2xl">
             {vacations.map((v) => (
               <li
                 key={v.id}
@@ -272,14 +272,14 @@ export function VacationCalendar({ initial, timezone, onOutOfTownChange }: Props
                 <span className="font-display italic text-ink flex-1 truncate">
                   {v.label ?? "(no label)"}
                 </span>
-                <span className="font-mono text-[0.7rem] uppercase tracking-widest text-ink-mute">
+                <span className="font-mono text-[0.875rem] text-ink-mute">
                   {formatDateRange(v.startDate, v.endDate)}
                 </span>
                 <button
                   type="button"
                   onClick={() => deleteVacation(v.id)}
                   disabled={deletingId === v.id}
-                  className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors disabled:opacity-50"
+                  className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors disabled:opacity-50"
                 >
                   {deletingId === v.id ? "Removing…" : "Delete"}
                 </button>
@@ -312,14 +312,14 @@ function MonthGrid({
   const dayHeaders = ["S", "M", "T", "W", "T", "F", "S"];
   return (
     <div>
-      <div className="font-mono text-[0.65rem] uppercase tracking-widest text-ink mb-2 text-center">
+      <div className="font-mono text-[0.8125rem] text-ink mb-2 text-center">
         {ymTitle}
       </div>
       <div className="grid grid-cols-7 gap-1">
         {dayHeaders.map((h, i) => (
           <div
             key={i}
-            className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-fade text-center pb-1"
+            className="font-mono text-[0.75rem] text-ink-fade text-center pb-1"
           >
             {h}
           </div>
@@ -335,7 +335,7 @@ function MonthGrid({
           else if (disabled) cls += " text-ink-fade/60 cursor-not-allowed";
           else if (inPreview) cls += " bg-signal-red text-onInverse";
           else cls += " text-ink hover:bg-signal-red/10 cursor-pointer";
-          if (cell.isToday && !inPreview) cls += " ring-1 ring-signal-red";
+          if (cell.isToday && !inPreview) cls += " ring-1 ring-accent";
           const isSelectedEndpoint = cell.date === pendingStart || cell.date === pendingEnd;
           return (
             <button

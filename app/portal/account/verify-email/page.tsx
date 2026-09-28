@@ -56,7 +56,7 @@ async function verifyToken(rawToken: string | undefined): Promise<Outcome> {
     return { kind: "error" };
   }
 
-  // Sign out all sessions for this user. Failure is non-fatal — the user
+  // Sign out all sessions for this user. Failure is non-fatal, the user
   // will be signed out on next request anyway because their session JWT
   // still has the old email and Supabase will reject it.
   try {
@@ -90,11 +90,11 @@ export default async function VerifyEmailPage({
   return (
     <div className="max-w-xl mx-auto px-5 md:px-10 py-12 md:py-16">
       <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">
+        <span className="font-mono text-[0.8125rem] text-accent">
           §
         </span>
         <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           Email verification
         </span>
       </div>
@@ -103,7 +103,6 @@ export default async function VerifyEmailPage({
         <>
           <h1
             className="font-display text-3xl md:text-5xl leading-none mb-4"
-            style={{ fontVariationSettings: '"opsz" 144' }}
           >
             Email updated
           </h1>
@@ -122,7 +121,6 @@ export default async function VerifyEmailPage({
         <>
           <h1
             className="font-display text-3xl md:text-5xl leading-none mb-4"
-            style={{ fontVariationSettings: '"opsz" 144' }}
           >
             Link expired or invalid
           </h1>
@@ -141,7 +139,6 @@ export default async function VerifyEmailPage({
         <>
           <h1
             className="font-display text-3xl md:text-5xl leading-none mb-4"
-            style={{ fontVariationSettings: '"opsz" 144' }}
           >
             Something went wrong
           </h1>

@@ -30,9 +30,9 @@ export function ForgotPasswordForm() {
     return (
       <div
         role="status"
-        className="border-l-[3px] border-signal-green bg-signal-green/5 px-4 py-4"
+        className="border border-signal-green/25 bg-signal-green/5 px-4 py-4 rounded-xl"
       >
-        <p className="font-mono text-xs uppercase tracking-wider text-signal-green mb-1">
+        <p className="font-mono text-xs text-signal-green mb-1">
           Wired
         </p>
         <p className="font-display text-ink-soft">
@@ -48,7 +48,7 @@ export function ForgotPasswordForm() {
       <div>
         <label
           htmlFor="email"
-          className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-1"
+          className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
         >
           Email
         </label>
@@ -67,7 +67,7 @@ export function ForgotPasswordForm() {
       {error && (
         <div
           role="alert"
-          className="border-l-[3px] border-signal-red bg-signal-red/5 px-4 py-3 font-mono text-xs uppercase tracking-wider text-signal-redDeep"
+          className="border border-signal-red/20 bg-signal-red/5 px-4 py-3 font-mono text-xs text-signal-redDeep rounded-xl"
         >
           {error}
         </div>

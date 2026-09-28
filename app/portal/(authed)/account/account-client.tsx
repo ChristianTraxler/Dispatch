@@ -198,17 +198,16 @@ export function AccountClient({
       {/* Header */}
       <div>
         <div className="flex items-center gap-3 mb-3">
-          <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">
+          <span className="font-mono text-[0.8125rem] text-accent">
             §
           </span>
           <span className="h-px flex-1 bg-rule" />
-          <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+          <span className="font-mono text-[0.8125rem] text-ink-mute">
             Account
           </span>
         </div>
         <h1
           className="font-display text-3xl md:text-5xl leading-none mb-3"
-          style={{ fontVariationSettings: '"opsz" 144' }}
         >
           Your record
         </h1>
@@ -221,7 +220,6 @@ export function AccountClient({
       <section className="space-y-4">
         <h2
           className="font-display text-2xl"
-          style={{ fontVariationSettings: '"opsz" 96' }}
         >
           Avatar
         </h2>
@@ -232,7 +230,7 @@ export function AccountClient({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={avatarBusy}
-              className="px-3 py-2 border border-rule font-mono text-[0.6rem] uppercase tracking-widest text-ink-soft hover:border-signal-red hover:text-signal-red transition-colors disabled:opacity-50"
+              className="px-3 py-2 border border-rule font-mono text-[0.8125rem] text-ink-soft hover:border-accent hover:text-accent transition-colors disabled:opacity-50 rounded-full"
             >
               {avatarBusy ? "Uploading…" : avatarUrl ? "Replace" : "Upload"}
             </button>
@@ -241,7 +239,7 @@ export function AccountClient({
                 type="button"
                 onClick={onRemoveAvatar}
                 disabled={avatarBusy}
-                className="px-3 py-2 font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors disabled:opacity-50"
+                className="px-3 py-2 font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors disabled:opacity-50"
               >
                 Remove
               </button>
@@ -261,7 +259,7 @@ export function AccountClient({
         {avatarMsg && (
           <div
             role={avatarMsg.kind === "err" ? "alert" : "status"}
-            className={`border-l-[3px] px-4 py-3 font-mono text-xs uppercase tracking-wider ${
+            className={`border-l-[3px] px-4 py-3 font-mono text-xs ${
               avatarMsg.kind === "err"
                 ? "border-signal-red bg-signal-red/5 text-signal-redDeep"
                 : "border-signal-green bg-signal-green/5 text-signal-green"
@@ -277,7 +275,7 @@ export function AccountClient({
       {/* Name + email */}
       <form onSubmit={onSaveName} className="space-y-7">
         <div>
-          <label className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-1">
+          <label className="block font-mono text-[0.8125rem] text-ink-mute mb-1">
             Email
           </label>
           <div className="flex items-center justify-between py-2 border-b border-rule-soft gap-3">
@@ -289,7 +287,7 @@ export function AccountClient({
                   setEmailFormOpen(true);
                   setEmailMsg(null);
                 }}
-                className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors"
+                className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors"
               >
                 Change email
               </button>
@@ -297,7 +295,7 @@ export function AccountClient({
           </div>
 
           {pending && (
-            <div className="mt-3 border-l-[3px] border-signal-red bg-signal-red/5 px-4 py-3">
+            <div className="mt-3 border border-signal-red/20 bg-signal-red/5 px-4 py-3 rounded-xl">
               <p className="font-display text-sm text-ink-soft">
                 Check <strong>{pending.newEmail}</strong> for a verification link.
                 It expires{" "}
@@ -313,7 +311,7 @@ export function AccountClient({
                 type="button"
                 onClick={onCancelPendingEmail}
                 disabled={emailBusy}
-                className="mt-2 font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors disabled:opacity-50"
+                className="mt-2 font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors disabled:opacity-50"
               >
                 {emailBusy ? "Cancelling…" : "Cancel pending change"}
               </button>
@@ -325,7 +323,7 @@ export function AccountClient({
               <div>
                 <label
                   htmlFor="newEmail"
-                  className="block font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mb-1"
+                  className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
                 >
                   New email
                 </label>
@@ -341,7 +339,7 @@ export function AccountClient({
               <div>
                 <label
                   htmlFor="confirmNewEmail"
-                  className="block font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mb-1"
+                  className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
                 >
                   Confirm new email
                 </label>
@@ -357,7 +355,7 @@ export function AccountClient({
               <div>
                 <label
                   htmlFor="emailPwd"
-                  className="block font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mb-1"
+                  className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
                 >
                   Current password
                 </label>
@@ -374,7 +372,7 @@ export function AccountClient({
               {emailMsg && (
                 <div
                   role={emailMsg.kind === "err" ? "alert" : "status"}
-                  className={`border-l-[3px] px-4 py-3 font-mono text-xs uppercase tracking-wider ${
+                  className={`border-l-[3px] px-4 py-3 font-mono text-xs ${
                     emailMsg.kind === "err"
                       ? "border-signal-red bg-signal-red/5 text-signal-redDeep"
                       : "border-signal-green bg-signal-green/5 text-signal-green"
@@ -393,7 +391,7 @@ export function AccountClient({
                     setEmailPwd("");
                     setEmailMsg(null);
                   }}
-                  className="px-3 py-2 font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors"
+                  className="px-3 py-2 font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors"
                 >
                   Cancel
                 </button>
@@ -413,7 +411,7 @@ export function AccountClient({
         <div>
           <label
             htmlFor="name"
-            className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-1"
+            className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
           >
             Display name
           </label>
@@ -429,7 +427,7 @@ export function AccountClient({
         {nameMsg && (
           <div
             role={nameMsg.kind === "err" ? "alert" : "status"}
-            className={`border-l-[3px] px-4 py-3 font-mono text-xs uppercase tracking-wider ${
+            className={`border-l-[3px] px-4 py-3 font-mono text-xs ${
               nameMsg.kind === "err"
                 ? "border-signal-red bg-signal-red/5 text-signal-redDeep"
                 : "border-signal-green bg-signal-green/5 text-signal-green"
@@ -456,7 +454,6 @@ export function AccountClient({
       <form onSubmit={onChangePassword} className="space-y-7">
         <h2
           className="font-display text-2xl"
-          style={{ fontVariationSettings: '"opsz" 96' }}
         >
           Change password
         </h2>
@@ -464,7 +461,7 @@ export function AccountClient({
         <div>
           <label
             htmlFor="currentPwd"
-            className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-1"
+            className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
           >
             Current password
           </label>
@@ -482,7 +479,7 @@ export function AccountClient({
         <div>
           <label
             htmlFor="newPwd"
-            className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-1"
+            className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
           >
             New password (12+ characters)
           </label>
@@ -501,7 +498,7 @@ export function AccountClient({
         <div>
           <label
             htmlFor="confirmPwd"
-            className="block font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute mb-1"
+            className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
           >
             Confirm new password
           </label>
@@ -520,7 +517,7 @@ export function AccountClient({
         {pwdMsg && (
           <div
             role={pwdMsg.kind === "err" ? "alert" : "status"}
-            className={`border-l-[3px] px-4 py-3 font-mono text-xs uppercase tracking-wider ${
+            className={`border-l-[3px] px-4 py-3 font-mono text-xs ${
               pwdMsg.kind === "err"
                 ? "border-signal-red bg-signal-red/5 text-signal-redDeep"
                 : "border-signal-green bg-signal-green/5 text-signal-green"

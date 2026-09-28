@@ -21,7 +21,7 @@ export interface AdminClient {
   joinedAt: string | Date;
   /** Currently online (driven by Supabase Presence) */
   isOnline: boolean;
-  /** Last seen timestamp — only relevant when offline */
+  /** Last seen timestamp, only relevant when offline */
   lastSeenAt?: string | Date | null;
   /** Signed avatar URL or null */
   avatarUrl?: string | null;
@@ -75,18 +75,17 @@ export function AdminClientsPage({
     <div className={`max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12 ${className}`} style={style}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">
+        <span className="font-mono text-[0.8125rem] text-accent">
           §
         </span>
         <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           Subscriber Roll
         </span>
       </div>
 
       <h1
         className="font-display text-3xl md:text-5xl leading-none mb-2"
-        style={{ fontVariationSettings: '"opsz" 144' }}
       >
         Clients
       </h1>
@@ -105,7 +104,7 @@ export function AdminClientsPage({
         <Stat
           label="Open tickets"
           value={totalOpenTickets}
-          accent={totalOpenTickets > 0 ? "rgb(var(--signal-red))" : undefined}
+          accent={totalOpenTickets > 0 ? "rgb(var(--accent))" : undefined}
         />
       </div>
 
@@ -147,11 +146,11 @@ function Stat({
     <div>
       <div
         className="font-display text-3xl md:text-4xl leading-none"
-        style={{ color: accent, fontVariationSettings: '"opsz" 144' }}
+        style={{ color: accent }}
       >
         {value}
       </div>
-      <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mt-1">
+      <div className="font-mono text-[0.75rem] text-ink-mute mt-1">
         {label}
       </div>
     </div>
@@ -220,11 +219,10 @@ function ClientCard({
           <div className="min-w-0">
             <h2
               className="flex items-center gap-2.5 font-display text-lg md:text-xl leading-tight"
-              style={{ fontVariationSettings: '"opsz" 144' }}
             >
               <Link
                 href={`/admin/clients/${client.id}`}
-                className="hover:text-signal-red transition-colors"
+                className="hover:text-accent transition-colors"
               >
                 {client.name}
               </Link>
@@ -233,14 +231,14 @@ function ClientCard({
                 pulse={client.isOnline}
               />
             </h2>
-            <div className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-mute mt-0.5">
+            <div className="font-mono text-[0.8125rem] text-ink-mute mt-0.5">
               {editingEmail ? (
                 <span className="flex flex-wrap items-center gap-2">
                   <input
                     type="email"
                     value={draftEmail}
                     onChange={(e) => setDraftEmail(e.target.value)}
-                    className="font-mono text-[0.65rem] uppercase tracking-wider text-ink-soft bg-parchment border border-rule px-2 py-1 min-w-[220px]"
+                    className="font-mono text-[0.8125rem] text-ink-soft bg-parchment border border-rule px-2 py-1 min-w-[220px] rounded-full"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === "Escape") {
@@ -258,7 +256,7 @@ function ClientCard({
                     type="button"
                     onClick={() => void handleSaveEmail()}
                     disabled={emailBusy}
-                    className="font-mono text-[0.55rem] uppercase tracking-widest text-signal-red hover:underline disabled:opacity-50"
+                    className="font-mono text-[0.75rem] text-accent hover:underline disabled:opacity-50"
                   >
                     {emailBusy ? "Saving…" : "Save"}
                   </button>
@@ -270,7 +268,7 @@ function ClientCard({
                       setEmailErr(null);
                     }}
                     disabled={emailBusy}
-                    className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute hover:text-signal-red"
+                    className="font-mono text-[0.75rem] text-ink-mute hover:text-accent"
                   >
                     Cancel
                   </button>
@@ -286,7 +284,7 @@ function ClientCard({
                         setDraftEmail(client.email);
                         setEmailErr(null);
                       }}
-                      className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-fade hover:text-signal-red transition-colors"
+                      className="font-mono text-[0.75rem] text-ink-fade hover:text-accent transition-colors"
                       aria-label={`Edit email for ${client.name}`}
                     >
                       Edit
@@ -300,7 +298,7 @@ function ClientCard({
                 </span>
               )}
             </div>
-            <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-fade mt-1">
+            <div className="font-mono text-[0.75rem] text-ink-fade mt-1">
               Joined {formatDate(client.joinedAt)}
               {!client.isOnline && client.lastSeenAt && (
                 <> · last seen {formatRelative(client.lastSeenAt)}</>
@@ -316,13 +314,13 @@ function ClientCard({
             <div className="font-display text-xl text-ink leading-none">
               {client.sites.length}
             </div>
-            <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mt-1">
+            <div className="font-mono text-[0.75rem] text-ink-mute mt-1">
               Site{client.sites.length === 1 ? "" : "s"}
             </div>
           </div>
           <div>
             <div className="font-display text-xl text-ink leading-none">{totalTickets}</div>
-            <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mt-1">
+            <div className="font-mono text-[0.75rem] text-ink-mute mt-1">
               Tickets
             </div>
           </div>
@@ -330,12 +328,12 @@ function ClientCard({
             <div
               className={[
                 "font-display text-xl leading-none",
-                openTickets > 0 ? "text-signal-red" : "text-ink-fade",
+                openTickets > 0 ? "text-accent" : "text-ink-fade",
               ].join(" ")}
             >
               {openTickets}
             </div>
-            <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mt-1">
+            <div className="font-mono text-[0.75rem] text-ink-mute mt-1">
               Open
             </div>
           </div>
@@ -361,7 +359,7 @@ function ClientCard({
       {/* Expanded site list */}
       {expanded && (
         <div className="border-t border-ruleSoft bg-parchment px-4 md:px-5 py-3">
-          <div className="font-mono text-[0.55rem] uppercase tracking-widest text-ink-mute mb-2">
+          <div className="font-mono text-[0.75rem] text-ink-mute mb-2">
             Registered sites
           </div>
           {client.sites.map((site, i) => (
@@ -370,7 +368,7 @@ function ClientCard({
               type="button"
               onClick={() => onViewSiteTickets?.(site.id)}
               className={[
-                "w-full text-left flex items-center gap-4 py-2 hover:text-signal-red transition-colors",
+                "w-full text-left flex items-center gap-4 py-2 hover:text-accent transition-colors",
                 i < client.sites.length - 1 ? "border-b border-ruleSoft" : "",
               ].join(" ")}
             >
@@ -378,16 +376,16 @@ function ClientCard({
                 <div className="font-display text-base text-ink truncate">
                   {site.displayName}
                 </div>
-                <div className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-mute truncate">
+                <div className="font-mono text-[0.8125rem] text-ink-mute truncate">
                   {site.url}
                 </div>
               </div>
-              <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute flex-shrink-0">
+              <div className="font-mono text-[0.8125rem] text-ink-mute flex-shrink-0">
                 {site.totalTickets} ticket{site.totalTickets === 1 ? "" : "s"}
                 {site.openTickets > 0 && (
                   <>
                     {" · "}
-                    <span className="text-signal-red">{site.openTickets} open</span>
+                    <span className="text-accent">{site.openTickets} open</span>
                   </>
                 )}
               </div>

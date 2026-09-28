@@ -14,7 +14,7 @@ export interface DashboardTicket {
   lastActivityAt: string | Date;
   unreadCount?: number;
   /**
-   * Something changed on this ticket that the client hasn't seen — a status
+   * Something changed on this ticket that the client hasn't seen, a status
    * transition with no message behind it. Unread messages take priority in
    * the UI, so this only shows when unreadCount is 0.
    */
@@ -86,17 +86,16 @@ export function DashboardPage({
     <div className={`max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12 ${className}`} style={style}>
       {/* Section header */}
       <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">
+        <span className="font-mono text-[0.8125rem] text-accent">
           §01
         </span>
         <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           Live Ledger
         </span>
       </div>
       <h1
         className="font-display text-3xl md:text-5xl leading-none mb-2"
-        style={{ fontVariationSettings: '"opsz" 144' }}
       >
         Your dispatches
       </h1>
@@ -154,7 +153,7 @@ export function DashboardPage({
 function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-      <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute md:w-16 flex-shrink-0">
+      <span className="font-mono text-[0.8125rem] text-ink-mute md:w-16 flex-shrink-0">
         {label}
       </span>
       <div className="flex flex-wrap items-center gap-2">{children}</div>
@@ -176,10 +175,10 @@ function FilterChip({
       type="button"
       onClick={onClick}
       className={[
-        "font-mono text-[0.65rem] uppercase tracking-widest px-3 py-1.5 transition-colors whitespace-nowrap",
+        "font-mono text-[0.8125rem] px-3 py-1.5 transition-colors whitespace-nowrap",
         active
           ? "bg-ink text-parchment-warm"
-          : "border border-rule text-ink-soft hover:border-ink",
+          : "border border-rule text-ink-soft hover:border-ink rounded-2xl",
       ].join(" ")}
     >
       {children}
@@ -194,42 +193,42 @@ function TicketRow({ ticket, onClick }: { ticket: DashboardTicket; onClick: () =
       onClick={onClick}
       className="w-full text-left flex flex-col md:flex-row md:items-center gap-2 md:gap-6 px-2 md:px-3 py-4 border-b border-ruleSoft hover:bg-parchment-warm transition-colors group"
     >
-      {/* Status + ID — left column on desktop */}
+      {/* Status + ID, left column on desktop */}
       <div className="flex items-center gap-3 md:w-72 md:flex-shrink-0">
         <StatusPill status={ticket.status} />
-        <span className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-fade truncate">
+        <span className="font-mono text-[0.8125rem] text-ink-fade truncate">
           {ticket.ticketNumber}
         </span>
       </div>
 
-      {/* Title + site — middle column */}
+      {/* Title + site, middle column */}
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2 flex-wrap">
-          <span className="font-display text-lg text-ink leading-snug group-hover:text-signal-red transition-colors">
+          <span className="font-display text-lg text-ink leading-snug group-hover:text-accent transition-colors">
             {ticket.title}
           </span>
           {ticket.unreadCount && ticket.unreadCount > 0 ? (
-            <span className="font-mono text-[0.55rem] uppercase tracking-widest bg-signal-red text-parchment-warm px-1.5 py-0.5">
+            <span className="font-mono text-[0.75rem] bg-signal-red text-onInverse px-2 py-0.5 rounded-full">
               {ticket.unreadCount} new
             </span>
           ) : ticket.hasActivity ? (
-            <span className="font-mono text-[0.55rem] uppercase tracking-widest border border-signal-red text-signal-red px-1.5 py-0.5">
+            <span className="font-mono text-[0.75rem] border border-accent text-accent px-1.5 py-0.5 rounded-full">
               Updated
             </span>
           ) : null}
         </div>
-        <div className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-mute mt-0.5">
+        <div className="font-mono text-[0.8125rem] text-ink-mute mt-0.5">
           {ticket.siteUrl}
         </div>
       </div>
 
-      {/* Activity — right column */}
+      {/* Activity, right column */}
       <div className="flex items-center gap-3 md:gap-4 md:flex-shrink-0 md:text-right">
-        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           {ticket.messageCount} msg{ticket.messageCount === 1 ? "" : "s"}
         </span>
         <span className="text-ink-fade">·</span>
-        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-soft">
+        <span className="font-mono text-[0.8125rem] text-ink-soft">
           {formatRelative(ticket.lastActivityAt)}
         </span>
       </div>
@@ -245,7 +244,6 @@ function EmptyState({ onNewTicket }: { onNewTicket?: () => void }) {
       </div>
       <h2
         className="font-display text-2xl md:text-3xl mb-2"
-        style={{ fontVariationSettings: '"opsz" 144' }}
       >
         No dispatches on the wire.
       </h2>

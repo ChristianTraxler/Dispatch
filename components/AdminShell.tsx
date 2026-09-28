@@ -30,7 +30,7 @@ function LiveCount({ count }: { count: number }) {
   return (
     <span className="inline-flex items-center gap-2">
       <PresenceDot status={count > 0 ? "online" : "offline"} pulse={count > 0} />
-      <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+      <span className="font-mono text-[0.8125rem] text-ink-mute">
         {count} live
       </span>
     </span>
@@ -59,20 +59,20 @@ export function AdminShell({
               <button
                 type="button"
                 onClick={() => onNavigate?.("account")}
-                className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors"
+                className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors"
               >
                 Account →
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate?.("logout")}
-                className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors"
+                className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors"
               >
                 Sign out →
               </button>
             </div>
-            {/* On a phone the top row only has space for the two links —
-                keeping these there wrapped the dateline onto a second line —
+            {/* On a phone the top row only has space for the two links,
+                keeping these there wrapped the dateline onto a second line,
                 so they drop to their own line under "Sign out". */}
             <span className="md:hidden inline-flex items-center gap-3">
               <ThemeToggle />
@@ -82,15 +82,15 @@ export function AdminShell({
         }
       />
 
-      {/* Sub-nav bar — distinct admin styling: dark band */}
+      {/* Sub-nav bar, distinct admin styling: dark band */}
       <div className="bg-band text-onInverse">
         <div className="max-w-6xl mx-auto px-5 md:px-10 py-3 md:py-2.5 flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-3">
           <div className="flex items-baseline justify-center md:justify-start gap-2 min-w-0">
-            <span className="font-mono text-[0.55rem] uppercase tracking-widest text-signal-red">
+            <span className="font-mono text-[0.75rem] text-accent">
               ADMIN
             </span>
             <span className="text-onInverse/40">·</span>
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-onInverse/70 truncate">
+            <span className="font-mono text-[0.8125rem] text-onInverse/70 truncate">
               Christian / Developer of Code
             </span>
           </div>
@@ -101,7 +101,7 @@ export function AdminShell({
                 {idx > 0 && (
                   <span
                     aria-hidden="true"
-                    className="text-onInverse/40 font-mono text-[0.6rem] md:pb-0.5 self-stretch flex items-center leading-none"
+                    className="text-onInverse/40 font-mono text-[0.8125rem] md:pb-0.5 self-stretch flex items-center leading-none"
                   >
                     •
                   </span>
@@ -110,7 +110,7 @@ export function AdminShell({
                   type="button"
                   onClick={() => onNavigate?.(item.key)}
                   className={[
-                    "font-mono text-[0.6rem] uppercase tracking-widest py-3 md:py-0 md:pb-0.5 transition-colors whitespace-nowrap",
+                    "font-mono text-[0.8125rem] py-3 md:py-0 md:pb-0.5 transition-colors whitespace-nowrap",
                     activeNav === item.key
                       ? "text-onInverse border-b-2 border-signal-red"
                       : "text-onInverse/60 hover:text-onInverse",
@@ -118,7 +118,7 @@ export function AdminShell({
                 >
                   {item.label}
                   {item.key === "inquiries" && inquiryCount > 0 && (
-                    <span className="ml-1.5 inline-block min-w-[1.1rem] px-1 py-px text-center bg-signal-red text-onInverse font-mono text-[0.55rem] leading-none">
+                    <span className="ml-1.5 inline-block min-w-[1.1rem] px-1 py-px text-center bg-signal-red text-onInverse font-mono text-[0.75rem] leading-none">
                       {inquiryCount}
                     </span>
                   )}

@@ -14,8 +14,8 @@ export default async function NewTicketPage({
   if (account.sites.length === 0) {
     return (
       <div className="max-w-2xl mx-auto px-5 md:px-10 py-12">
-        <div className="border-l-[3px] border-signal-red bg-signal-red/5 px-6 py-5">
-          <p className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-redDeep mb-2">
+        <div className="border border-signal-red/20 bg-signal-red/5 px-6 py-5 rounded-xl">
+          <p className="font-mono text-[0.8125rem] text-signal-redDeep mb-2">
             No sites on file
           </p>
           <p className="font-display text-ink-soft">

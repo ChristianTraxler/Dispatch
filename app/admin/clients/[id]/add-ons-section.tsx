@@ -315,16 +315,15 @@ export function AddOnsSection({
   return (
     <section className="max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12">
       <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">§</span>
+        <span className="font-mono text-[0.8125rem] text-accent">§</span>
         <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+        <span className="font-mono text-[0.8125rem] text-ink-mute">
           Add-Ons
         </span>
       </div>
 
       <h2
         className="font-display text-2xl md:text-3xl leading-none mb-6"
-        style={{ fontVariationSettings: '"opsz" 144' }}
       >
         Add-Ons
       </h2>
@@ -337,23 +336,23 @@ export function AddOnsSection({
             type="button"
             onClick={startOverride}
             disabled={busy || overrideOpen || activeCatalogAddOns.length === 0}
-            className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red hover:opacity-80 disabled:opacity-40"
+            className="font-mono text-[0.8125rem] text-accent hover:opacity-80 disabled:opacity-40"
           >
             + Override
           </button>
         </div>
 
         {overrideOpen && (
-          <div className="border border-rule bg-parchment-warm/40 p-4 mb-3">
+          <div className="border border-rule bg-parchment-warm/40 p-4 mb-3 rounded-2xl">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <label className="block">
-                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                <span className="font-mono text-[0.8125rem] text-ink-mute">
                   Add-on
                 </span>
                 <select
                   value={overrideAddOnId}
                   onChange={(e) => onChangeOverrideAddOn(e.target.value)}
-                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display"
+                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display rounded-2xl"
                 >
                   {activeCatalogAddOns.map((a) => {
                     const display = a.priceType === "PERCENTAGE"
@@ -369,13 +368,13 @@ export function AddOnsSection({
               </label>
 
               <label className="block">
-                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                <span className="font-mono text-[0.8125rem] text-ink-mute">
                   Pricing style
                 </span>
                 <select
                   value={overrideType}
                   onChange={(e) => setOverrideType(e.target.value as AddOnPriceType)}
-                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono rounded-2xl"
                 >
                   <option value="FIXED">Fixed</option>
                   <option value="RANGE">Range</option>
@@ -385,7 +384,7 @@ export function AddOnsSection({
 
               {overrideType !== "PERCENTAGE" && (
                 <label className="block">
-                  <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                  <span className="font-mono text-[0.8125rem] text-ink-mute">
                     {overrideType === "RANGE" ? "Their starting price (USD)" : "Their price (USD)"}
                   </span>
                   <input
@@ -394,14 +393,14 @@ export function AddOnsSection({
                     min="0"
                     value={overridePrice}
                     onChange={(e) => setOverridePrice(e.target.value)}
-                    className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                    className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono rounded-2xl"
                   />
                 </label>
               )}
 
               {overrideType === "RANGE" && (
                 <label className="block">
-                  <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                  <span className="font-mono text-[0.8125rem] text-ink-mute">
                     Their max price (USD)
                   </span>
                   <input
@@ -410,14 +409,14 @@ export function AddOnsSection({
                     min="0"
                     value={overridePriceMax}
                     onChange={(e) => setOverridePriceMax(e.target.value)}
-                    className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                    className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono rounded-2xl"
                   />
                 </label>
               )}
 
               {overrideType === "PERCENTAGE" && (
                 <label className="block">
-                  <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                  <span className="font-mono text-[0.8125rem] text-ink-mute">
                     Their percent modifier
                   </span>
                   <input
@@ -426,7 +425,7 @@ export function AddOnsSection({
                     value={overridePercent}
                     onChange={(e) => setOverridePercent(e.target.value)}
                     placeholder="e.g. 20 or +20"
-                    className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                    className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono rounded-2xl"
                   />
                 </label>
               )}
@@ -437,7 +436,7 @@ export function AddOnsSection({
                 type="button"
                 onClick={() => setOverrideOpen(false)}
                 disabled={busy}
-                className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink"
+                className="font-mono text-[0.8125rem] text-ink-mute hover:text-ink"
               >
                 Cancel
               </button>
@@ -448,7 +447,7 @@ export function AddOnsSection({
         {overrides.length === 0 ? (
           <p className="font-display italic text-ink-mute text-sm">No overrides — this client pays the standard catalog price.</p>
         ) : (
-          <ul className="divide-y divide-rule border border-rule">
+          <ul className="divide-y divide-rule border border-rule rounded-2xl">
             {overrides.map((o) => {
               const addOn = catalog.find((a) => a.id === o.addOnId);
               if (!addOn) return null;
@@ -462,7 +461,7 @@ export function AddOnsSection({
                 <li key={o.addOnId} className="px-4 py-2.5 flex items-center justify-between gap-4">
                   <div className="min-w-0">
                     <div className="font-display">{addOn.name}</div>
-                    <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+                    <div className="font-mono text-[0.8125rem] text-ink-mute">
                       Standard {standardDisplay}{priceUnitSuffix(addOn.priceUnit)}
                     </div>
                   </div>
@@ -474,7 +473,7 @@ export function AddOnsSection({
                       type="button"
                       onClick={() => removeOverride(o.addOnId)}
                       disabled={busy}
-                      className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red hover:opacity-80"
+                      className="font-mono text-[0.8125rem] text-accent hover:opacity-80"
                     >
                       Remove
                     </button>
@@ -494,21 +493,21 @@ export function AddOnsSection({
             type="button"
             onClick={startActivate}
             disabled={busy || activateOpen || activeCatalogAddOns.length === 0}
-            className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red hover:opacity-80 disabled:opacity-40"
+            className="font-mono text-[0.8125rem] text-accent hover:opacity-80 disabled:opacity-40"
           >
             + Activate add-on
           </button>
         </div>
 
         {activateOpen && (
-          <div className="border border-rule bg-parchment-warm/40 p-4 mb-3">
+          <div className="border border-rule bg-parchment-warm/40 p-4 mb-3 rounded-2xl">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <label className="block">
-                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">Add-on</span>
+                <span className="font-mono text-[0.8125rem] text-ink-mute">Add-on</span>
                 <select
                   value={activateAddOnId}
                   onChange={(e) => onChangeActivateAddOn(e.target.value)}
-                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display"
+                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display rounded-2xl"
                 >
                   {activeCatalogAddOns.map((a) => (
                     <option key={a.id} value={a.id}>{a.name}</option>
@@ -518,11 +517,11 @@ export function AddOnsSection({
 
               {selectedActivateAddOn?.scope === "PER_SITE" && (
                 <label className="block">
-                  <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">Site</span>
+                  <span className="font-mono text-[0.8125rem] text-ink-mute">Site</span>
                   <select
                     value={activateSiteId}
                     onChange={(e) => setActivateSiteId(e.target.value)}
-                    className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display"
+                    className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display rounded-2xl"
                   >
                     <option value="">— pick a site —</option>
                     {sites.map((s) => (
@@ -533,14 +532,14 @@ export function AddOnsSection({
               )}
 
               <label className="block">
-                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">Snapshot price (USD)</span>
+                <span className="font-mono text-[0.8125rem] text-ink-mute">Snapshot price (USD)</span>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={activatePrice}
                   onChange={(e) => setActivatePrice(e.target.value)}
-                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono"
+                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-mono rounded-2xl"
                 />
                 {(() => {
                   if (!selectedActivateAddOn) return null;
@@ -550,7 +549,7 @@ export function AddOnsSection({
                     const bp = ov?.pricePercentBp ?? selectedActivateAddOn.pricePercentBp;
                     if (bp === null || bp === undefined) return null;
                     return (
-                      <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute">
+                      <span className="block mt-1 font-mono text-[0.75rem] text-ink-mute">
                         Catalog: {formatPercentBp(bp)}{priceUnitSuffix(selectedActivateAddOn.priceUnit)} — enter the resulting dollar amount.
                       </span>
                     );
@@ -559,7 +558,7 @@ export function AddOnsSection({
                     const min = ov?.priceCents ?? selectedActivateAddOn.priceCents;
                     const max = ov?.priceMaxCents ?? selectedActivateAddOn.priceMaxCents;
                     return (
-                      <span className="block mt-1 font-mono text-[0.55rem] text-ink-mute">
+                      <span className="block mt-1 font-mono text-[0.75rem] text-ink-mute">
                         Catalog range: {formatPriceRange(min, max)}{priceUnitSuffix(selectedActivateAddOn.priceUnit)} — enter the agreed amount.
                       </span>
                     );
@@ -569,17 +568,17 @@ export function AddOnsSection({
               </label>
 
               <label className="block md:col-span-2">
-                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">Note (admin-only)</span>
+                <span className="font-mono text-[0.8125rem] text-ink-mute">Note (admin-only)</span>
                 <input
                   type="text"
                   value={activateNote}
                   onChange={(e) => setActivateNote(e.target.value)}
-                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display"
+                  className="mt-1 w-full border border-rule bg-parchment px-3 py-2 font-display rounded-2xl"
                 />
               </label>
             </div>
 
-            {activateError && <p className="mt-3 text-sm text-signal-red font-mono">{activateError}</p>}
+            {activateError && <p className="mt-3 text-sm text-accent font-mono">{activateError}</p>}
 
             <div className="mt-4 flex items-center gap-3">
               <button type="button" onClick={saveActivate} disabled={busy} className="btn-dispatch">Activate</button>
@@ -587,7 +586,7 @@ export function AddOnsSection({
                 type="button"
                 onClick={() => setActivateOpen(false)}
                 disabled={busy}
-                className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink"
+                className="font-mono text-[0.8125rem] text-ink-mute hover:text-ink"
               >
                 Cancel
               </button>
@@ -598,7 +597,7 @@ export function AddOnsSection({
         {active.length === 0 ? (
           <p className="font-display italic text-ink-mute text-sm">No add-ons activated yet.</p>
         ) : (
-          <ul className="divide-y divide-rule border border-rule">
+          <ul className="divide-y divide-rule border border-rule rounded-2xl">
             {active.map((row) => (
               <li
                 key={row.id}
@@ -612,7 +611,7 @@ export function AddOnsSection({
                         <span className="text-ink-mute"> · {row.siteName}</span>
                       )}
                     </div>
-                    <div className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mt-0.5">
+                    <div className="font-mono text-[0.8125rem] text-ink-mute mt-0.5">
                       Started {formatDate(row.startedAt)}
                       {row.endedAt && ` · Ended ${formatDate(row.endedAt)}`}
                       {row.requestTicket && (
@@ -629,8 +628,8 @@ export function AddOnsSection({
                     </span>
                     <span
                       className={[
-                        "font-mono text-[0.55rem] uppercase tracking-widest px-1.5 py-0.5",
-                        row.status === "ACTIVE" ? "bg-signal-green text-onInverse"
+                        "font-mono text-[0.75rem] px-1.5 py-0.5",
+                        row.status === "ACTIVE" ? "bg-signal-green/15 text-signal-green"
                         : row.status === "PAUSED" ? "bg-ink-mute text-parchment-warm"
                         : "bg-rule text-ink-soft",
                       ].join(" ")}
@@ -644,7 +643,7 @@ export function AddOnsSection({
                           type="button"
                           onClick={() => updateRow(row.id, { action: "pause" })}
                           disabled={busy}
-                          className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-ink"
+                          className="font-mono text-[0.8125rem] text-ink-mute hover:text-ink"
                         >
                           Pause
                         </button>
@@ -656,7 +655,7 @@ export function AddOnsSection({
                             }
                           }}
                           disabled={busy}
-                          className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red hover:opacity-80"
+                          className="font-mono text-[0.8125rem] text-accent hover:opacity-80"
                         >
                           End
                         </button>
@@ -667,7 +666,7 @@ export function AddOnsSection({
                         type="button"
                         onClick={() => updateRow(row.id, { action: "resume" })}
                         disabled={busy}
-                        className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red hover:opacity-80"
+                        className="font-mono text-[0.8125rem] text-accent hover:opacity-80"
                       >
                         Resume
                       </button>

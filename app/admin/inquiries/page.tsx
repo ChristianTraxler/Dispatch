@@ -49,14 +49,13 @@ export default async function AdminInquiriesPage({ searchParams }: PageProps) {
       <InquiriesLiveRefresh />
 
       <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-signal-red">§</span>
+        <span className="font-mono text-[0.8125rem] text-accent">§</span>
         <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">Quick Chat</span>
+        <span className="font-mono text-[0.8125rem] text-ink-mute">Quick Chat</span>
       </div>
 
       <h1
         className="font-display text-3xl md:text-5xl leading-none mb-3"
-        style={{ fontVariationSettings: '"opsz" 144' }}
       >
         Inquiries
       </h1>
@@ -67,7 +66,7 @@ export default async function AdminInquiriesPage({ searchParams }: PageProps) {
       <div className="flex items-center gap-6 mb-6 border-b border-rule">
         <Link
           href="/admin/inquiries"
-          className={`font-mono text-[0.65rem] uppercase tracking-widest pb-2 transition-colors ${
+          className={`font-mono text-[0.8125rem] pb-2 transition-colors ${
             !showArchived
               ? "text-ink border-b-2 border-signal-red"
               : "text-ink-mute hover:text-ink"
@@ -77,7 +76,7 @@ export default async function AdminInquiriesPage({ searchParams }: PageProps) {
         </Link>
         <Link
           href="/admin/inquiries?tab=archived"
-          className={`font-mono text-[0.65rem] uppercase tracking-widest pb-2 transition-colors ${
+          className={`font-mono text-[0.8125rem] pb-2 transition-colors ${
             showArchived
               ? "text-ink border-b-2 border-signal-red"
               : "text-ink-mute hover:text-ink"

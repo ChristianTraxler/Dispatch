@@ -37,7 +37,7 @@ export function NewInviteClient() {
         <div className="max-w-3xl mx-auto px-5 md:px-10 pt-6">
           <div
             role="alert"
-            className="border-l-[3px] border-signal-red bg-signal-red/5 px-4 py-3 font-mono text-xs uppercase tracking-wider text-signal-redDeep"
+            className="border border-signal-red/20 bg-signal-red/5 px-4 py-3 font-mono text-xs text-signal-redDeep rounded-xl"
           >
             {error}
           </div>

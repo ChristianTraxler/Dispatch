@@ -250,13 +250,13 @@ export function AccountForm({ initial }: { initial: InitialState }) {
   return (
     <div className="space-y-12">
       {/* Live preview */}
-      <section className="border border-rule p-4 bg-parchment-warm">
-        <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute mb-2">
+      <section className="border border-rule p-4 bg-parchment-warm rounded-2xl">
+        <p className="font-mono text-[0.8125rem] text-ink-mute mb-2">
           Live preview — what customers see right now
         </p>
         <div className="flex items-center gap-2">
           <span className={`inline-block w-2 h-2 rounded-full ${dotColor}`} aria-hidden="true" />
-          <span className="font-mono text-[0.7rem] uppercase tracking-widest text-ink">
+          <span className="font-mono text-[0.875rem] text-ink">
             {preview.label} — {preview.detail}
           </span>
         </div>
@@ -265,19 +265,19 @@ export function AccountForm({ initial }: { initial: InitialState }) {
       {/* Hours */}
       <section>
         <div className="flex items-center gap-3 mb-4">
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">§</span>
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+          <span className="font-mono text-[0.8125rem] text-accent">§</span>
+          <span className="font-mono text-[0.8125rem] text-ink-mute">
             Business Hours
           </span>
           <span className="h-px flex-1 bg-rule-soft" />
           <label className="flex items-center gap-2">
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+            <span className="font-mono text-[0.8125rem] text-ink-mute">
               Timezone
             </span>
             <select
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
-              className="font-mono text-[0.7rem] border border-rule bg-parchment px-2 py-1"
+              className="font-mono text-[0.875rem] border border-rule bg-parchment px-2 py-1 rounded-full"
             >
               {COMMON_TIMEZONES.map((tz) => (
                 <option key={tz} value={tz}>{tz}</option>
@@ -286,7 +286,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
           </label>
         </div>
 
-        <ul className="border border-rule divide-y divide-rule-soft">
+        <ul className="border border-rule divide-y divide-rule-soft rounded-2xl">
           {WEEKDAY_LABELS.map(([key, label]) => {
             const day = hours[key];
             return (
@@ -297,7 +297,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                   aria-checked={day.enabled}
                   onClick={() => setDayEnabled(key, !day.enabled)}
                   className={`w-9 h-5 rounded-full transition-colors relative ${
-                    day.enabled ? "bg-signal-red" : "bg-ink-fade/40"
+                    day.enabled ? "bg-accent-fill" : "bg-ink-fade/40"
                   }`}
                 >
                   <span
@@ -306,7 +306,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                     }`}
                   />
                 </button>
-                <span className="font-mono text-[0.7rem] uppercase tracking-widest w-10">
+                <span className="font-mono text-[0.875rem] w-10">
                   {label}
                 </span>
                 {day.enabled ? (
@@ -315,7 +315,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                       type="time"
                       value={day.open ?? "09:00"}
                       onChange={(e) => setDayOpen(key, e.target.value)}
-                      className="font-mono text-sm border border-rule bg-parchment px-2 py-1"
+                      className="font-mono text-sm border border-rule bg-parchment px-2 py-1 rounded-full"
                       aria-label={`${label} open`}
                     />
                     <span className="font-mono text-ink-mute">→</span>
@@ -323,7 +323,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                       type="time"
                       value={day.close ?? "17:00"}
                       onChange={(e) => setDayClose(key, e.target.value)}
-                      className="font-mono text-sm border border-rule bg-parchment px-2 py-1"
+                      className="font-mono text-sm border border-rule bg-parchment px-2 py-1 rounded-full"
                       aria-label={`${label} close`}
                     />
                   </>
@@ -340,7 +340,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
             type="button"
             onClick={saveHours}
             disabled={savingHours}
-            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-onInverse transition-colors disabled:opacity-50"
+            className="font-mono text-[0.875rem] border border-accent text-accent px-4 py-2 hover:bg-accent-fillHover hover:text-onInverse transition-colors disabled:opacity-50 rounded-full"
           >
             {savingHours ? "Saving…" : "Save hours"}
           </button>
@@ -350,14 +350,14 @@ export function AccountForm({ initial }: { initial: InitialState }) {
       {/* OOO */}
       <section>
         <div className="flex items-center gap-3 mb-4">
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">§</span>
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+          <span className="font-mono text-[0.8125rem] text-accent">§</span>
+          <span className="font-mono text-[0.8125rem] text-ink-mute">
             Out of Office
           </span>
           <span className="h-px flex-1 bg-rule-soft" />
         </div>
 
-        <div className="border border-rule p-4 space-y-4">
+        <div className="border border-rule p-4 space-y-4 rounded-2xl">
           <label className="flex items-center gap-3">
             <button
               type="button"
@@ -374,13 +374,13 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                 }`}
               />
             </button>
-            <span className="font-mono text-[0.7rem] uppercase tracking-widest text-ink">
+            <span className="font-mono text-[0.875rem] text-ink">
               {oooEnabled ? "Out of office is ON" : "Out of office is off"}
             </span>
           </label>
 
           <div>
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-1">
+            <span className="font-mono text-[0.8125rem] text-ink-mute block mb-1">
               Starts on (optional — leave blank to start now; time defaults to start of day)
             </span>
             <div className="flex flex-wrap items-center gap-2">
@@ -389,9 +389,9 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                 value={oooFrom}
                 onChange={(e) => setOooFrom(e.target.value)}
                 aria-label="Start date"
-                className="font-mono text-sm border border-rule bg-parchment px-2 py-1"
+                className="font-mono text-sm border border-rule bg-parchment px-2 py-1 rounded-full"
               />
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+              <span className="font-mono text-[0.8125rem] text-ink-mute">
                 at
               </span>
               <input
@@ -400,7 +400,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                 onChange={(e) => setOooFromTime(e.target.value)}
                 disabled={!oooFrom}
                 aria-label="Start time"
-                className="font-mono text-sm border border-rule bg-parchment px-2 py-1 disabled:opacity-50"
+                className="font-mono text-sm border border-rule bg-parchment px-2 py-1 disabled:opacity-50 rounded-full"
               />
               {(oooFrom || oooFromTime) && (
                 <button
@@ -410,7 +410,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                     setOooFromTime("");
                   }}
                   aria-label="Clear start date and time"
-                  className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors"
+                  className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors"
                 >
                   Clear
                 </button>
@@ -419,7 +419,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
           </div>
 
           <div>
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-1">
+            <span className="font-mono text-[0.8125rem] text-ink-mute block mb-1">
               Return on (optional — auto-resumes; time defaults to end of day)
             </span>
             <div className="flex flex-wrap items-center gap-2">
@@ -428,9 +428,9 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                 value={oooUntil}
                 onChange={(e) => setOooUntil(e.target.value)}
                 aria-label="Return date"
-                className="font-mono text-sm border border-rule bg-parchment px-2 py-1"
+                className="font-mono text-sm border border-rule bg-parchment px-2 py-1 rounded-full"
               />
-              <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+              <span className="font-mono text-[0.8125rem] text-ink-mute">
                 at
               </span>
               <input
@@ -439,7 +439,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                 onChange={(e) => setOooUntilTime(e.target.value)}
                 disabled={!oooUntil}
                 aria-label="Return time"
-                className="font-mono text-sm border border-rule bg-parchment px-2 py-1 disabled:opacity-50"
+                className="font-mono text-sm border border-rule bg-parchment px-2 py-1 disabled:opacity-50 rounded-full"
               />
               {(oooUntil || oooUntilTime) && (
                 <button
@@ -449,7 +449,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                     setOooUntilTime("");
                   }}
                   aria-label="Clear return date and time"
-                  className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors"
+                  className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors"
                 >
                   Clear
                 </button>
@@ -458,7 +458,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
           </div>
 
           <label className="block">
-            <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute block mb-1">
+            <span className="font-mono text-[0.8125rem] text-ink-mute block mb-1">
               Custom message (optional, 280 chars)
             </span>
             <textarea
@@ -467,7 +467,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
               maxLength={280}
               rows={2}
               placeholder="On vacation — back Mon May 18."
-              className="w-full font-display text-base border border-rule bg-parchment px-3 py-2"
+              className="w-full font-display text-base border border-rule bg-parchment px-3 py-2 rounded-2xl"
             />
           </label>
         </div>
@@ -477,7 +477,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
             type="button"
             onClick={saveOoo}
             disabled={savingOoo}
-            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-onInverse transition-colors disabled:opacity-50"
+            className="font-mono text-[0.875rem] border border-accent text-accent px-4 py-2 hover:bg-accent-fillHover hover:text-onInverse transition-colors disabled:opacity-50 rounded-full"
           >
             {savingOoo ? "Saving…" : "Save OOO"}
           </button>
@@ -491,17 +491,17 @@ export function AccountForm({ initial }: { initial: InitialState }) {
         onOutOfTownChange={setOutOfTown}
       />
 
-      {/* Out of Town (silent — clients see no change) */}
+      {/* Out of Town (silent, clients see no change) */}
       <section>
         <div className="flex items-center gap-3 mb-4">
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">§</span>
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+          <span className="font-mono text-[0.8125rem] text-accent">§</span>
+          <span className="font-mono text-[0.8125rem] text-ink-mute">
             Out of Town
           </span>
           <span className="h-px flex-1 bg-rule-soft" />
         </div>
 
-        <div className="border border-rule p-4 space-y-3">
+        <div className="border border-rule p-4 space-y-3 rounded-2xl">
           <label className="flex items-center gap-3">
             <button
               type="button"
@@ -518,7 +518,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                 }`}
               />
             </button>
-            <span className="font-mono text-[0.7rem] uppercase tracking-widest text-ink">
+            <span className="font-mono text-[0.875rem] text-ink">
               {outOfTown ? "Out of town is ON" : "Out of town is off"}
             </span>
           </label>
@@ -534,7 +534,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
             type="button"
             onClick={saveOutOfTown}
             disabled={savingOutOfTown}
-            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-onInverse transition-colors disabled:opacity-50"
+            className="font-mono text-[0.875rem] border border-accent text-accent px-4 py-2 hover:bg-accent-fillHover hover:text-onInverse transition-colors disabled:opacity-50 rounded-full"
           >
             {savingOutOfTown ? "Saving…" : "Save out-of-town"}
           </button>
@@ -544,8 +544,8 @@ export function AccountForm({ initial }: { initial: InitialState }) {
       {/* Holidays */}
       <section>
         <div className="flex items-center gap-3 mb-4">
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">§</span>
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+          <span className="font-mono text-[0.8125rem] text-accent">§</span>
+          <span className="font-mono text-[0.8125rem] text-ink-mute">
             Holidays
           </span>
           <span className="h-px flex-1 bg-rule-soft" />
@@ -554,9 +554,9 @@ export function AccountForm({ initial }: { initial: InitialState }) {
           Days that count as outside business hours, in your timezone.
         </p>
 
-        <div className="border border-rule p-4 space-y-3">
+        <div className="border border-rule p-4 space-y-3 rounded-2xl">
           {holidays.length === 0 ? (
-            <p className="font-mono text-[0.7rem] uppercase tracking-widest text-ink-fade">
+            <p className="font-mono text-[0.875rem] text-ink-fade">
               No holidays added.
             </p>
           ) : (
@@ -568,13 +568,13 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                   onChange={(e) =>
                     setHolidays((arr) => arr.map((x, j) => (j === i ? e.target.value : x)))
                   }
-                  className="font-mono text-sm border border-rule bg-parchment px-2 py-1"
+                  className="font-mono text-sm border border-rule bg-parchment px-2 py-1 rounded-full"
                   aria-label={`Holiday ${i + 1}`}
                 />
                 <button
                   type="button"
                   onClick={() => setHolidays((arr) => arr.filter((_, j) => j !== i))}
-                  className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute hover:text-signal-red"
+                  className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent"
                 >
                   Remove
                 </button>
@@ -584,7 +584,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
           <button
             type="button"
             onClick={() => setHolidays((arr) => [...arr, ""])}
-            className="font-mono text-[0.7rem] uppercase tracking-widest border border-rule text-ink-soft px-3 py-1 hover:border-ink"
+            className="font-mono text-[0.875rem] border border-rule text-ink-soft px-3 py-1 hover:border-ink rounded-full"
           >
             + Add holiday
           </button>
@@ -595,7 +595,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
             type="button"
             onClick={saveHolidays}
             disabled={savingHolidays}
-            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-onInverse transition-colors disabled:opacity-50"
+            className="font-mono text-[0.875rem] border border-accent text-accent px-4 py-2 hover:bg-accent-fillHover hover:text-onInverse transition-colors disabled:opacity-50 rounded-full"
           >
             {savingHolidays ? "Saving…" : "Save holidays"}
           </button>
@@ -605,8 +605,8 @@ export function AccountForm({ initial }: { initial: InitialState }) {
       {/* Emergency Fee */}
       <section>
         <div className="flex items-center gap-3 mb-4">
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-signal-red">§</span>
-          <span className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute">
+          <span className="font-mono text-[0.8125rem] text-accent">§</span>
+          <span className="font-mono text-[0.8125rem] text-ink-mute">
             Emergency Fee
           </span>
           <span className="h-px flex-1 bg-rule-soft" />
@@ -615,7 +615,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
           Charged when a client opts into Emergency Fix outside business hours.
         </p>
 
-        <div className="border border-rule p-4 flex items-center gap-3">
+        <div className="border border-rule p-4 flex items-center gap-3 rounded-2xl">
           <span className="font-display text-2xl text-ink">$</span>
           <input
             type="number"
@@ -623,10 +623,10 @@ export function AccountForm({ initial }: { initial: InitialState }) {
             step="1"
             value={feeDollars}
             onChange={(e) => setFeeDollars(e.target.value)}
-            className="font-mono text-lg border border-rule bg-parchment px-2 py-1 w-28"
+            className="font-mono text-lg border border-rule bg-parchment px-2 py-1 w-28 rounded-2xl"
             aria-label="Emergency fee in dollars"
           />
-          <span className="font-mono text-[0.7rem] uppercase tracking-widest text-ink-mute">
+          <span className="font-mono text-[0.875rem] text-ink-mute">
             per emergency filing
           </span>
         </div>
@@ -636,7 +636,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
             type="button"
             onClick={saveFee}
             disabled={savingFee}
-            className="font-mono text-[0.7rem] uppercase tracking-widest border border-signal-red text-signal-red px-4 py-2 hover:bg-signal-red hover:text-onInverse transition-colors disabled:opacity-50"
+            className="font-mono text-[0.875rem] border border-accent text-accent px-4 py-2 hover:bg-accent-fillHover hover:text-onInverse transition-colors disabled:opacity-50 rounded-full"
           >
             {savingFee ? "Saving…" : "Save fee"}
           </button>

@@ -7,7 +7,7 @@ import { useState } from "react";
  * admin account page: admin mail is routed by the ADMIN_EMAIL env var, not by
  * a ClientAccount row.
  *
- * Renders no heading of its own — the account page wraps this and PushToggle
+ * Renders no heading of its own, the account page wraps this and PushToggle
  * in one "Notifications" section.
  */
 export default function EmailNotificationsToggle({
@@ -56,7 +56,7 @@ export default function EmailNotificationsToggle({
           type="button"
           onClick={toggle}
           disabled={busy}
-          className="px-3 py-2 border border-rule font-mono text-[0.6rem] uppercase tracking-widest text-ink-soft hover:border-signal-red hover:text-signal-red transition-colors disabled:opacity-50"
+          className="px-3 py-2 border border-rule font-mono text-[0.8125rem] text-ink-soft hover:border-accent hover:text-accent transition-colors disabled:opacity-50 rounded-full whitespace-nowrap shrink-0"
         >
           {busy ? "Working…" : enabled ? "Turn off" : "Turn on"}
         </button>

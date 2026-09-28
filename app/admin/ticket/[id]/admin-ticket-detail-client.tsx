@@ -56,7 +56,7 @@ export function AdminTicketDetailClient({
 
   const handleInsert = useCallback(
     (row: RawMessageRow) => {
-      // Refresh on attachment messages — paths need server-side hydration.
+      // Refresh on attachment messages, paths need server-side hydration.
       const hasAttachments =
         Array.isArray(row.attachments) && (row.attachments as unknown[]).length > 0;
       if (hasAttachments) {
@@ -101,7 +101,7 @@ export function AdminTicketDetailClient({
   }, [ticket.id]);
 
   // The client can confirm/reopen (or a status can otherwise change) while
-  // this page is open — refresh server data so the status pill, progress
+  // this page is open, refresh server data so the status pill, progress
   // timeline, and admin controls reflect it without a manual reload.
   useTicketStatusWatch(ticket.id, () => router.refresh());
 
@@ -209,17 +209,17 @@ export function AdminTicketDetailClient({
         <button
           type="button"
           onClick={onBack}
-          className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-mute hover:text-signal-red transition-colors mb-4"
+          className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors mb-4"
         >
           ← Back to inquiries
         </button>
 
         <header className="mb-6 rule-double pb-6">
           <div className="flex items-center gap-3 mb-3">
-            <span className="inline-block px-2.5 py-0.5 border border-signal-red text-signal-red bg-parchment-warm font-mono text-[0.6rem] uppercase tracking-widest">
+            <span className="inline-block px-2.5 py-0.5 border border-accent text-accent bg-parchment-warm font-mono text-[0.8125rem] rounded-full">
               Inquiry
             </span>
-            <span className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-fade">
+            <span className="font-mono text-[0.8125rem] text-ink-fade">
               {ticket.ticketNumber}
             </span>
           </div>
@@ -227,7 +227,6 @@ export function AdminTicketDetailClient({
             <Avatar src={clientAvatarUrl} name={otherPartyName} size={48} tone="client" />
             <h1
               className="font-display text-3xl md:text-4xl leading-tight"
-              style={{ fontVariationSettings: '"opsz" 144' }}
             >
               Quick chat with {otherPartyName}
             </h1>
@@ -236,7 +235,7 @@ export function AdminTicketDetailClient({
             <span className="font-display italic text-ink-mute">
               {ticket.siteDisplayName}
             </span>
-            <span className="font-mono text-[0.65rem] uppercase tracking-wider text-ink-fade">
+            <span className="font-mono text-[0.8125rem] text-ink-fade">
               {ticket.siteUrl}
             </span>
           </div>
@@ -248,7 +247,7 @@ export function AdminTicketDetailClient({
               type="button"
               onClick={onPromote}
               disabled={busy}
-              className="px-4 py-2 bg-ink text-parchment-warm font-mono text-[0.65rem] uppercase tracking-widest hover:bg-signal-red transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-accent-fill text-onAccent font-mono text-[0.8125rem] hover:bg-accent-fillHover transition-colors disabled:opacity-50"
             >
               Promote to ticket →
             </button>
@@ -256,7 +255,7 @@ export function AdminTicketDetailClient({
               type="button"
               onClick={onEndChat}
               disabled={busy}
-              className="px-4 py-2 border border-rule font-mono text-[0.65rem] uppercase tracking-widest text-ink-soft hover:border-signal-red hover:text-signal-red transition-colors disabled:opacity-50"
+              className="px-4 py-2 border border-rule font-mono text-[0.8125rem] text-ink-soft hover:border-accent hover:text-accent transition-colors disabled:opacity-50 rounded-full"
             >
               End chat
             </button>
@@ -264,7 +263,7 @@ export function AdminTicketDetailClient({
         )}
 
         {inquiryEndedAt && (
-          <div className="mb-6 px-4 py-3 border border-rule bg-parchment-warm/60 font-mono text-[0.65rem] uppercase tracking-widest text-ink-mute">
+          <div className="mb-6 px-4 py-3 border border-rule bg-parchment-warm/60 font-mono text-[0.8125rem] text-ink-mute rounded-full">
             Chat ended {new Date(inquiryEndedAt).toLocaleString("en-US", { month: "short", day: "2-digit", hour: "numeric", minute: "2-digit" })}
           </div>
         )}
