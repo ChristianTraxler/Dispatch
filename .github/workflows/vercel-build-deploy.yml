@@ -70,7 +70,9 @@ jobs:
         # 2026-08-24 came from a "successful" deploy serving 500s.
         run: |
           sleep 20
-          CODE=$(curl -s -o /dev/null -w "%{http_code}" https://support.developerofcode.com/portal)
+          # /portal redirects signed-out visitors to the public page's sign-in
+          # panel, so follow redirects. A server error still stops at the 500.
+          CODE=$(curl -sL -o /dev/null -w "%{http_code}" https://support.developerofcode.com/portal)
           echo "GET /portal -> $CODE"
           if [ "$CODE" != "200" ]; then
             echo "::error::Production is unhealthy after deploy (/portal returned $CODE). Roll back in the Vercel dashboard."
