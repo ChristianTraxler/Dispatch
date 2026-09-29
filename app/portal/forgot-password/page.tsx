@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
       }
       footer={
         <p className="font-mono text-[0.8125rem] text-ink-mute leading-relaxed">
-          <a href="/portal" className="hover:text-accent transition-colors underline-offset-4 hover:underline">
+          <a href="/#sign-in" className="hover:text-accent transition-colors underline-offset-4 hover:underline">
             ← Back to sign-in
           </a>
         </p>

@@ -1,19 +1,13 @@
 import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
 
-// A dark wash from the bottom and the left so a light headline reads over the
-// photo when it fills one half of the screen.
-const SPLIT_SCRIM =
-  "linear-gradient(to top, rgb(var(--scrim) / 0.88) 0%, rgb(var(--scrim) / 0.42) 58%, rgb(var(--scrim) / 0.2) 100%), " +
-  "linear-gradient(90deg, rgb(var(--scrim) / 0.6) 0%, rgb(var(--scrim) / 0) 72%)";
-
 // The public page's hero wash, for when the photo fills the whole screen.
 const HERO_SCRIM =
   "linear-gradient(90deg, rgb(var(--scrim) / 0.9) 0%, rgb(var(--scrim) / 0.66) 40%, rgb(var(--scrim) / 0.08) 78%), " +
   "linear-gradient(to top, rgb(var(--scrim) / 0.75), transparent 50%)";
 
 export interface AuthLayoutProps {
-  /** The screen's headline, set into the photo. Rendered as the page's h1. */
+  /** The screen's headline. Rendered as the page's h1. */
   title: ReactNode;
   /** Quiet line under the headline. */
   intro?: ReactNode;
@@ -22,47 +16,43 @@ export interface AuthLayoutProps {
   /** Small print under the form, above a soft rule. */
   footer?: ReactNode;
   /**
-   * `split` puts the form on paper beside the photo. `message` is for screens
-   * with nothing to fill in: the photo fills the screen and the headline, intro
-   * and buttons sit in it, like the public page's hero.
+   * `sheet` looks like the public page with its sign-in panel open: the desk
+   * photo dimmed behind a paper sheet that slides in from the right and holds
+   * the form. `message` is for screens with nothing to fill in: the photo
+   * fills the screen and the headline, intro and buttons sit in it, like the
+   * public page's hero.
    */
-  variant?: "split" | "message";
+  variant?: "sheet" | "message";
   className?: string;
   style?: CSSProperties;
 }
 
 /**
- * Frame for every signed-out screen: sign in, password reset, invites and
- * email verification. It matches the Workbench public page, where the hero's
- * desk photo carries the wordmark and the headline. Split screens hold the
- * photo in place beside the form on desktop and stack a photo band above it
- * on phones.
+ * Frame for the signed-out screens that live in the app: password reset,
+ * invites and email verification. Signing in itself happens in the panel on
+ * the public page, and this matches it.
  */
 export function AuthLayout({
   title,
   intro,
   children,
   footer,
-  variant = "split",
+  variant = "sheet",
   className = "",
   style,
 }: AuthLayoutProps) {
-  const heading = (
-    <h1 className="font-display text-[clamp(2.5rem,5.2vw,4.75rem)] leading-[1.02] tracking-[-0.02em]">
-      {title}
-    </h1>
-  );
-
   if (variant === "message") {
     return (
       <main
         className={`relative isolate flex min-h-[100svh] flex-col justify-between overflow-hidden bg-band px-5 pb-14 pt-[calc(env(safe-area-inset-top,0px)+1.25rem)] text-onInverse md:px-10 lg:px-14 lg:pb-20 lg:pt-10 ${className}`}
         style={style}
       >
-        <DeskPhoto sizes="100vw" scrim={HERO_SCRIM} position="object-[70%_58%] lg:object-[50%_40%]" />
-        <HomeMark />
+        <DeskPhoto />
+        <HomeMark className="self-start text-onInverse" />
         <div className="mt-14 max-w-[40rem]">
-          {heading}
+          <h1 className="font-display text-[clamp(2.5rem,5.2vw,4.75rem)] leading-[1.02] tracking-[-0.02em]">
+            {title}
+          </h1>
           {intro && (
             <p className="mt-6 max-w-[34rem] font-display text-lg italic leading-relaxed text-onInverse/85">
               {intro}
@@ -76,34 +66,33 @@ export function AuthLayout({
   }
 
   return (
-    <main
-      className={`flex min-h-[100svh] flex-col bg-parchment lg:flex-row ${className}`}
-      style={style}
-    >
-      <div className="relative isolate flex min-h-[21rem] flex-col justify-between overflow-hidden bg-band px-5 pb-9 pt-[calc(env(safe-area-inset-top,0px)+1.25rem)] text-onInverse md:px-10 lg:sticky lg:top-0 lg:h-[100svh] lg:w-[55%] lg:px-14 lg:pb-16 lg:pt-10">
-        <DeskPhoto
-          sizes="(min-width: 1024px) 55vw, 100vw"
-          scrim={SPLIT_SCRIM}
-          position="object-[70%_58%] lg:object-[58%_42%]"
-        />
-        <HomeMark />
-        <div className="mt-14 max-w-[36rem]">
-          {heading}
-          {intro && (
-            <p className="mt-6 hidden max-w-[30rem] font-display text-lg italic leading-relaxed text-onInverse/85 lg:block">
-              {intro}
-            </p>
-          )}
-        </div>
+    <main className={`relative isolate min-h-[100svh] bg-band ${className}`} style={style}>
+      {/* The photo, dimmed the way the public page dims behind its panel. */}
+      <div aria-hidden="true" className="fixed inset-0 -z-10">
+        <DeskPhoto />
+        <div className="absolute inset-0 animate-dim-in bg-[rgb(var(--scrim)/0.6)] motion-reduce:animate-none" />
       </div>
+      <HomeMark className="absolute left-5 top-[calc(env(safe-area-inset-top,0px)+1.25rem)] hidden text-onInverse sm:inline-flex md:left-10 lg:left-14 lg:top-10" />
 
-      <div className="flex flex-1 flex-col justify-center px-5 py-10 md:px-10 lg:px-16 lg:py-16">
-        <div className="mx-auto w-full max-w-md">
-          {intro && (
-            <p className="mb-9 font-display text-base italic leading-relaxed text-ink-mute lg:hidden">
-              {intro}
-            </p>
-          )}
+      <div
+        className="ml-auto flex min-h-[100svh] w-full animate-sheet-in flex-col bg-parchment text-ink shadow-[-24px_0_60px_-30px_rgb(var(--scrim)/0.6)] motion-reduce:animate-none sm:max-w-[31rem]"
+        style={{ paddingTop: "env(safe-area-inset-top, 0px)", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      >
+        <div className="flex h-[76px] flex-none items-center justify-between px-6 sm:justify-end sm:px-10">
+          <HomeMark className="text-ink sm:hidden" />
+          <a
+            href="/"
+            className="inline-flex min-h-[2.75rem] items-center rounded-full px-3 font-mono text-[0.9375rem] text-ink"
+          >
+            Close
+          </a>
+        </div>
+
+        <div className="flex flex-1 flex-col justify-center px-6 pb-14 pt-2 sm:px-10">
+          <h1 className="font-display text-[clamp(2.375rem,4vw,3.25rem)] leading-[1.04] tracking-[-0.02em]">
+            {title}
+          </h1>
+          {intro && <p className="mb-10 mt-5 text-ink-mute leading-relaxed">{intro}</p>}
           {children}
           {footer && <div className="mt-14 border-t border-rule-soft pt-6">{footer}</div>}
         </div>
@@ -114,10 +103,9 @@ export function AuthLayout({
 
 /**
  * The public page's hero photo with its wash, filling the positioned parent.
- * Its own absolute layer gives next/image a parent position it accepts: the
- * split layout's photo panel is sticky on desktop.
+ * Its own absolute layer gives next/image a parent position it accepts.
  */
-function DeskPhoto({ sizes, scrim, position }: { sizes: string; scrim: string; position: string }) {
+function DeskPhoto() {
   return (
     <div aria-hidden="true" className="absolute inset-0 -z-10">
       <Image
@@ -125,18 +113,18 @@ function DeskPhoto({ sizes, scrim, position }: { sizes: string; scrim: string; p
         alt=""
         fill
         priority
-        sizes={sizes}
-        className={`object-cover ${position}`}
+        sizes="100vw"
+        className="object-cover object-[70%_58%] lg:object-[50%_40%]"
       />
-      <div className="absolute inset-0" style={{ background: scrim }} />
+      <div className="absolute inset-0" style={{ background: HERO_SCRIM }} />
     </div>
   );
 }
 
 /** The wordmark, linking back to the public page. */
-function HomeMark() {
+function HomeMark({ className = "" }: { className?: string }) {
   return (
-    <a href="/" className="wordmark self-start rounded-md text-[1.625rem] text-onInverse">
+    <a href="/" className={`wordmark rounded-md text-[1.625rem] ${className}`}>
       Dispatch
       <span aria-hidden="true" className="wordmark-dot" />
     </a>

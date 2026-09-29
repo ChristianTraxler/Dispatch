@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { AuthLayout } from "@/components/AuthLayout";
 
 export type VerifyOutcome =
@@ -11,11 +10,11 @@ export type VerifyOutcome =
  * from the page, which does the actual change, so it renders without side effects.
  */
 export function VerifyEmailView({ outcome }: { outcome: VerifyOutcome }) {
-  // Sign-in lives at /portal. The old /portal/login link landed on a 404 after signing in.
+  // Opens the sign-in panel on the public page.
   const signIn = (
-    <Link href="/portal" className="btn-dispatch">
+    <a href="/#sign-in" className="btn-dispatch">
       Sign in
-    </Link>
+    </a>
   );
 
   if (outcome.kind === "ok") {

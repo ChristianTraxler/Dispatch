@@ -75,6 +75,16 @@ const config: Config = {
         mono: ["var(--font-ui)", "system-ui", "sans-serif"],
         sans: ["var(--font-ui)", "system-ui", "sans-serif"],
       },
+      // The signed-out sheet eases in from the right, matching the public
+      // page's sign-in panel, while the photo behind it dims.
+      keyframes: {
+        "sheet-in": { from: { transform: "translateX(100%)" }, to: { transform: "translateX(0)" } },
+        "dim-in": { from: { opacity: "0" }, to: { opacity: "1" } },
+      },
+      animation: {
+        "sheet-in": "sheet-in 460ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        "dim-in": "dim-in 460ms ease-out both",
+      },
       letterSpacing: {
         wider: "0.08em",
         widest: "0.18em",
