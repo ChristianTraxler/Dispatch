@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import PushToggle from "@/components/PushToggle";
+import PasskeyManager from "@/components/PasskeyManager";
 import EmailNotificationsToggle from "@/components/EmailNotificationsToggle";
 
 export function AccountClient({
@@ -542,6 +543,10 @@ export function AccountClient({
         {/* Heading suppressed: this row lives under the one above. */}
         <PushToggle showHeading={false} />
       </section>
+
+      <div className="rule-thin" />
+
+      <PasskeyManager />
     </div>
   );
 }

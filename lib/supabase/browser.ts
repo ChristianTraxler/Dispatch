@@ -9,6 +9,8 @@ export function getSupabaseBrowserClient() {
     client = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      // Passkey methods throw unless this flag is on.
+      { auth: { experimental: { passkey: true } } },
     );
   }
   return client;

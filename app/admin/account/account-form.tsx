@@ -6,6 +6,7 @@ import { useToast } from "@/components/Toast";
 import { computeAvailability, type WeeklyHours } from "@/lib/availability";
 import { VacationCalendar, type Vacation } from "./vacation-calendar";
 import PushToggle from "@/components/PushToggle";
+import PasskeyManager from "@/components/PasskeyManager";
 
 interface InitialState {
   timezone: string;
@@ -644,6 +645,8 @@ export function AccountForm({ initial }: { initial: InitialState }) {
       </section>
 
       <PushToggle />
+
+      <PasskeyManager />
     </div>
   );
 }
