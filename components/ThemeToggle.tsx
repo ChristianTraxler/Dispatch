@@ -11,11 +11,11 @@ import {
   type ThemeMode,
 } from "@/lib/theme";
 
-function ThemeIcon({ mode }: { mode: ThemeMode }) {
+export function ThemeIcon({ mode, size = 13 }: { mode: ThemeMode; size?: number }) {
   const common = {
     viewBox: "0 0 24 24",
-    width: 13,
-    height: 13,
+    width: size,
+    height: size,
     fill: "none",
     stroke: "currentColor",
     strokeWidth: 1.9,
@@ -59,7 +59,9 @@ function ThemeIcon({ mode }: { mode: ThemeMode }) {
  * only this label is briefly unresolved, so it fades in rather than visibly
  * flipping.
  */
-export function ThemeToggle({ className = "" }: { className?: string }) {
+/** The toggle's state and action, for controls that draw their own button
+ *  (the admin rail and phone top bar). */
+export function useThemeCycle() {
   // localStorage is an external store, so it is subscribed to rather than
   // mirrored into state, which also keeps a second tab in step for free.
   const mode = useSyncExternalStore(
@@ -72,8 +74,16 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
     setThemeMode(nextThemeMode(readThemeMode()));
   }, []);
 
-  const label = THEME_LABEL[mode];
-  const upcoming = THEME_LABEL[nextThemeMode(mode)];
+  return {
+    mode,
+    cycle,
+    label: THEME_LABEL[mode],
+    upcoming: THEME_LABEL[nextThemeMode(mode)],
+  };
+}
+
+export function ThemeToggle({ className = "" }: { className?: string }) {
+  const { mode, cycle, label, upcoming } = useThemeCycle();
 
   return (
     <button

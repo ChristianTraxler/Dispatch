@@ -1,39 +1,101 @@
 "use client";
 
-import { type ReactNode } from "react";
-import { Masthead } from "./Masthead";
-import { PresenceDot } from "./PresenceDot";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { PullToRefresh } from "./PullToRefresh";
-import { ThemeToggle } from "./ThemeToggle";
+import { ThemeIcon, useThemeCycle } from "./ThemeToggle";
+import { DISPLAY_TIME_ZONE } from "@/lib/datetime";
+import {
+  AccountIcon,
+  AddOnsIcon,
+  ClientsIcon,
+  InquiriesIcon,
+  InvitesIcon,
+  LedgerIcon,
+  SignOutIcon,
+  UpIcon,
+} from "@/app/admin/docket-icons";
+// import { StatusFooter } from "./StatusBadge";  // see StatusFooter below
+
+type NavKey = "dashboard" | "inquiries" | "clients" | "invites" | "add-ons" | "account";
 
 export interface AdminShellProps {
   /** Active nav item key */
-  activeNav?: "dashboard" | "inquiries" | "clients" | "invites" | "add-ons" | "account";
+  activeNav?: NavKey;
   /** How many clients are currently online (drives the live count badge) */
   onlineClientCount?: number;
   /** Active-inquiry count badge on the Inquiries nav item */
   inquiryCount?: number;
   /** Click handler for nav items */
-  onNavigate?: (target: "dashboard" | "inquiries" | "clients" | "invites" | "add-ons" | "account" | "logout") => void;
+  onNavigate?: (target: NavKey | "logout") => void;
   children: ReactNode;
 }
 
-const ADMIN_NAV: { key: "dashboard" | "inquiries" | "clients" | "invites" | "add-ons"; label: string }[] = [
-  { key: "dashboard", label: "Live Ledger" },
-  { key: "inquiries", label: "Inquiries" },
-  { key: "clients", label: "Clients" },
-  { key: "invites", label: "Invites" },
-  { key: "add-ons", label: "Add-Ons" },
+const ADMIN_NAV: {
+  key: Exclude<NavKey, "account">;
+  label: string;
+  Icon: typeof LedgerIcon;
+}[] = [
+  { key: "dashboard", label: "Live Ledger", Icon: LedgerIcon },
+  { key: "inquiries", label: "Inquiries", Icon: InquiriesIcon },
+  { key: "clients", label: "Clients", Icon: ClientsIcon },
+  { key: "invites", label: "Invites", Icon: InvitesIcon },
+  { key: "add-ons", label: "Add-Ons", Icon: AddOnsIcon },
 ];
 
-function LiveCount({ count }: { count: number }) {
+// Shown past this scroll depth, per the Docket spec.
+const TO_TOP_AFTER_PX = 420;
+
+/**
+ * Formatted in the desk's zone, never the runtime's: Vercel runs UTC, and a
+ * server/browser mismatch here would trip React's hydration recovery.
+ */
+function todayLine(): string {
+  const d = new Date();
+  const zone = { timeZone: DISPLAY_TIME_ZONE };
+  const dayName = d.toLocaleString("en-US", { ...zone, weekday: "long" });
+  const monthDay = d.toLocaleString("en-US", { ...zone, month: "long", day: "numeric" });
+  return `${dayName}, ${monthDay}`;
+}
+
+function Wordmark({ onClick }: { onClick: () => void }) {
   return (
-    <span className="inline-flex items-center gap-2">
-      <PresenceDot status={count > 0 ? "online" : "offline"} pulse={count > 0} />
-      <span className="font-mono text-[0.8125rem] text-ink-mute">
-        {count} live
-      </span>
-    </span>
+    <button type="button" onClick={onClick} className="dk-mark" aria-label="Dispatch, Live Ledger">
+      Dispatch
+      <i aria-hidden="true" />
+    </button>
+  );
+}
+
+function LiveDot({ count }: { count: number }) {
+  return <span className={`dk-dot${count > 0 ? " dk-on" : ""}`} aria-hidden="true" />;
+}
+
+function ScrollTopButton() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > TO_TOP_AFTER_PX);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const onClick = useCallback(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+  }, []);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Scroll to top"
+      title="Scroll to top"
+      tabIndex={visible ? 0 : -1}
+      className={`dk-totop dk-totop-pos${visible ? " dk-show" : ""}`}
+    >
+      <UpIcon />
+    </button>
   );
 }
 
@@ -44,94 +106,147 @@ export function AdminShell({
   onNavigate,
   children,
 }: AdminShellProps) {
+  const theme = useThemeCycle();
+  const themeTitle = `Theme: ${theme.label}. Switch to ${theme.upcoming}.`;
+  const go = (target: NavKey | "logout") => onNavigate?.(target);
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <Masthead
-        compact
-        tagline="THE EDITORIAL DESK ── ADMIN VIEW"
-        rightContent={
-          <div className="flex flex-col items-end gap-1.5">
-            <div className="flex items-center gap-3 md:gap-4">
-              <span className="hidden md:inline-flex items-center gap-4">
-                <ThemeToggle />
-                <LiveCount count={onlineClientCount} />
-              </span>
-              <button
-                type="button"
-                onClick={() => onNavigate?.("account")}
-                className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors"
-              >
-                Account →
-              </button>
-              <button
-                type="button"
-                onClick={() => onNavigate?.("logout")}
-                className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors"
-              >
-                Sign out →
-              </button>
-            </div>
-            {/* On a phone the top row only has space for the two links,
-                keeping these there wrapped the dateline onto a second line,
-                so they drop to their own line under "Sign out". */}
-            <span className="md:hidden inline-flex items-center gap-3">
-              <ThemeToggle />
-              <LiveCount count={onlineClientCount} />
-            </span>
-          </div>
-        }
-      />
-
-      {/* Sub-nav bar, distinct admin styling: dark band */}
-      <div className="bg-band text-onInverse">
-        <div className="max-w-6xl mx-auto px-5 md:px-10 py-3 md:py-2.5 flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-3">
-          <div className="flex items-baseline justify-center md:justify-start gap-2 min-w-0">
-            <span className="font-mono text-[0.75rem] text-accent">
-              ADMIN
-            </span>
-            <span className="text-onInverse/40">·</span>
-            <span className="font-mono text-[0.8125rem] text-onInverse/70 truncate">
-              Christian / Developer of Code
-            </span>
-          </div>
-
-          <nav className="flex items-center justify-start gap-3 md:gap-5 overflow-x-auto -mx-5 px-5 md:mx-0 md:px-0">
-            {ADMIN_NAV.map((item, idx) => (
-              <span key={item.key} className="flex items-center gap-3 md:gap-5">
-                {idx > 0 && (
-                  <span
-                    aria-hidden="true"
-                    className="text-onInverse/40 font-mono text-[0.8125rem] md:pb-0.5 self-stretch flex items-center leading-none"
-                  >
-                    •
-                  </span>
-                )}
-                <button
-                  type="button"
-                  onClick={() => onNavigate?.(item.key)}
-                  className={[
-                    "font-mono text-[0.8125rem] py-3 md:py-0 md:pb-0.5 transition-colors whitespace-nowrap",
-                    activeNav === item.key
-                      ? "text-onInverse border-b-2 border-signal-red"
-                      : "text-onInverse/60 hover:text-onInverse",
-                  ].join(" ")}
-                >
-                  {item.label}
-                  {item.key === "inquiries" && inquiryCount > 0 && (
-                    <span className="ml-1.5 inline-block min-w-[1.1rem] px-1 py-px text-center bg-signal-red text-onInverse font-mono text-[0.75rem] leading-none">
-                      {inquiryCount}
-                    </span>
-                  )}
-                </button>
-              </span>
-            ))}
-          </nav>
+    <div className="dk-app">
+      {/* Desktop: the switchboard rail */}
+      <aside className="dk-rail" aria-label="Admin">
+        <Wordmark onClick={() => go("dashboard")} />
+        <div className="dk-who">
+          <b>ADMIN</b>
+          Christian / Developer of Code
         </div>
-      </div>
+        <nav aria-label="Admin sections">
+          {ADMIN_NAV.map(({ key, label, Icon }) => (
+            <button
+              key={key}
+              type="button"
+              className="dk-nav"
+              aria-current={activeNav === key ? "page" : undefined}
+              onClick={() => go(key)}
+            >
+              <Icon />
+              {label}
+              {key === "inquiries" && <span className="dk-n">{inquiryCount}</span>}
+            </button>
+          ))}
+        </nav>
+        <div className="dk-foot">
+          <span className="dk-row dk-live">
+            <LiveDot count={onlineClientCount} />
+            {onlineClientCount} live
+          </span>
+          <button
+            type="button"
+            className="dk-row"
+            onClick={theme.cycle}
+            aria-label={themeTitle}
+            title={themeTitle}
+          >
+            <span className="dk-themeicon theme-toggle-in">
+              <ThemeIcon mode={theme.mode} size={17} />
+            </span>
+            <span className="theme-toggle-in">{theme.label}</span>
+          </button>
+          <button
+            type="button"
+            className="dk-row"
+            aria-current={activeNav === "account" ? "page" : undefined}
+            onClick={() => go("account")}
+          >
+            <AccountIcon />
+            Account
+          </button>
+          <button type="button" className="dk-row" onClick={() => go("logout")}>
+            <SignOutIcon />
+            Sign out
+          </button>
+        </div>
+      </aside>
 
-      <main className="flex-1">
-        <PullToRefresh>{children}</PullToRefresh>
+      {/* Phone: sticky top bar */}
+      <header className="dk-topbar">
+        <Wordmark onClick={() => go("dashboard")} />
+        <span className="dk-grow" />
+        <span className="dk-livechip">
+          <LiveDot count={onlineClientCount} />
+          {onlineClientCount} live
+        </span>
+        <button
+          type="button"
+          className="dk-iconbtn"
+          onClick={theme.cycle}
+          aria-label={themeTitle}
+          title={themeTitle}
+        >
+          <span className="dk-themeicon theme-toggle-in">
+            <ThemeIcon mode={theme.mode} size={18} />
+          </span>
+        </button>
+        <button
+          type="button"
+          className="dk-iconbtn"
+          aria-label="Account"
+          aria-current={activeNav === "account" ? "page" : undefined}
+          onClick={() => go("account")}
+        >
+          <AccountIcon />
+        </button>
+        <button
+          type="button"
+          className="dk-iconbtn"
+          aria-label="Sign out"
+          onClick={() => go("logout")}
+        >
+          <SignOutIcon />
+        </button>
+      </header>
+
+      <main className="dk-main">
+        <div className="dk-page">
+          <p className="dk-today">{todayLine()}</p>
+          <PullToRefresh>
+            <div className="dk-enter" key={activeNav}>
+              {children}
+            </div>
+          </PullToRefresh>
+        </div>
       </main>
+
+      {/* Phone: bottom tab bar */}
+      <nav className="dk-tabbar" aria-label="Admin sections">
+        {ADMIN_NAV.map(({ key, label, Icon }) => (
+          <button
+            key={key}
+            type="button"
+            className="dk-nav"
+            aria-current={activeNav === key ? "page" : undefined}
+            onClick={() => go(key)}
+          >
+            <span className="dk-tabicon">
+              <Icon />
+              {key === "inquiries" && inquiryCount > 0 && (
+                <span className="dk-tabcount">{inquiryCount}</span>
+              )}
+            </span>
+            {label}
+          </button>
+        ))}
+      </nav>
+
+      <ScrollTopButton />
+
+      {/* Service-status badge, parked, not abandoned.
+          Better Stack's free plan allows the custom-domain status page on one
+          site only, and developerofcode.com already claims it, so
+          status.developerofcode.com doesn't answer for Dispatch and the badge
+          would sit permanently grey. Uncomment this and the import above once
+          the plan allows a second page. /api/status and StatusBadge.tsx are
+          unchanged and still work. */}
+      {/* <StatusFooter /> */}
     </div>
   );
 }

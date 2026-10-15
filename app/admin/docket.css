@@ -547,3 +547,57 @@ html:has(.admin-root) body {
     transition: none !important;
   }
 }
+
+/* ---------- shell additions (real app markup) ---------- */
+.dk-rail nav .dk-nav,
+.dk-rail .dk-foot .dk-row { width: 100%; text-align: left; }
+.dk-rail .dk-foot .dk-row svg { display: block; flex: none; }
+.dk-mark { color: var(--dk-ink); }
+.dk-topbar .dk-iconbtn[aria-current="page"] { color: var(--dk-ink); border-color: var(--dk-ink-3); }
+.dk-today { margin: 0; }
+.dk-tabicon { position: relative; display: block; }
+.dk-tabcount {
+  position: absolute; top: -6px; left: 14px; min-width: 17px; height: 17px; padding: 0 4px;
+  border-radius: 999px; background: var(--dk-signal); color: var(--dk-signal-ink);
+  font-family: var(--dk-f-mono); font-stretch: 87.5%; font-size: 10px; line-height: 17px; text-align: center;
+}
+
+/* Floating buttons: chat bubble at the corner, scroll-to-top stacked above it,
+   both clear of the phone tab bar. */
+.dk-chatfab {
+  width: 58px; height: 58px;
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--dk-tabbar) + 16px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 14px 30px -12px color-mix(in srgb, var(--dk-signal) 80%, transparent) !important;
+}
+.dk-chatpanel {
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--dk-tabbar) + 16px + env(safe-area-inset-bottom, 0px));
+  max-height: calc(100dvh - var(--dk-tabbar) - 96px - env(safe-area-inset-bottom, 0px));
+}
+.dk-totop-pos {
+  position: fixed; z-index: 45;
+  right: calc(23px + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--dk-tabbar) + 16px + 58px + 12px + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 960px) {
+  .dk-chatfab, .dk-chatpanel {
+    right: calc(28px + env(safe-area-inset-right, 0px));
+    bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  }
+  .dk-chatpanel { max-height: calc(100dvh - 56px); }
+  .dk-totop-pos {
+    right: calc(35px + env(safe-area-inset-right, 0px));
+    bottom: calc(28px + 58px + 12px + env(safe-area-inset-bottom, 0px));
+  }
+}
+/* The app-wide scroll-to-top gives way to the admin's own. */
+html:has(.admin-root) .site-scroll-top { display: none; }
+
+/* Toasts: dark pill, above the tab bar on phones. */
+.admin-root .toast-stack {
+  bottom: calc(var(--dk-tabbar) + 90px + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 960px) {
+  .admin-root .toast-stack { bottom: 32px; left: calc(var(--dk-rail) + 24px); }
+}

@@ -84,7 +84,7 @@ function ToastContainer() {
 
   return (
     <div
-      className={`fixed ${bottomClass} left-5 z-[100] flex flex-col-reverse gap-2 pointer-events-none w-[min(92vw,360px)]`}
+      className={`toast-stack fixed ${bottomClass} left-5 z-[100] flex flex-col-reverse gap-2 pointer-events-none w-[min(92vw,360px)]`}
       role="region"
       aria-live="polite"
       aria-label="Notifications"
