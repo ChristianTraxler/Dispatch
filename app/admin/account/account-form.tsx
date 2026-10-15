@@ -7,6 +7,7 @@ import { computeAvailability, type WeeklyHours } from "@/lib/availability";
 import { VacationCalendar, type Vacation } from "./vacation-calendar";
 import PushToggle from "@/components/PushToggle";
 import PasskeyManager from "@/components/PasskeyManager";
+import { XIcon } from "../docket-icons";
 
 interface InitialState {
   timezone: string;
@@ -251,34 +252,30 @@ export function AccountForm({ initial }: { initial: InitialState }) {
   return (
     <div className="space-y-12">
       {/* Live preview */}
-      <section className="border border-rule p-4 bg-parchment-warm rounded-2xl">
-        <p className="font-mono text-[0.8125rem] text-ink-mute mb-2">
+      <section id="live-preview" className="dk-asect dk-card dk-status">
+        <small>
           Live preview — what customers see right now
-        </p>
-        <div className="flex items-center gap-2">
+        </small>
+        <div>
           <span className={`inline-block w-2 h-2 rounded-full ${dotColor}`} aria-hidden="true" />
-          <span className="font-mono text-[0.875rem] text-ink">
+          <span>
             {preview.label} — {preview.detail}
           </span>
         </div>
       </section>
 
       {/* Hours */}
-      <section>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="font-mono text-[0.8125rem] text-accent">§</span>
-          <span className="font-mono text-[0.8125rem] text-ink-mute">
-            Business Hours
-          </span>
-          <span className="h-px flex-1 bg-rule-soft" />
+      <section id="business-hours" className="dk-asect">
+        <div className="dk-tzrow">
+          <h2 className="dk-h2">Business Hours</h2>
           <label className="flex items-center gap-2">
-            <span className="font-mono text-[0.8125rem] text-ink-mute">
+            <span className="dk-flabel">
               Timezone
             </span>
             <select
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
-              className="font-mono text-[0.875rem] border border-rule bg-parchment px-2 py-1 rounded-full"
+              className="dk-select"
             >
               {COMMON_TIMEZONES.map((tz) => (
                 <option key={tz} value={tz}>{tz}</option>
@@ -287,61 +284,54 @@ export function AccountForm({ initial }: { initial: InitialState }) {
           </label>
         </div>
 
-        <ul className="border border-rule divide-y divide-rule-soft rounded-2xl">
+        <ul className="dk-card dk-hours mt-4">
           {WEEKDAY_LABELS.map(([key, label]) => {
             const day = hours[key];
             return (
-              <li key={key} className="flex items-center gap-4 px-4 py-3">
+              <li key={key} className="dk-hrow">
                 <button
                   type="button"
                   role="switch"
                   aria-checked={day.enabled}
                   onClick={() => setDayEnabled(key, !day.enabled)}
-                  className={`w-9 h-5 rounded-full transition-colors relative ${
-                    day.enabled ? "bg-accent-fill" : "bg-ink-fade/40"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-parchment-warm transition-transform ${
-                      day.enabled ? "translate-x-4" : ""
-                    }`}
-                  />
-                </button>
-                <span className="font-mono text-[0.875rem] w-10">
+                  aria-label={label}
+                  className="dk-switch"
+                />
+                <span className="dk-day">
                   {label}
                 </span>
                 {day.enabled ? (
-                  <>
+                  <span className="dk-times">
                     <input
                       type="time"
                       value={day.open ?? "09:00"}
                       onChange={(e) => setDayOpen(key, e.target.value)}
-                      className="font-mono text-sm border border-rule bg-parchment px-2 py-1 rounded-full"
+                      className="dk-tin"
                       aria-label={`${label} open`}
                     />
-                    <span className="font-mono text-ink-mute">→</span>
+                    <span className="dk-arr" aria-hidden="true">→</span>
                     <input
                       type="time"
                       value={day.close ?? "17:00"}
                       onChange={(e) => setDayClose(key, e.target.value)}
-                      className="font-mono text-sm border border-rule bg-parchment px-2 py-1 rounded-full"
+                      className="dk-tin"
                       aria-label={`${label} close`}
                     />
-                  </>
+                  </span>
                 ) : (
-                  <span className="font-display italic text-ink-mute">closed</span>
+                  <span className="dk-closed">closed</span>
                 )}
               </li>
             );
           })}
         </ul>
 
-        <div className="flex justify-end mt-4">
+        <div className="dk-save">
           <button
             type="button"
             onClick={saveHours}
             disabled={savingHours}
-            className="font-mono text-[0.875rem] border border-accent text-accent px-4 py-2 hover:bg-accent-fillHover hover:text-onInverse transition-colors disabled:opacity-50 rounded-full"
+            className="dk-btn dk-ghost-signal"
           >
             {savingHours ? "Saving…" : "Save hours"}
           </button>
@@ -349,39 +339,25 @@ export function AccountForm({ initial }: { initial: InitialState }) {
       </section>
 
       {/* OOO */}
-      <section>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="font-mono text-[0.8125rem] text-accent">§</span>
-          <span className="font-mono text-[0.8125rem] text-ink-mute">
-            Out of Office
-          </span>
-          <span className="h-px flex-1 bg-rule-soft" />
-        </div>
+      <section id="out-of-office" className="dk-asect">
+        <h2 className="dk-h2">Out of Office</h2>
 
-        <div className="border border-rule p-4 space-y-4 rounded-2xl">
-          <label className="flex items-center gap-3">
+        <div className="dk-card dk-pad space-y-4 mt-4">
+          <label className="dk-swrow">
             <button
               type="button"
               role="switch"
               aria-checked={oooEnabled}
               onClick={() => setOooEnabled((v) => !v)}
-              className={`w-12 h-6 rounded-full transition-colors relative ${
-                oooEnabled ? "bg-signal-red" : "bg-ink-fade/40"
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-parchment-warm transition-transform ${
-                  oooEnabled ? "translate-x-6" : ""
-                }`}
-              />
-            </button>
-            <span className="font-mono text-[0.875rem] text-ink">
+              className="dk-switch"
+            />
+            <span className="font-semibold text-ink">
               {oooEnabled ? "Out of office is ON" : "Out of office is off"}
             </span>
           </label>
 
           <div>
-            <span className="font-mono text-[0.8125rem] text-ink-mute block mb-1">
+            <span className="dk-flabel block mb-1.5">
               Starts on (optional — leave blank to start now; time defaults to start of day)
             </span>
             <div className="flex flex-wrap items-center gap-2">
@@ -390,9 +366,9 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                 value={oooFrom}
                 onChange={(e) => setOooFrom(e.target.value)}
                 aria-label="Start date"
-                className="font-mono text-sm border border-rule bg-parchment px-2 py-1 rounded-full"
+                className="dk-tin"
               />
-              <span className="font-mono text-[0.8125rem] text-ink-mute">
+              <span className="dk-at">
                 at
               </span>
               <input
@@ -401,7 +377,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                 onChange={(e) => setOooFromTime(e.target.value)}
                 disabled={!oooFrom}
                 aria-label="Start time"
-                className="font-mono text-sm border border-rule bg-parchment px-2 py-1 disabled:opacity-50 rounded-full"
+                className="dk-tin disabled:opacity-50"
               />
               {(oooFrom || oooFromTime) && (
                 <button
@@ -411,7 +387,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                     setOooFromTime("");
                   }}
                   aria-label="Clear start date and time"
-                  className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors"
+                  className="dk-tbtn"
                 >
                   Clear
                 </button>
@@ -420,7 +396,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
           </div>
 
           <div>
-            <span className="font-mono text-[0.8125rem] text-ink-mute block mb-1">
+            <span className="dk-flabel block mb-1.5">
               Return on (optional — auto-resumes; time defaults to end of day)
             </span>
             <div className="flex flex-wrap items-center gap-2">
@@ -429,9 +405,9 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                 value={oooUntil}
                 onChange={(e) => setOooUntil(e.target.value)}
                 aria-label="Return date"
-                className="font-mono text-sm border border-rule bg-parchment px-2 py-1 rounded-full"
+                className="dk-tin"
               />
-              <span className="font-mono text-[0.8125rem] text-ink-mute">
+              <span className="dk-at">
                 at
               </span>
               <input
@@ -440,7 +416,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                 onChange={(e) => setOooUntilTime(e.target.value)}
                 disabled={!oooUntil}
                 aria-label="Return time"
-                className="font-mono text-sm border border-rule bg-parchment px-2 py-1 disabled:opacity-50 rounded-full"
+                className="dk-tin disabled:opacity-50"
               />
               {(oooUntil || oooUntilTime) && (
                 <button
@@ -450,7 +426,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
                     setOooUntilTime("");
                   }}
                   aria-label="Clear return date and time"
-                  className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors"
+                  className="dk-tbtn"
                 >
                   Clear
                 </button>
@@ -459,7 +435,7 @@ export function AccountForm({ initial }: { initial: InitialState }) {
           </div>
 
           <label className="block">
-            <span className="font-mono text-[0.8125rem] text-ink-mute block mb-1">
+            <span className="dk-flabel block mb-1.5">
               Custom message (optional, 280 chars)
             </span>
             <textarea
@@ -468,17 +444,17 @@ export function AccountForm({ initial }: { initial: InitialState }) {
               maxLength={280}
               rows={2}
               placeholder="On vacation — back Mon May 18."
-              className="w-full font-display text-base border border-rule bg-parchment px-3 py-2 rounded-2xl"
+              className="dk-textarea"
             />
           </label>
         </div>
 
-        <div className="flex justify-end mt-4">
+        <div className="dk-save">
           <button
             type="button"
             onClick={saveOoo}
             disabled={savingOoo}
-            className="font-mono text-[0.875rem] border border-accent text-accent px-4 py-2 hover:bg-accent-fillHover hover:text-onInverse transition-colors disabled:opacity-50 rounded-full"
+            className="dk-btn dk-ghost-signal"
           >
             {savingOoo ? "Saving…" : "Save OOO"}
           </button>
@@ -493,49 +469,35 @@ export function AccountForm({ initial }: { initial: InitialState }) {
       />
 
       {/* Out of Town (silent, clients see no change) */}
-      <section>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="font-mono text-[0.8125rem] text-accent">§</span>
-          <span className="font-mono text-[0.8125rem] text-ink-mute">
-            Out of Town
-          </span>
-          <span className="h-px flex-1 bg-rule-soft" />
-        </div>
+      <section id="out-of-town" className="dk-asect">
+        <h2 className="dk-h2">Out of Town</h2>
 
-        <div className="border border-rule p-4 space-y-3 rounded-2xl">
-          <label className="flex items-center gap-3">
+        <div className="dk-card dk-pad space-y-3 mt-4">
+          <label className="dk-swrow">
             <button
               type="button"
               role="switch"
               aria-checked={outOfTown}
               onClick={() => setOutOfTown((v) => !v)}
-              className={`w-12 h-6 rounded-full transition-colors relative ${
-                outOfTown ? "bg-signal-red" : "bg-ink-fade/40"
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-parchment-warm transition-transform ${
-                  outOfTown ? "translate-x-6" : ""
-                }`}
-              />
-            </button>
-            <span className="font-mono text-[0.875rem] text-ink">
+              className="dk-switch"
+            />
+            <span className="font-semibold text-ink">
               {outOfTown ? "Out of town is ON" : "Out of town is off"}
             </span>
           </label>
-          <p className="font-display italic text-ink-mute">
+          <p className="dk-lede" style={{ marginTop: 0 }}>
             When on, clients won&rsquo;t see the Emergency Fix option after hours.
             Their portal looks normal &mdash; no indication you&rsquo;re away.
             Use this when traveling.
           </p>
         </div>
 
-        <div className="flex justify-end mt-4">
+        <div className="dk-save">
           <button
             type="button"
             onClick={saveOutOfTown}
             disabled={savingOutOfTown}
-            className="font-mono text-[0.875rem] border border-accent text-accent px-4 py-2 hover:bg-accent-fillHover hover:text-onInverse transition-colors disabled:opacity-50 rounded-full"
+            className="dk-btn dk-ghost-signal"
           >
             {savingOutOfTown ? "Saving…" : "Save out-of-town"}
           </button>
@@ -543,41 +505,36 @@ export function AccountForm({ initial }: { initial: InitialState }) {
       </section>
 
       {/* Holidays */}
-      <section>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="font-mono text-[0.8125rem] text-accent">§</span>
-          <span className="font-mono text-[0.8125rem] text-ink-mute">
-            Holidays
-          </span>
-          <span className="h-px flex-1 bg-rule-soft" />
-        </div>
-        <p className="font-display italic text-ink-mute mb-4">
+      <section id="holidays" className="dk-asect">
+        <h2 className="dk-h2">Holidays</h2>
+        <p className="dk-lede">
           Days that count as outside business hours, in your timezone.
         </p>
 
-        <div className="border border-rule p-4 space-y-3 rounded-2xl">
+        <div className="dk-card dk-pad dk-hol mt-4">
           {holidays.length === 0 ? (
-            <p className="font-mono text-[0.875rem] text-ink-fade">
+            <p className="text-ink-mute w-full">
               No holidays added.
             </p>
           ) : (
             holidays.map((d, i) => (
-              <div key={`${d}-${i}`} className="flex items-center gap-3">
+              <div key={`${d}-${i}`} className="dk-hchip">
                 <input
                   type="date"
                   value={d}
                   onChange={(e) =>
                     setHolidays((arr) => arr.map((x, j) => (j === i ? e.target.value : x)))
                   }
-                  className="font-mono text-sm border border-rule bg-parchment px-2 py-1 rounded-full"
+                  className="dk-hdate"
                   aria-label={`Holiday ${i + 1}`}
                 />
                 <button
                   type="button"
                   onClick={() => setHolidays((arr) => arr.filter((_, j) => j !== i))}
-                  className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent"
+                  aria-label="Remove"
+                  title="Remove"
                 >
-                  Remove
+                  <XIcon />
                 </button>
               </div>
             ))
@@ -585,18 +542,18 @@ export function AccountForm({ initial }: { initial: InitialState }) {
           <button
             type="button"
             onClick={() => setHolidays((arr) => [...arr, ""])}
-            className="font-mono text-[0.875rem] border border-rule text-ink-soft px-3 py-1 hover:border-ink rounded-full"
+            className="dk-addchip"
           >
             + Add holiday
           </button>
         </div>
 
-        <div className="flex justify-end mt-4">
+        <div className="dk-save">
           <button
             type="button"
             onClick={saveHolidays}
             disabled={savingHolidays}
-            className="font-mono text-[0.875rem] border border-accent text-accent px-4 py-2 hover:bg-accent-fillHover hover:text-onInverse transition-colors disabled:opacity-50 rounded-full"
+            className="dk-btn dk-ghost-signal"
           >
             {savingHolidays ? "Saving…" : "Save holidays"}
           </button>
@@ -604,49 +561,47 @@ export function AccountForm({ initial }: { initial: InitialState }) {
       </section>
 
       {/* Emergency Fee */}
-      <section>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="font-mono text-[0.8125rem] text-accent">§</span>
-          <span className="font-mono text-[0.8125rem] text-ink-mute">
-            Emergency Fee
-          </span>
-          <span className="h-px flex-1 bg-rule-soft" />
-        </div>
-        <p className="font-display italic text-ink-mute mb-4">
+      <section id="emergency-fee" className="dk-asect">
+        <h2 className="dk-h2">Emergency Fee</h2>
+        <p className="dk-lede">
           Charged when a client opts into Emergency Fix outside business hours.
         </p>
 
-        <div className="border border-rule p-4 flex items-center gap-3 rounded-2xl">
-          <span className="font-display text-2xl text-ink">$</span>
+        <div className="dk-card dk-pad dk-fee mt-4">
+          <span className="dk-cur">$</span>
           <input
             type="number"
             min="0"
             step="1"
             value={feeDollars}
             onChange={(e) => setFeeDollars(e.target.value)}
-            className="font-mono text-lg border border-rule bg-parchment px-2 py-1 w-28 rounded-2xl"
+            className="dk-tin"
             aria-label="Emergency fee in dollars"
           />
-          <span className="font-mono text-[0.875rem] text-ink-mute">
+          <span className="dk-unit">
             per emergency filing
           </span>
         </div>
 
-        <div className="flex justify-end mt-4">
+        <div className="dk-save">
           <button
             type="button"
             onClick={saveFee}
             disabled={savingFee}
-            className="font-mono text-[0.875rem] border border-accent text-accent px-4 py-2 hover:bg-accent-fillHover hover:text-onInverse transition-colors disabled:opacity-50 rounded-full"
+            className="dk-btn dk-ghost-signal"
           >
             {savingFee ? "Saving…" : "Save fee"}
           </button>
         </div>
       </section>
 
-      <PushToggle />
+      <div id="notifications" className="dk-asect">
+        <PushToggle />
+      </div>
 
-      <PasskeyManager />
+      <div id="passkeys" className="dk-asect">
+        <PasskeyManager />
+      </div>
     </div>
   );
 }

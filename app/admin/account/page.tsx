@@ -3,6 +3,8 @@ import { requireAdmin } from "@/lib/auth/admin-guard";
 import { AccountForm } from "./account-form";
 import type { WeeklyHours } from "@/lib/availability";
 import { todayInTimezone, formatYmd } from "@/lib/vacation-helpers";
+import { PageHead } from "../docket-ui";
+import { SectionIndex } from "./section-index";
 import { reconcileVacationFlip, broadcastSettingsChanged } from "@/lib/vacation-reconcile";
 
 export const dynamic = "force-dynamic";
@@ -54,24 +56,19 @@ export default async function AccountPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-5 md:px-10 py-10 md:py-14">
-      <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.8125rem] text-accent">§</span>
-        <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
-          Editorial Desk
-        </span>
-      </div>
-      <h1
-        className="font-display text-4xl md:text-5xl leading-none mb-3"
-      >
-        Account
-      </h1>
-      <p className="font-display italic text-ink-mute text-base md:text-lg mb-10 max-w-2xl">
-        Tell the world when you&rsquo;re at the desk.
-      </p>
+    <div className="dk-narrow">
+      <PageHead
+        eyebrow="Editorial Desk"
+        title="Account"
+        sub={<>Tell the world when you&rsquo;re at the desk.</>}
+      />
 
-      <AccountForm initial={initial} />
+      <div className="dk-acct">
+        <SectionIndex />
+        <div className="min-w-0">
+          <AccountForm initial={initial} />
+        </div>
+      </div>
     </div>
   );
 }

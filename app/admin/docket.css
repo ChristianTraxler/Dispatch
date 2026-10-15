@@ -729,3 +729,45 @@ html:has(.admin-root) .site-scroll-top { display: none; }
   outline: none; border-color: var(--dk-signal) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--dk-signal) 18%, transparent);
 }
 .dk-aform input[type="number"] { font-family: var(--dk-f-mono) !important; font-stretch: 87.5%; }
+
+/* ---------- account additions ---------- */
+.dk-narrow { max-width: 980px; }
+.dk-asect { scroll-margin-top: 90px; }
+.dk-h2 { margin: 0; font-family: var(--dk-f-display); font-stretch: 118%; font-weight: 750; font-size: 24px; letter-spacing: -.03em; line-height: 1.2; }
+.dk-lede { margin: 6px 0 0; color: var(--dk-ink-2); max-width: 62ch; font-size: 15px; }
+.dk-status { padding: 18px 20px; }
+.dk-status small { display: block; font-size: 12.5px; color: var(--dk-ink-3); }
+.dk-status > div { display: flex; align-items: center; gap: 10px; margin-top: 6px; font-weight: 600; font-size: 16px; }
+.dk-status > div > span:first-child { width: 8px; height: 8px; }
+.dk-status .bg-amber-500 { background: var(--dk-amber); }
+.dk-status .bg-emerald-500 { background: var(--dk-live); }
+.dk-tzrow .dk-select { width: auto; height: 38px; border-radius: 999px; font-size: 14px; }
+.dk-hours { list-style: none; margin-bottom: 0; padding: 0; overflow: hidden; }
+.dk-hours .dk-hrow { grid-template-columns: auto 38px minmax(0, 1fr); }
+.dk-hours .dk-day { min-width: 38px; }
+.dk-hours .dk-times .dk-tin { width: 100%; }
+@media (min-width: 720px) { .dk-hours .dk-hrow { grid-template-columns: auto 48px minmax(0, 1fr); padding: 12px 20px; } }
+.dk-swrow { cursor: pointer; }
+.dk-switch { cursor: pointer; }
+.dk-switch:focus-visible { outline: 2px solid var(--dk-signal); outline-offset: 3px; }
+.dk-tin:disabled { opacity: .5; }
+.dk-tin::-webkit-calendar-picker-indicator { opacity: .6; }
+.dk-fee .dk-tin { width: 110px; height: 46px; font-size: 18px; }
+.dk-hol { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.dk-hchip .dk-hdate { border: 0; background: transparent; font: inherit; color: inherit; padding: 0; height: 38px; }
+.dk-hchip .dk-hdate:focus { outline: none; }
+.dk-hchip:focus-within { border-color: var(--dk-signal); }
+.dk-mtitle { margin: 0 0 10px; text-align: center; font-size: 14px; font-weight: 600; }
+.dk-dbtn { width: 100%; margin: 0 auto; color: var(--dk-ink); transition: background .15s; }
+.dk-dbtn.dk-dim { opacity: .25; cursor: default; }
+.dk-dbtn.dk-past { color: var(--dk-ink-3); opacity: .45; cursor: not-allowed; }
+.dk-dbtn.dk-sched { background: var(--dk-signal-soft); color: var(--dk-ink-3); cursor: not-allowed; }
+.dk-dbtn.dk-istoday { box-shadow: inset 0 0 0 1.5px var(--dk-signal); }
+.dk-dbtn.dk-inr { background: var(--dk-signal-soft); border-radius: 0; }
+.dk-dbtn.dk-edge { background: var(--dk-signal); color: var(--dk-signal-ink); border-radius: 10px; }
+.dk-dbtn:hover:not(.dk-past):not(.dk-sched):not(.dk-dim):not(.dk-edge) { background: var(--dk-sheet-2); }
+.dk-calnav > span { font-family: var(--dk-f-body); }
+.dk-calfoot .dk-flabel + .dk-input { margin-top: 0; }
+.dk-calfoot > div:last-child { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.dk-upcoming .dk-list { margin-top: 0; }
+.dk-acct > div > .space-y-12 > * + * { margin-top: 46px; }
