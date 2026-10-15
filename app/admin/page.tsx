@@ -4,6 +4,8 @@ import { ticketNumber } from "@/lib/ticket";
 import { StatusPill } from "@/components/StatusPill";
 import { LedgerLiveRefresh } from "./ledger-live-refresh";
 import { OnlineClientsPanel } from "./online-clients-panel";
+import { PageHead, TicketStub } from "./docket-ui";
+import { DISPLAY_TIME_ZONE } from "@/lib/datetime";
 
 const OPEN_STATUSES = ["NEW", "REVIEWING", "FIXING", "REOPENED"] as const;
 
@@ -48,31 +50,17 @@ export default async function AdminLedgerPage() {
     ]);
 
   return (
-    <div className="max-w-6xl mx-auto px-5 md:px-10 py-10 md:py-14">
+    <div>
       <LedgerLiveRefresh />
 
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.8125rem] text-accent">
-          §
-        </span>
-        <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
-          Editorial Desk
-        </span>
-      </div>
-
-      <h1
-        className="font-display text-4xl md:text-6xl leading-none mb-3"
-      >
-        Live Ledger
-      </h1>
-      <p className="font-display italic text-ink-mute text-base md:text-lg mb-10 max-w-2xl">
-        The newsroom floor — where dispatches land and the red light goes on.
-      </p>
+      <PageHead
+        eyebrow="Editorial Desk"
+        title="Live Ledger"
+        sub="The newsroom floor — where dispatches land and the red light goes on."
+      />
 
       {/* Stat strip */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-px bg-rule border border-rule mb-12 rounded-2xl overflow-hidden">
+      <div className="dk-stats dk-stats-5 mb-10">
         <Stat label="Open Tickets" value={openCount} accent="signal-red" />
         <Stat label="Awaiting Confirm" value={awaitingCount} />
         <Stat label="Open Inquiries" value={inquiryCount} />
@@ -82,76 +70,54 @@ export default async function AdminLedgerPage() {
 
       {/* Recent tickets */}
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 items-start">
-        <section>
-          <div className="flex items-center gap-3 mb-4">
-            <span className="font-mono text-[0.8125rem] text-accent shrink-0">
-              §
-            </span>
-            <span className="font-mono text-[0.8125rem] text-ink-mute whitespace-nowrap">
-              Recent Dispatches
-            </span>
-            <span className="h-px flex-1 bg-rule-soft min-w-[1rem]" />
-            <Link
-              href="/admin/tickets"
-              className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors whitespace-nowrap shrink-0"
-            >
+        <section className="min-w-0">
+          <div className="dk-ghead">
+            <h2>Recent Dispatches</h2>
+            <Link href="/admin/tickets" className="dk-link">
               All →
             </Link>
           </div>
 
           {recent.length === 0 ? (
-            <p className="font-display italic text-ink-mute">
-              No tickets filed yet. The board&rsquo;s clean.
-            </p>
+            <div className="dk-emptyslip">
+              <p>No tickets filed yet. The board&rsquo;s clean.</p>
+            </div>
           ) : (
-            <ul className="rule-thin pt-3 divide-y divide-rule-soft">
+            <div className="dk-stubs">
               {recent.map((t) => (
-                <li key={t.id}>
-                  <Link
-                    href={`/admin/ticket/${t.id}`}
-                    className="block py-3 hover:bg-parchment-warm/40 transition-colors px-2"
-                  >
-                    <div className="flex flex-col md:flex-row md:items-center md:gap-6">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-1 min-w-0">
-                          <StatusPill status={t.status} className="shrink-0" />
-                          <span className="font-mono text-[0.8125rem] text-ink-fade truncate">
-                            {ticketNumber(t.id, t.createdAt)}
-                          </span>
-                        </div>
-                        <p className="font-display text-base text-ink truncate">
-                          {t.title}
-                        </p>
-                        <p className="font-mono text-[0.8125rem] text-ink-mute mt-1 truncate">
-                          {t.clientAccount.name} · {t.site.displayName}
-                        </p>
-                      </div>
-                      <div className="font-mono text-[0.8125rem] text-ink-fade md:text-right shrink-0 mt-1 md:mt-0">
-                        {formatRelative(t.createdAt)}
-                      </div>
-                    </div>
-                  </Link>
-                </li>
+                <TicketStub
+                  key={t.id}
+                  href={`/admin/ticket/${t.id}`}
+                  date={t.createdAt}
+                  timeZone={DISPLAY_TIME_ZONE}
+                  top={
+                    <>
+                      <StatusPill status={t.status} className="shrink-0" />
+                      <span className="dk-id dk-mono">{ticketNumber(t.id, t.createdAt)}</span>
+                    </>
+                  }
+                  title={t.title}
+                  by={
+                    <>
+                      {t.clientAccount.name} <em>&middot;</em> {t.site.displayName}
+                    </>
+                  }
+                  when={<b>{formatRelative(t.createdAt)}</b>}
+                />
               ))}
-            </ul>
+            </div>
           )}
         </section>
 
         {/* Right column: live presence + quick actions */}
-        <aside className="space-y-8">
+        <aside className="space-y-8 min-w-0">
           <OnlineClientsPanel />
 
           <BillingRulesNote />
 
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="font-mono text-[0.8125rem] text-accent">
-                §
-              </span>
-              <span className="font-mono text-[0.8125rem] text-ink-mute">
-                On Deck
-              </span>
-              <span className="h-px flex-1 bg-rule-soft" />
+            <div className="dk-slab mb-3">
+              <span>On Deck</span>
             </div>
             <ul className="space-y-2">
               <QuickAction href="/admin/invites/new" label="Send a new invite →" />
@@ -167,17 +133,12 @@ export default async function AdminLedgerPage() {
 
 function BillingRulesNote() {
   return (
-    <div className="border border-rule-soft bg-parchment-warm px-5 py-5 rounded-2xl">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="font-mono text-[0.8125rem] text-accent">
-          §
-        </span>
-        <span className="font-mono text-[0.8125rem] text-accent">
-          Before You Start Work
-        </span>
+    <div className="dk-card px-5 py-5">
+      <div className="dk-slab mb-3">
+        <span className="dk-hot">Before You Start Work</span>
       </div>
 
-      <p className="font-display italic text-ink-soft text-sm leading-snug mb-3">
+      <p className="font-semibold text-ink text-sm leading-snug mb-3">
         Invoice first. Work begins only after payment lands.
       </p>
 
@@ -210,7 +171,7 @@ function BillingRulesNote() {
         </li>
       </ul>
 
-      <p className="font-display italic text-ink-mute text-xs leading-snug mt-3 pt-3 border-t border-rule">
+      <p className="text-ink-mute text-xs leading-snug mt-3 pt-3 border-t border-rule-soft">
         These are existing Dispatch clients — lean lighter: 100% upfront for
         the small stuff, 50-50 only when the dollar amount makes it awkward
         to ask in one shot.
@@ -229,17 +190,9 @@ function Stat({
   accent?: "signal-red";
 }) {
   return (
-    <div className="bg-parchment-warm px-5 py-4">
-      <p className="font-mono text-[0.8125rem] text-ink-mute mb-1">
-        {label}
-      </p>
-      <p
-        className={`font-display text-3xl md:text-4xl leading-none ${
-          accent === "signal-red" ? "text-accent" : "text-ink"
-        }`}
-      >
-        {value}
-      </p>
+    <div className={`dk-card dk-stat${value === 0 ? " dk-zero" : ""}`}>
+      <b className={accent === "signal-red" && value > 0 ? "text-accent" : undefined}>{value}</b>
+      <span>{label}</span>
     </div>
   );
 }
@@ -249,7 +202,7 @@ function QuickAction({ href, label }: { href: string; label: string }) {
     <li>
       <Link
         href={href}
-        className="block px-4 py-3 border border-rule hover:border-accent transition-colors font-mono text-[0.875rem] text-ink-soft hover:text-accent rounded-full"
+        className="dk-btn w-full !justify-start"
       >
         {label}
       </Link>

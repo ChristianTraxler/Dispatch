@@ -16,33 +16,33 @@ export function OnlineClientsPanel() {
   const list = [...online.values()].sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <div className="border border-rule bg-parchment-warm rounded-2xl">
-      <div className="flex items-center gap-2 px-4 py-3 rule-thin">
+    <div className="dk-card overflow-hidden">
+      <div className="flex items-center gap-2 px-5 py-4 border-b border-rule-soft">
         <PresenceDot
           status={list.length > 0 ? "online" : "offline"}
           pulse={list.length > 0}
         />
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
+        <span className="dk-slab">
           Online Now
         </span>
-        <span className="ml-auto font-mono text-[0.8125rem] text-ink-fade">
+        <span className="ml-auto dk-mono text-[0.75rem] text-ink-mute">
           {list.length}
         </span>
       </div>
 
       {list.length === 0 ? (
-        <p className="px-4 py-4 font-display italic text-ink-mute text-sm">
+        <p className="px-5 py-4 text-ink-mute text-sm">
           No clients signed in right now.
         </p>
       ) : (
         <ul className="divide-y divide-rule-soft">
           {list.map((c) => (
-            <li key={c.accountId} className="px-4 py-2.5">
+            <li key={c.accountId} className="px-5 py-3">
               <div className="flex items-center gap-3 min-w-0">
                 <Avatar src={c.avatarUrl ?? null} name={c.name} size={32} tone="client" />
                 <div className="min-w-0 flex-1">
-                  <p className="font-display text-sm text-ink truncate">{c.name}</p>
-                  <p className="font-mono text-[0.8125rem] text-ink-fade truncate">
+                  <p className="font-semibold text-sm text-ink truncate">{c.name}</p>
+                  <p className="text-[0.8125rem] text-ink-soft truncate">
                     {c.email}
                   </p>
                 </div>
@@ -52,10 +52,10 @@ export function OnlineClientsPanel() {
         </ul>
       )}
 
-      <div className="px-4 py-2.5 rule-thin border-t border-rule-soft">
+      <div className="px-5 py-3 border-t border-rule-soft">
         <Link
           href="/admin/clients"
-          className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors"
+          className="dk-link"
         >
           Full roster →
         </Link>

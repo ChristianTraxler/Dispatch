@@ -678,3 +678,11 @@ html:has(.admin-root) .site-scroll-top { display: none; }
 .admin-root .input-line::placeholder { color: var(--dk-ink-3); }
 .admin-root textarea.input-line { line-height: 1.5; }
 .admin-root .dk-btn[disabled], .admin-root .dk-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ---------- ledger dashboard ---------- */
+.dk-stats-5 { grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 720px) { .dk-stats-5 { grid-template-columns: repeat(5, 1fr); } }
+.dk-stats-5 .dk-stat b { font-size: clamp(32px, 4.6vw, 48px); }
+.dk-ghead .dk-link { font-size: 13px; }
+.dk-stubs .dk-stub .dk-when b { font-weight: 600; color: var(--dk-ink-2); }
+.dk-slab.dk-slab { text-transform: uppercase; }
