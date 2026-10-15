@@ -1,6 +1,5 @@
 // Admin ticket queue.
 
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ticketNumber } from "@/lib/ticket";
 import { formatFiledAt } from "@/lib/datetime";
@@ -10,6 +9,7 @@ import { OutOfFreeWindowBadge } from "@/components/AdminClientDetail";
 import { isOutOfFreeWindow } from "@/lib/free-updates";
 import { RefreshTicketsOnChange } from "./refresh-on-change";
 import { DeleteTicketButton } from "./delete-ticket-button";
+import { PageHead, TicketStub, groupByMonth } from "../docket-ui";
 
 function formatRelative(value: Date): string {
   const diff = Date.now() - value.getTime();
@@ -51,101 +51,80 @@ export default async function AdminTicketsPage() {
     unreadRows.map((r) => [r.ticketId, r._count._all]),
   );
 
-  return (
-    <div className="max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12">
-      <RefreshTicketsOnChange />
-      <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.8125rem] text-accent">
-          §
-        </span>
-        <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
-          Ticket Queue
-        </span>
-      </div>
+  const groups = groupByMonth(tickets, (t) => t.createdAt, tz);
 
-      <h1
-        className="font-display text-3xl md:text-5xl leading-none mb-3"
-      >
-        Tickets
-      </h1>
-      <p className="font-display italic text-ink-mute mb-10">
-        Every dispatch filed, newest first.
-      </p>
+  return (
+    <div>
+      <RefreshTicketsOnChange />
+      <PageHead
+        eyebrow="Ticket Queue"
+        title="Tickets"
+        sub="Every dispatch filed, newest first."
+      />
 
       {tickets.length === 0 ? (
-        <p className="font-display italic text-ink-mute">
-          No tickets on file yet.
-        </p>
+        <div className="dk-emptyslip">
+          <p>No tickets on file yet.</p>
+        </div>
       ) : (
-        <div className="rule-thin pt-4">
-          <ul className="divide-y divide-rule-soft">
-            {tickets.map((t) => (
-              <li key={t.id} className="flex items-stretch">
-                <Link
-                  href={`/admin/ticket/${t.id}`}
-                  className="block flex-1 min-w-0 py-4 hover:bg-parchment-warm/40 transition-colors px-2"
-                >
-                  <div className="flex flex-col md:flex-row md:items-center md:gap-6">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-1">
+        groups.map((g) => (
+          <section key={g.label} className="dk-group">
+            <div className="dk-ghead">
+              <h2>{g.label}</h2>
+              <span>{g.items.length} filed</span>
+            </div>
+            <div className="dk-stubs">
+              {g.items.map((t) => {
+                const number = ticketNumber(t.id, t.createdAt);
+                const unread = unreadByTicket.get(t.id) ?? 0;
+                const updated =
+                  unread === 0 &&
+                  adminHasActivity({
+                    unreadCount: unread,
+                    adminLastViewedAt: t.adminLastViewedAt,
+                    firstViewedAt: t.firstViewedAt,
+                    reopenedAt: t.reopenedAt,
+                    confirmedAt: t.confirmedAt,
+                  });
+                return (
+                  <TicketStub
+                    key={t.id}
+                    href={`/admin/ticket/${t.id}`}
+                    date={t.createdAt}
+                    timeZone={tz}
+                    top={
+                      <>
                         <StatusPill status={t.status} />
-                        {(() => {
-                          const unread = unreadByTicket.get(t.id) ?? 0;
-                          if (unread > 0) {
-                            return (
-                              <span className="font-mono text-[0.75rem] bg-signal-red text-onInverse px-1.5 py-0.5">
-                                {unread} new
-                              </span>
-                            );
-                          }
-                          return adminHasActivity({
-                            unreadCount: unread,
-                            adminLastViewedAt: t.adminLastViewedAt,
-                            firstViewedAt: t.firstViewedAt,
-                            reopenedAt: t.reopenedAt,
-                            confirmedAt: t.confirmedAt,
-                          }) ? (
-                            <span className="font-mono text-[0.75rem] border border-accent text-accent px-1.5 py-0.5 rounded-full">
-                              Updated
-                            </span>
-                          ) : null;
-                        })()}
-                        <span className="font-mono text-[0.8125rem] text-ink-mute">
-                          {ticketNumber(t.id, t.createdAt)}
-                        </span>
-                      </div>
-                      <p className="font-display text-lg text-ink truncate flex items-center gap-2">
-                        <span className="truncate">{t.title}</span>
+                        {unread > 0 && <span className="dk-flag dk-flag-hot">{unread} new</span>}
+                        {updated && <span className="dk-flag">Updated</span>}
+                        <span className="dk-id dk-mono">{number}</span>
                         {isOutOfFreeWindow(t.createdAt, t.site.productionStartedAt) && (
                           <OutOfFreeWindowBadge />
                         )}
-                      </p>
-                      <p className="font-mono text-[0.8125rem] text-ink-mute mt-1">
-                        {t.clientAccount.name} · {t.site.displayName}
-                      </p>
-                    </div>
-                    <div className="font-mono text-[0.8125rem] text-ink-fade md:text-right shrink-0 mt-2 md:mt-0">
-                      <span className="block">Filed {formatRelative(t.createdAt)}</span>
-                      <time
-                        dateTime={t.createdAt.toISOString()}
-                        className="block mt-0.5 text-[0.8125rem]"
-                      >
-                        {formatFiledAt(t.createdAt, tz)}
-                      </time>
-                    </div>
-                  </div>
-                </Link>
-                <div className="flex items-center pl-2">
-                  <DeleteTicketButton
-                    id={t.id}
-                    label={ticketNumber(t.id, t.createdAt)}
+                      </>
+                    }
+                    title={t.title}
+                    by={
+                      <>
+                        {t.clientAccount.name} <em>&middot;</em> {t.site.displayName}
+                      </>
+                    }
+                    when={
+                      <>
+                        <b>Filed {formatRelative(t.createdAt)}</b>
+                        <br />
+                        <time dateTime={t.createdAt.toISOString()}>
+                          {formatFiledAt(t.createdAt, tz)}
+                        </time>
+                      </>
+                    }
+                    trash={<DeleteTicketButton id={t.id} label={number} />}
                   />
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+                );
+              })}
+            </div>
+          </section>
+        ))
       )}
     </div>
   );

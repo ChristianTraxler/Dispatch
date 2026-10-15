@@ -601,3 +601,21 @@ html:has(.admin-root) .site-scroll-top { display: none; }
 @media (min-width: 960px) {
   .admin-root .toast-stack { bottom: 32px; left: calc(var(--dk-rail) + 24px); }
 }
+
+/* ---------- stub additions ---------- */
+.dk-stub .dk-body > .dk-txt { display: grid; gap: 7px; min-width: 0; }
+.dk-stub h3 a:focus-visible { outline: none; }
+.dk-stub:has(h3 a:focus-visible) { outline: 2px solid var(--dk-signal); outline-offset: 3px; }
+.dk-flag {
+  display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--dk-signal) 55%, transparent);
+  color: var(--dk-signal-text); font-size: 11.5px; font-weight: 600;
+}
+.dk-flag-hot { background: var(--dk-signal); border-color: var(--dk-signal); color: var(--dk-signal-ink); }
+
+/* Status pills from components/StatusPill keep their hue, Docket shape. */
+.admin-root .status-pill {
+  height: 24px; padding: 0 10px; gap: 6px;
+  font-family: var(--dk-f-body); font-stretch: 100%; font-size: 12px; font-weight: 600; letter-spacing: .01em;
+  background: color-mix(in srgb, currentColor 15%, transparent);
+}
