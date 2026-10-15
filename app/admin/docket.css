@@ -619,3 +619,62 @@ html:has(.admin-root) .site-scroll-top { display: none; }
   font-family: var(--dk-f-body); font-stretch: 100%; font-size: 12px; font-weight: 600; letter-spacing: .01em;
   background: color-mix(in srgb, currentColor 15%, transparent);
 }
+
+/* ---------- ticket detail additions ---------- */
+.dk-tfor .dk-url { font-size: 13px; color: var(--dk-ink-3); }
+.dk-slip ol { counter-reset: none; }
+.dk-stage.dk-now::before { background: repeating-linear-gradient(var(--dk-rule) 0 5px, transparent 5px 9px); }
+.dk-stage:not(.dk-now):not(.dk-skip) + .dk-stage.dk-skip .dk-lbl,
+.dk-stage.dk-skip .dk-lbl { color: var(--dk-ink-2); }
+@media (min-width: 860px) {
+  .dk-stage.dk-now::before { background: repeating-linear-gradient(90deg, var(--dk-rule) 0 5px, transparent 5px 9px); }
+}
+.dk-controls .dk-slab { flex-wrap: wrap; }
+.dk-reportp { margin: 16px 0 0; font-size: 16px; line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
+.dk-report .dk-slab, .dk-split > section > .dk-slab { min-height: 20px; }
+.dk-flabel { font-size: 13px; font-weight: 600; color: var(--dk-ink-2); }
+
+/* Correspondence card (components/ChatThread, admin only). */
+.admin-root [data-chat="root"] {
+  background: var(--dk-sheet); border: 0; border-radius: 18px; box-shadow: var(--dk-shadow); overflow: hidden; margin-top: 14px;
+}
+.admin-root [data-chat="header"] { padding: 16px 18px; border-bottom: 1px solid var(--dk-rule-2); }
+.admin-root [data-chat="sigil"] { display: none; }
+.admin-root [data-chat="title"] { font-family: var(--dk-f-body); font-size: 15px; font-weight: 600; color: var(--dk-ink); }
+.admin-root [data-chat="header"] .presence-dot + span { font-family: var(--dk-f-body); font-size: 13px; color: var(--dk-ink-2); }
+.admin-root [data-chat="messages"] {
+  min-height: 240px !important; padding: 20px 18px;
+  background: radial-gradient(circle at 1px 1px, var(--dk-rule-2) 1px, transparent 1.2px) 0 0 / 18px 18px;
+}
+.admin-root [data-chat="empty"] { font-family: var(--dk-f-body); font-size: 14px; color: var(--dk-ink-3); max-width: 30ch; margin: 64px auto; padding: 0; }
+.admin-root [data-chat-bubble] { font-size: 14.5px; line-height: 1.45; padding: 10px 14px; animation: dk-pop .25s ease; }
+.admin-root [data-chat-bubble="own"] { background: var(--dk-ink); color: var(--dk-paper); border-radius: 16px 16px 4px 16px; }
+.admin-root [data-chat-bubble="other"] { background: var(--dk-sheet-2); color: var(--dk-ink); border: 0; border-radius: 16px 16px 16px 4px; }
+.admin-root [data-chat="composer"] { border-top: 1px solid var(--dk-rule-2); }
+.admin-root [data-chat="bar"] { background: transparent; border-top: 0; padding: 0 14px 14px; }
+
+/* Shared app buttons and fields, Docket shape inside the admin. */
+.admin-root .btn-dispatch {
+  height: 44px; min-height: 44px; padding: 0 20px; border-radius: 999px;
+  font-family: var(--dk-f-body); font-stretch: 100%; font-weight: 600; font-size: 14.5px;
+  background: var(--dk-signal); color: var(--dk-signal-ink); border: 1px solid var(--dk-signal);
+  transition: transform .15s ease, background .15s;
+}
+.admin-root .btn-dispatch:hover { background: color-mix(in srgb, var(--dk-signal) 88%, #000); color: var(--dk-signal-ink); }
+.admin-root .btn-dispatch:active { transform: translateY(1px); }
+.admin-root .btn-dispatch:disabled { opacity: .45; background: var(--dk-signal); }
+.admin-root .btn-ghost {
+  height: 44px; min-height: 44px; padding: 0 18px; border-radius: 999px;
+  font-family: var(--dk-f-body); font-stretch: 100%; font-weight: 600; font-size: 14px; letter-spacing: 0; text-transform: none;
+  background: var(--dk-sheet); color: var(--dk-ink); border: 1px solid var(--dk-rule);
+}
+.admin-root .btn-ghost:hover { border-color: var(--dk-ink-3); color: var(--dk-ink); }
+.admin-root .btn-ghost:active { transform: translateY(1px); }
+.admin-root .input-line {
+  min-height: 46px; border-radius: 12px; border: 1px solid var(--dk-rule); background: var(--dk-paper);
+  padding: 10px 14px; font-family: var(--dk-f-body); font-size: 15px; color: var(--dk-ink);
+}
+.admin-root .input-line:focus { border-color: var(--dk-signal); box-shadow: 0 0 0 3px color-mix(in srgb, var(--dk-signal) 18%, transparent); }
+.admin-root .input-line::placeholder { color: var(--dk-ink-3); }
+.admin-root textarea.input-line { line-height: 1.5; }
+.admin-root .dk-btn[disabled], .admin-root .dk-btn:disabled { opacity: .45; cursor: not-allowed; }

@@ -3,10 +3,12 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { StatusPill, type TicketStatus } from "./StatusPill";
 import {
+  RoutingSlip,
   StatusTimeline,
   workLabelsForCategory,
   type TicketTimestamps,
 } from "./StatusTimeline";
+import { ArrowIcon, BackIcon } from "@/app/admin/docket-icons";
 import { TICKET_CATEGORIES, categoryShortLabel } from "@/lib/ticket-categories";
 import { formatFiledAt } from "@/lib/datetime";
 import {
@@ -96,6 +98,105 @@ export function TicketDetailPage({
   // Client component, so this formats in the viewer's own zone, same as the
   // per-stage stamps in the timeline below.
   const filedAt = formatFiledAt(ticket.createdAt);
+
+  // The admin gets the Docket layout (app/admin/docket.css). Same pieces and
+  // wording as below, arranged as a routing slip and correspondence card.
+  if (viewerType === "admin") {
+    return (
+      <div className={className} style={style}>
+        {onBack && (
+          <button type="button" onClick={onBack} className="dk-back">
+            <BackIcon />
+            Back to ledger
+          </button>
+        )}
+
+        <div className="dk-tmeta">
+          <StatusPill status={ticket.status} />
+          <span className="dk-mono">{ticket.ticketNumber}</span>
+          <span aria-hidden="true">·</span>
+          <span className="dk-type">{categoryShortLabel(ticket.category)}</span>
+          {headerBadge}
+        </div>
+
+        <h1 className="dk-ttitle">{ticket.title}</h1>
+
+        <div className="dk-tfor">
+          <span>Filed for {ticket.siteDisplayName}</span>
+          <span className="dk-mono dk-url">{ticket.siteUrl}</span>
+          {ticket.clientName && <span>· {ticket.clientName}</span>}
+        </div>
+        {filedAt && <p className="dk-tfiled">Filed {filedAt}</p>}
+
+        <section className="dk-card dk-slip">
+          <div className="dk-slab">
+            <span>Progress</span>
+            <span>6 stages</span>
+          </div>
+          <RoutingSlip
+            ticket={ticket}
+            status={ticket.status}
+            category={ticket.category}
+            stampLabel={ticket.status === "CLOSED" ? "Closed" : null}
+          />
+        </section>
+
+        <AdminStatusChanger
+          currentStatus={ticket.status}
+          onChange={onStatusChange}
+          currentCategory={ticket.category}
+          onCategoryChange={onCategoryChange}
+        />
+
+        <div className="dk-split">
+          <aside className="dk-report">
+            <div className="dk-slab">
+              <span>Original Report</span>
+            </div>
+            <ReportBody text={ticket.description} />
+
+            {ticketAttachments.length > 0 && (
+              <div className="mt-5">
+                <p className="dk-slab mb-2">Filed with</p>
+                <ul className="space-y-2">
+                  {ticketAttachments.map((a, i) => (
+                    <li key={i}>
+                      <AttachmentRow attachment={a} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </aside>
+
+          <section>
+            <div className="dk-slab">
+              <span>Conversation</span>
+              <span>
+                {messages.length} message{messages.length === 1 ? "" : "s"}
+              </span>
+            </div>
+            {availabilityLine}
+            <ChatThread
+              className="dk-convo"
+              messages={messages}
+              viewerType={viewerType}
+              otherPartyName={otherPartyName}
+              otherPartyOnline={otherPartyOnline}
+              onlineLabel="Currently viewing"
+              offlineLabel="Not currently viewing"
+              otherPartyTyping={otherPartyTyping}
+              onSendMessage={onSendMessage as never}
+              onTypingChange={onTypingChange}
+              clientAvatarUrl={clientAvatarUrl ?? null}
+              adminAvatarUrl={adminAvatarUrl ?? null}
+              clientName={clientName}
+            />
+          </section>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12 ${className}`} style={style}>
@@ -212,16 +313,6 @@ export function TicketDetailPage({
         </section>
       )}
 
-      {/* Admin status changer */}
-      {viewerType === "admin" && (
-        <AdminStatusChanger
-          currentStatus={ticket.status}
-          onChange={onStatusChange}
-          currentCategory={ticket.category}
-          onCategoryChange={onCategoryChange}
-        />
-      )}
-
       {/* Two-column: original report + chat */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-8 items-start">
         {/* Original report, sidebar */}
@@ -326,39 +417,23 @@ function AdminStatusChanger({
   }
 
   return (
-    <section className="mb-10 px-5 md:px-6 py-5 border border-rule-soft bg-parchment-warm rounded-2xl">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="font-mono text-[0.8125rem] text-accent">
-          Admin controls
-        </span>
-        <span className="text-ink-fade">·</span>
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
-          Currently: {currentStatus}
-        </span>
+    <section className="dk-card dk-controls">
+      <div className="dk-slab" style={{ justifyContent: "flex-start", gap: 8 }}>
+        <span className="dk-hot">Admin controls</span>
+        <span aria-hidden="true">·</span>
+        <span>Currently: {currentStatus}</span>
       </div>
 
       {/* Type changer, fix a mis-filed ticket so the progress wording and
           queue grouping match what the work actually is. */}
       {onCategoryChange && (
-        <div className="mb-4">
-          <label
-            htmlFor="admin-category"
-            className="block font-mono text-[0.8125rem] text-ink-mute mb-2"
-          >
-            Type
-          </label>
+        <div className="dk-field">
+          <label htmlFor="admin-category">Type</label>
           <select
             id="admin-category"
             value={currentCategory}
             onChange={(e) => onCategoryChange(e.target.value)}
-            className="input-line bg-transparent appearance-none cursor-pointer pr-8 max-w-sm"
-            style={{
-              backgroundImage:
-                "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'><path fill='%231A1815' d='M6 8L0 0h12L6 8z'/></svg>\")",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 4px center",
-              backgroundSize: "10px 7px",
-            }}
+            className="dk-select cursor-pointer"
           >
             {TICKET_CATEGORIES.map((c) => (
               <option key={c.value} value={c.value}>
@@ -369,27 +444,24 @@ function AdminStatusChanger({
         </div>
       )}
 
-      <div className="flex flex-wrap gap-2">
+      <div className="dk-row">
         {transitions.map((t) => (
           <button
             key={t.status}
             type="button"
             disabled={currentStatus === t.status}
             onClick={() => onChange?.(t.status)}
-            className={[
-              "btn-ghost",
-              currentStatus === t.status ? "opacity-40 pointer-events-none" : "",
-            ].join(" ")}
+            className="dk-btn dk-sm"
           >
-            → {t.label}
+            <ArrowIcon />
+            {t.label}
           </button>
         ))}
         {canClose && !closing && (
           <button
             type="button"
             onClick={() => setClosing(true)}
-            className="btn-ghost"
-            style={{ color: "rgb(var(--signal-red))", borderColor: "rgb(var(--signal-red) / 0.45)" }}
+            className="dk-btn dk-sm dk-ghost-signal"
           >
             ✕ Close ticket
           </button>
@@ -400,7 +472,7 @@ function AdminStatusChanger({
         <div className="mt-4 pt-4 border-t border-ruleSoft">
           <label
             htmlFor="admin-close-reason"
-            className="block font-mono text-[0.8125rem] text-ink-mute mb-2"
+            className="dk-flabel block mb-2"
           >
             Reason (shown to the requester — optional)
           </label>
@@ -411,7 +483,7 @@ function AdminStatusChanger({
             onChange={(e) => setCloseReason(e.target.value)}
             placeholder="e.g. No response from requester"
             maxLength={300}
-            className="input-line bg-transparent max-w-md mb-2"
+            className="dk-input max-w-md mb-2"
           />
           <div className="flex flex-wrap gap-2 mb-4">
             {CLOSE_REASON_PRESETS.map((preset) => (
@@ -419,7 +491,7 @@ function AdminStatusChanger({
                 key={preset}
                 type="button"
                 onClick={() => setCloseReason(preset)}
-                className="btn-ghost"
+                className="dk-btn dk-sm"
               >
                 {preset}
               </button>
@@ -429,7 +501,7 @@ function AdminStatusChanger({
             <button
               type="button"
               onClick={submitClose}
-              className="btn-dispatch"
+              className="dk-btn dk-primary"
             >
               Confirm close
             </button>
@@ -439,7 +511,7 @@ function AdminStatusChanger({
                 setClosing(false);
                 setCloseReason("");
               }}
-              className="btn-ghost"
+              className="dk-btn"
             >
               Cancel
             </button>
@@ -448,6 +520,29 @@ function AdminStatusChanger({
       )}
     </section>
   );
+}
+
+/* ============================================
+   REPORT BODY (admin)
+   ============================================
+   A report written as bullet lines reads as a numbered list; anything else
+   stays one paragraph, exactly as filed.
+   ============================================ */
+function ReportBody({ text }: { text: string }) {
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  const bullet = /^([•\-*]|\d+[.)])\s+/;
+  if (lines.length > 1 && lines.every((l) => bullet.test(l))) {
+    return (
+      <ul>
+        {lines.map((l, i) => (
+          <li key={i} data-n={String(i + 1).padStart(2, "0")}>
+            {l.replace(bullet, "")}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  return <p className="dk-reportp">{text}</p>;
 }
 
 /* ============================================

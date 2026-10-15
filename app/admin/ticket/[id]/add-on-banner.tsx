@@ -138,8 +138,8 @@ export function AddOnRequestBanner({
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-5 md:px-10 pt-6">
-      <div className="border-2 border-signal-red bg-parchment-warm px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div className="mt-4">
+      <div className="dk-card border-l-4 border-signal-red px-5 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div className="min-w-0">
           <div className="font-mono text-[0.75rem] text-accent mb-1">
             Add-on request

@@ -16,6 +16,7 @@ import {
 } from "@/lib/realtime/use-ticket-channel";
 import { useTicketStatusWatch } from "@/lib/realtime/use-ticket-status-watch";
 import { AddOnRequestBanner, type AddOnBannerData } from "./add-on-banner";
+import { BackIcon } from "../../docket-icons";
 
 export function AdminTicketDetailClient({
   ticket,
@@ -205,16 +206,13 @@ export function AdminTicketDetailClient({
 
   if (isInquiry) {
     return (
-      <div className="max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12">
-        <button
-          type="button"
-          onClick={onBack}
-          className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors mb-4"
-        >
-          ← Back to inquiries
+      <div>
+        <button type="button" onClick={onBack} className="dk-back">
+          <BackIcon />
+          Back to inquiries
         </button>
 
-        <header className="mb-6 rule-double pb-6">
+        <header className="mt-6 mb-6 pb-2">
           <div className="flex items-center gap-3 mb-3">
             <span className="inline-block px-2.5 py-0.5 border border-accent text-accent bg-parchment-warm font-mono text-[0.8125rem] rounded-full">
               Inquiry
@@ -225,14 +223,12 @@ export function AdminTicketDetailClient({
           </div>
           <div className="flex items-center gap-4 mb-2">
             <Avatar src={clientAvatarUrl} name={otherPartyName} size={48} tone="client" />
-            <h1
-              className="font-display text-3xl md:text-4xl leading-tight"
-            >
+            <h1 className="dk-ttitle" style={{ marginTop: 0 }}>
               Quick chat with {otherPartyName}
             </h1>
           </div>
           <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-            <span className="font-display italic text-ink-mute">
+            <span className="text-ink-soft">
               {ticket.siteDisplayName}
             </span>
             <span className="font-mono text-[0.8125rem] text-ink-fade">
@@ -247,7 +243,7 @@ export function AdminTicketDetailClient({
               type="button"
               onClick={onPromote}
               disabled={busy}
-              className="px-4 py-2 bg-accent-fill text-onAccent font-mono text-[0.8125rem] hover:bg-accent-fillHover transition-colors disabled:opacity-50"
+              className="dk-btn dk-primary"
             >
               Promote to ticket →
             </button>
@@ -255,7 +251,7 @@ export function AdminTicketDetailClient({
               type="button"
               onClick={onEndChat}
               disabled={busy}
-              className="px-4 py-2 border border-rule font-mono text-[0.8125rem] text-ink-soft hover:border-accent hover:text-accent transition-colors disabled:opacity-50 rounded-full"
+              className="dk-btn"
             >
               End chat
             </button>
@@ -263,12 +259,13 @@ export function AdminTicketDetailClient({
         )}
 
         {inquiryEndedAt && (
-          <div className="mb-6 px-4 py-3 border border-rule bg-parchment-warm/60 font-mono text-[0.8125rem] text-ink-mute rounded-full">
+          <div className="dk-card mb-6 px-5 py-3 text-[0.8125rem] text-ink-mute">
             Chat ended {new Date(inquiryEndedAt).toLocaleString("en-US", { month: "short", day: "2-digit", hour: "numeric", minute: "2-digit" })}
           </div>
         )}
 
         <ChatThread
+          className="dk-convo"
           messages={messages}
           viewerType="admin"
           otherPartyName={otherPartyName}

@@ -216,16 +216,17 @@ export function ChatThread({
 
   return (
     <div
+      data-chat="root"
       className={`flex flex-col bg-parchment-warm border border-rule rounded-2xl ${className}`}
       style={style}
     >
       {/* Header, newsroom dateline */}
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-4 py-3 rule-thin">
+      <div data-chat="header" className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-4 py-3 rule-thin">
         <div className="flex items-center gap-3 min-w-0">
-          <span className="font-mono text-[0.8125rem] text-accent">
+          <span data-chat="sigil" className="font-mono text-[0.8125rem] text-accent">
             §
           </span>
-          <span className="font-mono text-[0.8125rem] text-ink-mute">
+          <span data-chat="title" className="font-mono text-[0.8125rem] text-ink-mute">
             Correspondence
           </span>
           {otherPartyName && (
@@ -253,11 +254,12 @@ export function ChatThread({
       {/* Message column */}
       <div
         ref={scrollRef}
+        data-chat="messages"
         className="flex-1 overflow-y-auto px-4 py-3 space-y-5"
         style={{ minHeight: "200px", maxHeight: "500px" }}
       >
         {messages.length === 0 && (
-          <div className="text-center py-8 font-display italic text-ink-mute text-sm">
+          <div data-chat="empty" className="text-center py-8 font-display italic text-ink-mute text-sm">
             No correspondence yet. Start a conversation below.
           </div>
         )}
@@ -305,7 +307,7 @@ export function ChatThread({
       </div>
 
       {/* Composer */}
-      <div className="rule-thin border-t">
+      <div data-chat="composer" className="rule-thin border-t">
         <div className="px-4 py-3">
           <textarea
             ref={textareaRef}
@@ -352,7 +354,7 @@ export function ChatThread({
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-2 px-4 py-2 rule-thin border-t border-ruleSoft bg-parchment">
+        <div data-chat="bar" className="flex items-center justify-between gap-2 px-4 py-2 rule-thin border-t border-ruleSoft bg-parchment">
           <input
             ref={fileInputRef}
             type="file"
@@ -461,6 +463,7 @@ function MessageBlock({
         ].join(" ")}
       >
         <p
+          data-chat-bubble={isFromViewer ? "own" : "other"}
           className={[
             // Workbench bubbles: the viewer's own messages sit in orange,
             // the other side's in white on the panel.

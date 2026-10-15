@@ -272,3 +272,57 @@ function Connector({ filled }: { filled: boolean }) {
     </div>
   );
 }
+
+/* ============================================
+   ROUTING SLIP (admin Docket look)
+   ============================================
+   The same six stages and the same filled / active rules as StatusTimeline,
+   drawn as punched holes. A filled stage with no stamp was skipped. Styled by
+   the dk- classes in app/admin/docket.css.
+   ============================================ */
+export function RoutingSlip({
+  ticket,
+  status,
+  category,
+  stampLabel,
+}: {
+  ticket: TicketTimestamps;
+  status: TicketStatus;
+  category?: string;
+  /** Shown as a small stamp under the current stage (the ticket's status text). */
+  stampLabel?: string | null;
+}) {
+  const work = workLabelsForCategory(category);
+  const stages: Stage[] = [
+    { key: "createdAt", label: "Sent", timestamp: ticket.createdAt },
+    { key: "receivedAt", label: "Received", timestamp: ticket.receivedAt },
+    { key: "firstViewedAt", label: "Viewed", timestamp: ticket.firstViewedAt },
+    { key: "reviewingStartedAt", label: work.reviewing, timestamp: ticket.reviewingStartedAt },
+    { key: "fixingStartedAt", label: work.working, timestamp: ticket.fixingStartedAt },
+    { key: "fixedAt", label: work.done, timestamp: ticket.fixedAt },
+  ];
+  const activeIndex = statusToStageIndex(status, ticket);
+
+  return (
+    <ol aria-label="Ticket progress">
+      {stages.map((stage, i) => {
+        const filled = activeIndex >= 0 && i <= activeIndex;
+        const stamp = filled ? formatStamp(stage.timestamp) : null;
+        const isActive = i === activeIndex;
+        const state = isActive ? "dk-now" : filled && stamp ? "" : "dk-skip";
+        return (
+          <li key={stage.key} className={`dk-stage ${state}`}>
+            <span className="dk-hole" aria-hidden="true">
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <div>
+              <div className="dk-lbl">{stage.label}</div>
+              <div className="dk-ts">{stamp ?? "–"}</div>
+              {isActive && stampLabel && <span className="dk-stamp">{stampLabel}</span>}
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
