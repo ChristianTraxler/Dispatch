@@ -7,6 +7,7 @@ import { PresenceDot } from "./PresenceDot";
 import { StatusPill, type TicketStatus } from "./StatusPill";
 import { FreeWindowStatusLabel } from "./FreeWindowStatusLabel";
 import type { FreeWindowStatus } from "@/lib/free-updates";
+import { BackIcon } from "@/app/admin/docket-icons";
 import { DISPLAY_TIME_ZONE } from "@/lib/datetime";
 
 export interface AdminClientDetailSite {
@@ -89,24 +90,16 @@ export function AdminClientDetail({
 }: AdminClientDetailProps) {
   return (
     <div
-      className={`max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12 ${className}`}
+      className={`pt-6 ${className}`}
       style={style}
     >
-      <Link
-        href="/admin/clients"
-        className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors"
-      >
-        ← Clients
+      <Link href="/admin/clients" className="dk-back" style={{ marginTop: 0 }}>
+        <BackIcon />
+        Clients
       </Link>
 
-      <div className="flex items-center gap-3 mb-3 mt-3">
-        <span className="font-mono text-[0.8125rem] text-accent">
-          §
-        </span>
-        <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
-          Subscriber Profile
-        </span>
+      <div className="dk-head" style={{ marginBottom: 12 }}>
+        <span className="dk-k">Subscriber Profile</span>
       </div>
 
       <IdentityHeader client={client} onUpdateEmail={onUpdateEmail} />

@@ -313,7 +313,7 @@ export function AddOnsSection({
   }
 
   return (
-    <section className="max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12">
+    <section className="mt-12">
       <div className="flex items-center gap-3 mb-3">
         <span className="font-mono text-[0.8125rem] text-accent">§</span>
         <span className="h-px flex-1 bg-rule" />

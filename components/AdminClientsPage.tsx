@@ -5,6 +5,7 @@ import { useState, type CSSProperties } from "react";
 import { PresenceDot } from "./PresenceDot";
 import { Avatar } from "./Avatar";
 import { DISPLAY_TIME_ZONE } from "@/lib/datetime";
+import { ChevronIcon } from "@/app/admin/docket-icons";
 
 export interface AdminClientSite {
   id: string;
@@ -72,63 +73,51 @@ export function AdminClientsPage({
   );
 
   return (
-    <div className={`max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12 ${className}`} style={style}>
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.8125rem] text-accent">
-          §
-        </span>
-        <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
-          Subscriber Roll
-        </span>
+    <div className={className} style={style}>
+      <div className="dk-head">
+        <div className="dk-txt">
+          <span className="dk-k">Subscriber Roll</span>
+          <h1>Clients</h1>
+          <p>Every account on the desk, with their sites and live status.</p>
+        </div>
       </div>
 
-      <h1
-        className="font-display text-3xl md:text-5xl leading-none mb-2"
-      >
-        Clients
-      </h1>
-      <p className="font-display italic text-ink-mute mb-8 text-base">
-        Every account on the desk, with their sites and live status.
-      </p>
-
       {/* Top stats */}
-      <div className="grid grid-cols-3 gap-4 md:gap-8 mb-10 rule-thin pb-6">
+      <div className="dk-stats mb-6">
         <Stat label="Total clients" value={clients.length} />
         <Stat
           label="Online now"
           value={onlineCount}
-          accent={onlineCount > 0 ? "rgb(var(--signal-green))" : undefined}
+          accent={onlineCount > 0 ? "var(--dk-live)" : undefined}
         />
         <Stat
           label="Open tickets"
           value={totalOpenTickets}
-          accent={totalOpenTickets > 0 ? "rgb(var(--accent))" : undefined}
+          accent={totalOpenTickets > 0 ? "var(--dk-signal-text)" : undefined}
         />
       </div>
 
-      {/* Client cards */}
-      <div className="space-y-4">
-        {clients.map((client) => (
-          <ClientCard
-            key={client.id}
-            client={client}
-            onMessage={() => onMessageClient?.(client.id)}
-            onViewSiteTickets={onViewSiteTickets}
-            onUpdateEmail={onUpdateEmail}
-          />
-        ))}
-      </div>
-
-      {clients.length === 0 && (
-        <div className="text-center py-16 rule-thin border-t">
-          <p className="font-display italic text-ink-mute">
-            No clients yet. Send your first invite to get started.
-          </p>
+      {/* Client rows */}
+      {clients.length > 0 && (
+        <div className="dk-card dk-list">
+          {clients.map((client) => (
+            <ClientCard
+              key={client.id}
+              client={client}
+              onMessage={() => onMessageClient?.(client.id)}
+              onViewSiteTickets={onViewSiteTickets}
+              onUpdateEmail={onUpdateEmail}
+            />
+          ))}
         </div>
       )}
-      <p className="text-xs text-ink-fade mt-2">Total sites tracked: {totalSites}</p>
+
+      {clients.length === 0 && (
+        <div className="dk-emptyslip">
+          <p>No clients yet. Send your first invite to get started.</p>
+        </div>
+      )}
+      <p className="dk-tally">Total sites tracked: {totalSites}</p>
     </div>
   );
 }
@@ -143,16 +132,9 @@ function Stat({
   accent?: string;
 }) {
   return (
-    <div>
-      <div
-        className="font-display text-3xl md:text-4xl leading-none"
-        style={{ color: accent }}
-      >
-        {value}
-      </div>
-      <div className="font-mono text-[0.75rem] text-ink-mute mt-1">
-        {label}
-      </div>
+    <div className={`dk-card dk-stat${value === 0 ? " dk-zero" : ""}`}>
+      <b style={{ color: accent }}>{value}</b>
+      <span>{label}</span>
     </div>
   );
 }
@@ -199,10 +181,9 @@ function ClientCard({
   const openTickets = client.sites.reduce((s, st) => s + st.openTickets, 0);
 
   return (
-    <div className="border border-ruleSoft bg-parchment-warm">
-      <div className="flex flex-col md:flex-row md:items-center gap-4 px-4 md:px-5 py-4">
+    <div className="dk-crow">
         {/* Identity */}
-        <div className="flex items-start gap-4 flex-1 min-w-0">
+        <div className="dk-cmain">
           <Link
             href={`/admin/clients/${client.id}`}
             className="shrink-0"
@@ -213,13 +194,10 @@ function ClientCard({
               name={client.name}
               size={48}
               tone="client"
-              className="mt-0.5"
             />
           </Link>
           <div className="min-w-0">
-            <h2
-              className="flex items-center gap-2.5 font-display text-lg md:text-xl leading-tight"
-            >
+            <h2 className="dk-cname">
               <Link
                 href={`/admin/clients/${client.id}`}
                 className="hover:text-accent transition-colors"
@@ -231,14 +209,14 @@ function ClientCard({
                 pulse={client.isOnline}
               />
             </h2>
-            <div className="font-mono text-[0.8125rem] text-ink-mute mt-0.5">
+            <div className="dk-cmail mt-0.5">
               {editingEmail ? (
                 <span className="flex flex-wrap items-center gap-2">
                   <input
                     type="email"
                     value={draftEmail}
                     onChange={(e) => setDraftEmail(e.target.value)}
-                    className="font-mono text-[0.8125rem] text-ink-soft bg-parchment border border-rule px-2 py-1 min-w-[220px] rounded-full"
+                    className="dk-tin min-w-[220px]"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === "Escape") {
@@ -256,7 +234,7 @@ function ClientCard({
                     type="button"
                     onClick={() => void handleSaveEmail()}
                     disabled={emailBusy}
-                    className="font-mono text-[0.75rem] text-accent hover:underline disabled:opacity-50"
+                    className="dk-link disabled:opacity-50"
                   >
                     {emailBusy ? "Saving…" : "Save"}
                   </button>
@@ -268,7 +246,7 @@ function ClientCard({
                       setEmailErr(null);
                     }}
                     disabled={emailBusy}
-                    className="font-mono text-[0.75rem] text-ink-mute hover:text-accent"
+                    className="dk-tbtn"
                   >
                     Cancel
                   </button>
@@ -284,7 +262,7 @@ function ClientCard({
                         setDraftEmail(client.email);
                         setEmailErr(null);
                       }}
-                      className="font-mono text-[0.75rem] text-ink-fade hover:text-accent transition-colors"
+                      className="dk-link"
                       aria-label={`Edit email for ${client.name}`}
                     >
                       Edit
@@ -298,7 +276,7 @@ function ClientCard({
                 </span>
               )}
             </div>
-            <div className="font-mono text-[0.75rem] text-ink-fade mt-1">
+            <div className="dk-cjoined mt-1">
               Joined {formatDate(client.joinedAt)}
               {!client.isOnline && client.lastSeenAt && (
                 <> · last seen {formatRelative(client.lastSeenAt)}</>
@@ -308,34 +286,20 @@ function ClientCard({
           </div>
         </div>
 
+        <div className="dk-cside">
         {/* Stats */}
-        <div className="flex items-center gap-6 md:gap-8 md:text-right">
-          <div>
-            <div className="font-display text-xl text-ink leading-none">
-              {client.sites.length}
-            </div>
-            <div className="font-mono text-[0.75rem] text-ink-mute mt-1">
-              Site{client.sites.length === 1 ? "" : "s"}
-            </div>
+        <div className="dk-counts">
+          <div className={client.sites.length === 0 ? "dk-z" : undefined}>
+            <b>{client.sites.length}</b>
+            <span>Site{client.sites.length === 1 ? "" : "s"}</span>
           </div>
-          <div>
-            <div className="font-display text-xl text-ink leading-none">{totalTickets}</div>
-            <div className="font-mono text-[0.75rem] text-ink-mute mt-1">
-              Tickets
-            </div>
+          <div className={totalTickets === 0 ? "dk-z" : undefined}>
+            <b>{totalTickets}</b>
+            <span>Tickets</span>
           </div>
-          <div>
-            <div
-              className={[
-                "font-display text-xl leading-none",
-                openTickets > 0 ? "text-accent" : "text-ink-fade",
-              ].join(" ")}
-            >
-              {openTickets}
-            </div>
-            <div className="font-mono text-[0.75rem] text-ink-mute mt-1">
-              Open
-            </div>
+          <div className={openTickets === 0 ? "dk-z" : undefined}>
+            <b className={openTickets > 0 ? "text-accent" : undefined}>{openTickets}</b>
+            <span>Open</span>
           </div>
         </div>
 
@@ -344,22 +308,24 @@ function ClientCard({
           <button
             type="button"
             onClick={() => setExpanded(!expanded)}
-            className="btn-ghost"
+            className="dk-btn dk-sm"
+            aria-expanded={expanded}
           >
-            {expanded ? "↑ Sites" : "↓ Sites"}
+            Sites
+            <ChevronIcon className="dk-chev" />
           </button>
           {client.isOnline && (
-            <button type="button" onClick={onMessage} className="btn-dispatch">
+            <button type="button" onClick={onMessage} className="dk-btn dk-sm dk-primary">
               Message
             </button>
           )}
         </div>
-      </div>
+        </div>
 
       {/* Expanded site list */}
       {expanded && (
-        <div className="border-t border-ruleSoft bg-parchment px-4 md:px-5 py-3">
-          <div className="font-mono text-[0.75rem] text-ink-mute mb-2">
+        <div className="dk-sites dk-sites-list">
+          <div className="dk-slab mb-1">
             Registered sites
           </div>
           {client.sites.map((site, i) => (
@@ -373,14 +339,14 @@ function ClientCard({
               ].join(" ")}
             >
               <div className="flex-1 min-w-0">
-                <div className="font-display text-base text-ink truncate">
+                <div className="font-semibold text-ink truncate">
                   {site.displayName}
                 </div>
-                <div className="font-mono text-[0.8125rem] text-ink-mute truncate">
+                <div className="dk-mono text-[0.71875rem] text-ink-mute truncate">
                   {site.url}
                 </div>
               </div>
-              <div className="font-mono text-[0.8125rem] text-ink-mute flex-shrink-0">
+              <div className="text-[0.8125rem] text-ink-mute flex-shrink-0">
                 {site.totalTickets} ticket{site.totalTickets === 1 ? "" : "s"}
                 {site.openTickets > 0 && (
                   <>

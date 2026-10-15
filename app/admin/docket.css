@@ -694,3 +694,12 @@ html:has(.admin-root) .site-scroll-top { display: none; }
 .dk-tabs > a .dk-c { font-family: var(--dk-f-mono); font-stretch: 87.5%; font-size: 11px; margin-left: 6px; opacity: .7; }
 .dk-emptyslip svg { margin: 0 auto; }
 .dk-list.dk-card { overflow: hidden; }
+
+/* ---------- clients additions ---------- */
+.dk-sites.dk-sites-list { display: block; }
+.dk-sites-list > button { padding: 8px 0; }
+.dk-sites-list > button:hover .font-semibold { color: var(--dk-signal-text); }
+.dk-cname a:hover { color: var(--dk-signal-text); }
+.dk-cname { margin: 0; }
+.dk-chev { width: 15px; height: 15px; }
+.dk-stats { margin-top: -6px; }
