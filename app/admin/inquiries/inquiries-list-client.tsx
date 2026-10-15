@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { InquiryRow, type InquiryRowData } from "./inquiry-row";
+import { InboxIcon } from "../docket-icons";
 
 interface Props {
   initial: InquiryRowData[];
@@ -26,11 +27,16 @@ export function InquiriesListClient({ initial, emptyMessage }: Props) {
   };
 
   if (rows.length === 0) {
-    return <p className="font-display italic text-ink-mute">{emptyMessage}</p>;
+    return (
+      <div className="dk-emptyslip">
+        <InboxIcon />
+        <p>{emptyMessage}</p>
+      </div>
+    );
   }
 
   return (
-    <ul className="divide-y divide-rule-soft">
+    <ul className="dk-card dk-list divide-y divide-rule-soft">
       {rows.map((row) => (
         <InquiryRow key={row.id} row={row} onDelete={removeRow} />
       ))}

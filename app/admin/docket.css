@@ -686,3 +686,11 @@ html:has(.admin-root) .site-scroll-top { display: none; }
 .dk-ghead .dk-link { font-size: 13px; }
 .dk-stubs .dk-stub .dk-when b { font-weight: 600; color: var(--dk-ink-2); }
 .dk-slab.dk-slab { text-transform: uppercase; }
+
+/* ---------- inquiries additions ---------- */
+.dk-tabs > a { display: inline-flex; align-items: center; height: 38px; padding: 0 18px; border-radius: 999px; font-weight: 600; font-size: 14px; color: var(--dk-ink-2); }
+.dk-tabs > a:hover { color: var(--dk-ink); }
+.dk-tabs > a[aria-current="page"] { background: var(--dk-ink); color: var(--dk-paper); }
+.dk-tabs > a .dk-c { font-family: var(--dk-f-mono); font-stretch: 87.5%; font-size: 11px; margin-left: 6px; opacity: .7; }
+.dk-emptyslip svg { margin: 0 auto; }
+.dk-list.dk-card { overflow: hidden; }

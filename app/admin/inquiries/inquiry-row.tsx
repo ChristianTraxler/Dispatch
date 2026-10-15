@@ -144,7 +144,7 @@ export function InquiryRow({ row, onDelete }: Props) {
       </button>
     </div>
   ) : (
-    <div className="font-mono text-[0.8125rem] text-ink-fade text-right shrink-0">
+    <div className="text-[0.8125rem] text-ink-mute text-right shrink-0">
       {row.messageCount} msg{row.messageCount === 1 ? "" : "s"} ·{" "}
       {formatRelative(row.activityIso)}
     </div>
@@ -159,9 +159,9 @@ export function InquiryRow({ row, onDelete }: Props) {
         tone="client"
       />
       <div className="flex-1 min-w-0">
-        <p className="font-display text-lg text-ink">{row.clientName}</p>
-        <p className="font-display italic text-ink-mute text-sm mt-1 truncate">
-          <span className="font-mono not-italic text-[0.75rem] text-ink-fade mr-2">
+        <p className="font-semibold text-[1.0625rem] text-ink">{row.clientName}</p>
+        <p className="text-ink-soft text-sm mt-1 truncate">
+          <span className="dk-mono text-[0.6875rem] text-ink-mute mr-2">
             {row.lastSenderTag}:
           </span>
           {row.preview}
@@ -184,11 +184,11 @@ export function InquiryRow({ row, onDelete }: Props) {
   return (
     <li ref={liRef} className="group">
       {confirming ? (
-        <div className="block py-4 px-2">{inner}</div>
+        <div className="block py-[18px] px-[18px] md:px-6">{inner}</div>
       ) : (
         <Link
           href={`/admin/ticket/${row.id}`}
-          className="block py-4 hover:bg-parchment-warm/40 transition-colors px-2"
+          className="block py-[18px] px-[18px] md:px-6 hover:bg-parchment-deep transition-colors"
         >
           {inner}
         </Link>

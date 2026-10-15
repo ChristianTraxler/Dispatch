@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PageHead } from "../docket-ui";
 import { prisma } from "@/lib/prisma";
 import { hydrateAvatarUrls } from "@/lib/storage";
 import { InquiriesLiveRefresh } from "./inquiries-refresh";
@@ -45,46 +46,29 @@ export default async function AdminInquiriesPage({ searchParams }: PageProps) {
   ]);
 
   return (
-    <div className="max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12">
+    <div>
       <InquiriesLiveRefresh />
 
-      <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.8125rem] text-accent">§</span>
-        <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.8125rem] text-ink-mute">Quick Chat</span>
-      </div>
+      <PageHead
+        eyebrow="Quick Chat"
+        title="Inquiries"
+        sub="Lightweight quick-chat threads. Promote one to a tracked ticket, or end the chat to archive it."
+      />
 
-      <h1
-        className="font-display text-3xl md:text-5xl leading-none mb-3"
-      >
-        Inquiries
-      </h1>
-      <p className="font-display italic text-ink-mute mb-8">
-        Lightweight quick-chat threads. Promote one to a tracked ticket, or end the chat to archive it.
-      </p>
-
-      <div className="flex items-center gap-6 mb-6 border-b border-rule">
+      <nav className="dk-tabs" aria-label="Inquiry lists">
         <Link
           href="/admin/inquiries"
-          className={`font-mono text-[0.8125rem] pb-2 transition-colors ${
-            !showArchived
-              ? "text-ink border-b-2 border-signal-red"
-              : "text-ink-mute hover:text-ink"
-          }`}
+          aria-current={!showArchived ? "page" : undefined}
         >
-          Active ({activeCount})
+          Active <span className="dk-c">({activeCount})</span>
         </Link>
         <Link
           href="/admin/inquiries?tab=archived"
-          className={`font-mono text-[0.8125rem] pb-2 transition-colors ${
-            showArchived
-              ? "text-ink border-b-2 border-signal-red"
-              : "text-ink-mute hover:text-ink"
-          }`}
+          aria-current={showArchived ? "page" : undefined}
         >
-          Archived ({archivedCount})
+          Archived <span className="dk-c">({archivedCount})</span>
         </Link>
-      </div>
+      </nav>
 
       <InquiriesListClient
         initial={inquiries.map((t, i) => {
