@@ -451,7 +451,7 @@ html:has(.admin-root) body {
   .dk-toc{display:block;position:sticky;top:28px;align-self:start}
   .dk-toc a{display:block;padding:7px 12px;border-radius:8px;font-size:13.5px;color:var(--dk-ink-3);border-left:2px solid transparent}
   .dk-toc a:hover{color:var(--dk-ink)}
-  .dk-toc a.on{color:var(--dk-ink);border-left-color:var(--dk-signal);border-radius:0 8px 8px 0;background:var(--dk-sheet)}
+  .dk-toc a.dk-on{color:var(--dk-ink);border-left-color:var(--dk-signal);border-radius:0 8px 8px 0;background:var(--dk-sheet)}
 }
 .dk-sect{scroll-margin-top:90px;padding-top:6px}
 .dk-sect + .dk-sect{margin-top:46px}
@@ -779,3 +779,6 @@ html:has(.admin-root),
 html:has(.admin-root) body { overflow-x: clip; }
 .dk-cside { flex-wrap: wrap; row-gap: 12px; }
 .dk-cside > .flex { flex-wrap: wrap; }
+
+/* Fields already show a focus ring; drop the generic outline so it isn't doubled. */
+.admin-root :is(.input-line, .dk-input, .dk-select, .dk-textarea, .dk-tin, .dk-aform input, .dk-aform select, .dk-aform textarea):focus-visible { outline: none; }
