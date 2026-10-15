@@ -703,3 +703,13 @@ html:has(.admin-root) .site-scroll-top { display: none; }
 .dk-cname { margin: 0; }
 .dk-chev { width: 15px; height: 15px; }
 .dk-stats { margin-top: -6px; }
+
+/* ---------- invites additions ---------- */
+.admin-root .status-pill.dk-caps { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.dk-irow:hover { background: transparent; }
+.dk-irow .dk-dates > div { white-space: nowrap; }
+.dk-iacts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.dk-iacts:empty { display: none; }
+@media (min-width: 860px) {
+  .dk-irow { grid-template-columns: 130px minmax(0, 1fr) auto auto; }
+}

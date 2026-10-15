@@ -87,36 +87,28 @@ export function AdminInviteNewPage({
   }
 
   return (
-    <div className={`max-w-2xl mx-auto px-5 md:px-10 py-8 md:py-12 ${className}`} style={style}>
-      {/* Section label */}
-      <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.8125rem] text-accent">
-          §
-        </span>
-        <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
-          New Invitation
-        </span>
+    <div className={`max-w-2xl ${className}`} style={style}>
+      <div className="dk-head">
+        <div className="dk-txt">
+          <span className="dk-k">New Invitation</span>
+          <h1>
+            Send a new
+            <br />
+            <span className="">dispatch invite.</span>
+          </h1>
+          <p>
+            The recipient receives a link valid for 7 days. They set up their account
+            and the site is bound to it on signup.
+          </p>
+        </div>
       </div>
-
-      <h1
-        className="font-display text-3xl md:text-5xl leading-tight mb-2"
-      >
-        Send a new
-        <br />
-        <span className="">dispatch invite.</span>
-      </h1>
-      <p className="font-display italic text-ink-mute mb-10 text-base">
-        The recipient receives a link valid for 7 days. They set up their account
-        and the site is bound to it on signup.
-      </p>
 
       <form onSubmit={handleSubmit} className="space-y-7">
         {/* Recipient */}
         <div>
           <label
             htmlFor="recipientName"
-            className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
+            className="dk-flabel block mb-1.5"
           >
             Recipient name
           </label>
@@ -136,7 +128,7 @@ export function AdminInviteNewPage({
         <div>
           <label
             htmlFor="email"
-            className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
+            className="dk-flabel block mb-1.5"
           >
             Recipient email *
           </label>
@@ -161,7 +153,7 @@ export function AdminInviteNewPage({
         <div>
           <label
             htmlFor="siteUrl"
-            className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
+            className="dk-flabel block mb-1.5"
           >
             URL *
           </label>
@@ -182,7 +174,7 @@ export function AdminInviteNewPage({
         <div>
           <label
             htmlFor="siteDisplayName"
-            className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
+            className="dk-flabel block mb-1.5"
           >
             Display name *
           </label>
@@ -206,7 +198,7 @@ export function AdminInviteNewPage({
         <div className="rule-thin pt-7">
           <label
             htmlFor="note"
-            className="block font-mono text-[0.8125rem] text-ink-mute mb-1"
+            className="dk-flabel block mb-1.5"
           >
             Note (optional)
           </label>

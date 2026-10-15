@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
+import { ArrowIcon } from "@/app/admin/docket-icons";
 import { DISPLAY_TIME_ZONE } from "@/lib/datetime";
 
 export type InviteStatus = "PENDING" | "REDEEMED" | "EXPIRED" | "REVOKED";
@@ -74,66 +75,42 @@ export function AdminInvitesPage({
   const filtered = filter === "ALL" ? invites : invites.filter((i) => i.status === filter);
 
   return (
-    <div className={`max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12 ${className}`} style={style}>
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.8125rem] text-accent">
-          §
-        </span>
-        <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
-          Invitation Roster
-        </span>
-      </div>
-
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-        <div>
-          <h1
-            className="font-display text-3xl md:text-5xl leading-none mb-2"
-          >
-            Invites
-          </h1>
-          <p className="font-display italic text-ink-mute text-base">
-            Active and historical invitations. Click an invite to copy its link.
-          </p>
+    <div className={className} style={style}>
+      <div className="dk-head">
+        <div className="dk-txt">
+          <span className="dk-k">Invitation Roster</span>
+          <h1>Invites</h1>
+          <p>Active and historical invitations. Click an invite to copy its link.</p>
         </div>
-        <button type="button" onClick={onCreateInvite} className="btn-dispatch">
+        <button type="button" onClick={onCreateInvite} className="dk-btn dk-primary">
           + Send invite
         </button>
       </div>
 
       {/* Filter chips */}
-      <div className="flex flex-wrap items-center gap-2 mb-6 rule-thin pb-5">
-        <span className="font-mono text-[0.8125rem] text-ink-mute mr-2">
-          Status
-        </span>
+      <div className="dk-filters mb-5">
+        <span className="dk-flabel">Status</span>
         {(["ALL", "PENDING", "REDEEMED", "EXPIRED", "REVOKED"] as Filter[]).map((s) => (
           <button
             key={s}
             type="button"
             onClick={() => setFilter(s)}
-            className={[
-              "font-mono text-[0.8125rem] px-3 py-1.5 transition-colors whitespace-nowrap",
-              filter === s
-                ? "bg-ink text-parchment-warm"
-                : "border border-rule text-ink-soft hover:border-ink rounded-2xl",
-            ].join(" ")}
+            aria-pressed={filter === s}
+            className="dk-chip"
           >
             {s.charAt(0) + s.slice(1).toLowerCase()}
-            <span className="ml-2 text-ink-fade">{counts[s]}</span>
+            <span className="dk-c">{counts[s]}</span>
           </button>
         ))}
       </div>
 
       {/* Invite list */}
       {filtered.length === 0 ? (
-        <div className="text-center py-16 rule-thin border-t">
-          <p className="font-display italic text-ink-mute">
-            No invites in this bucket.
-          </p>
+        <div className="dk-emptyslip">
+          <p>No invites in this bucket.</p>
         </div>
       ) : (
-        <div>
+        <div className="dk-card dk-list">
           {filtered.map((invite) => (
             <InviteRow
               key={invite.id}
@@ -168,56 +145,58 @@ function InviteRow({
   const canRenew = invite.status === "EXPIRED";
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6 px-2 md:px-3 py-4 border-b border-ruleSoft hover:bg-parchment-warm transition-colors">
+    <div className="dk-irow">
       {/* Status pill, left column */}
-      <div className="md:w-40 flex-shrink-0 flex items-center gap-3">
-        <span className="status-pill" style={{ color }}>
+      <div className="flex items-center gap-3">
+        <span className="status-pill dk-caps" style={{ color }}>
           {invite.status}
         </span>
       </div>
 
       {/* Email + site, middle */}
       <div className="flex-1 min-w-0">
-        <div className="font-display text-base text-ink leading-tight">
+        <div className="leading-tight">
           {invite.recipientName ? (
             <>
-              <span>{invite.recipientName}</span>
-              <span className="text-ink-fade mx-1.5">·</span>
-              <span className="font-mono text-xs text-ink-mute">{invite.email}</span>
+              <span className="dk-nm">{invite.recipientName}</span>
+              <span className="dk-em"> · {invite.email}</span>
             </>
           ) : (
-            <span className="font-mono text-sm">{invite.email}</span>
+            <span className="dk-nm">{invite.email}</span>
           )}
         </div>
-        <div className="font-mono text-[0.8125rem] text-ink-mute mt-0.5">
-          → {invite.siteDisplayName} · {invite.siteUrl}
+        <div className="dk-to">
+          <ArrowIcon />
+          <span>
+            {invite.siteDisplayName} <em>· {invite.siteUrl}</em>
+          </span>
         </div>
       </div>
 
       {/* Dates, right column */}
-      <div className="md:w-44 md:text-right flex-shrink-0">
-        <div className="font-mono text-[0.8125rem] text-ink-mute">
+      <div className="dk-dates">
+        <div>
           Sent {formatDate(invite.createdAt)}
         </div>
         {invite.status === "PENDING" && (
-          <div className="font-mono text-[0.8125rem] text-ink-fade">
+          <div>
             Expires {formatRelative(invite.expiresAt)}
           </div>
         )}
         {invite.status === "REDEEMED" && invite.redeemedAt && (
-          <div className="font-mono text-[0.8125rem] text-signal-green">
+          <div className="dk-ok">
             Redeemed {formatDate(invite.redeemedAt)}
           </div>
         )}
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2 md:flex-shrink-0">
+      <div className="dk-iacts">
         {canCopy && (
           <button
             type="button"
             onClick={() => onCopyLink?.(invite.inviteUrl)}
-            className="btn-ghost"
+            className="dk-btn dk-sm"
           >
             ↳ Copy link
           </button>
@@ -234,7 +213,7 @@ function InviteRow({
                 setRenewing(false);
               }
             }}
-            className="font-mono text-[0.8125rem] text-ink-mute hover:text-signal-green transition-colors px-2"
+            className="dk-tbtn"
           >
             {renewing ? "Renewing…" : "↻ Renew"}
           </button>
@@ -252,7 +231,7 @@ function InviteRow({
                 setRevoking(false);
               }
             }}
-            className="font-mono text-[0.8125rem] text-ink-mute hover:text-accent transition-colors px-2"
+            className="dk-tbtn dk-danger"
           >
             {revoking ? "Revoking…" : "Revoke"}
           </button>

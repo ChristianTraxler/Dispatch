@@ -34,7 +34,7 @@ export function NewInviteClient() {
   return (
     <>
       {error && (
-        <div className="max-w-3xl mx-auto px-5 md:px-10 pt-6">
+        <div className="max-w-2xl pt-6">
           <div
             role="alert"
             className="border border-signal-red/20 bg-signal-red/5 px-4 py-3 font-mono text-xs text-signal-redDeep rounded-xl"
