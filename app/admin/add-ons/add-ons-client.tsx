@@ -164,24 +164,24 @@ function AddOnCard({
 
   return (
     <li
-      className={`border border-rule bg-parchment-warm/30 rounded-2xl ${row.isActive ? "" : "opacity-60"}`}
+      className={`dk-addon ${isOpen ? "dk-open" : ""} ${row.isActive ? "" : "opacity-60"}`}
     >
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={isOpen}
-        className="w-full text-left p-4 block"
+        className="w-full text-left block"
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-start gap-2">
-              <div className="font-display text-base md:text-lg leading-tight min-w-0 flex-1">
+              <h3 className="min-w-0 flex-1">
                 {row.name}
-              </div>
+              </h3>
               <svg
                 aria-hidden="true"
                 viewBox="0 0 12 12"
-                className={`shrink-0 mt-1 w-3 h-3 text-ink-mute transition-transform duration-300 ease-out motion-reduce:transition-none ${isOpen ? "rotate-180" : ""}`}
+                className={`shrink-0 mt-2 w-3.5 h-3.5 text-ink-mute transition-transform duration-300 ease-out motion-reduce:transition-none ${isOpen ? "rotate-180" : ""}`}
               >
                 <path
                   d="M2 4l4 4 4-4"
@@ -212,21 +212,19 @@ function AddOnCard({
             >
               <p
                 ref={descRef}
-                className="text-xs md:text-sm text-ink-mute mt-1 leading-snug whitespace-pre-line"
+                className="dk-adesc whitespace-pre-line"
               >
                 {description}
               </p>
             </div>
           </div>
-          <div className="text-right shrink-0">
-            <div className="font-mono text-sm whitespace-nowrap">{priceDisplay}</div>
-            <div className="font-mono text-[0.75rem] text-ink-mute mt-0.5">
-              {unitLabel}
-            </div>
+          <div className="dk-price shrink-0">
+            <b>{priceDisplay}</b>
+            <span>{unitLabel}</span>
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[0.75rem] text-ink-mute">
+        <div className="dk-meta">
           <span>{row.kind === "RECURRING" ? "Recurring" : "One-time"}</span>
           <span className="text-ink-fade">·</span>
           <span>{row.scope === "PER_SITE" ? "Per site" : "Per client"}</span>
@@ -234,19 +232,19 @@ function AddOnCard({
           <span>Order {row.sortOrder}</span>
           <span className="text-ink-fade">·</span>
           {row.isActive ? (
-            <span className="text-signal-green">Active</span>
+            <span className="dk-ok">Active</span>
           ) : (
             <span>Retired</span>
           )}
         </div>
       </button>
 
-      <div className="px-4 pb-4 -mt-1 pt-3 border-t border-rule flex items-center gap-4">
+      <div className="dk-acts">
         <button
           type="button"
           onClick={onEdit}
           disabled={editDisabled}
-          className="font-mono text-[0.8125rem] text-ink-mute hover:text-ink disabled:opacity-50"
+          className="dk-tbtn disabled:opacity-50"
         >
           Edit
         </button>
@@ -254,7 +252,7 @@ function AddOnCard({
           type="button"
           onClick={onToggleActive}
           disabled={busy}
-          className="font-mono text-[0.8125rem] text-ink-mute hover:text-ink disabled:opacity-50"
+          className="dk-tbtn disabled:opacity-50"
         >
           {row.isActive ? "Retire" : "Unretire"}
         </button>
@@ -262,7 +260,7 @@ function AddOnCard({
           type="button"
           onClick={onDelete}
           disabled={busy}
-          className="ml-auto font-mono text-[0.8125rem] text-accent hover:opacity-80 disabled:opacity-50"
+          className="ml-auto dk-tbtn dk-danger disabled:opacity-50"
         >
           Delete
         </button>
@@ -466,23 +464,12 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12">
-      <div className="flex items-center gap-3 mb-3">
-        <span className="font-mono text-[0.8125rem] text-accent">§</span>
-        <span className="h-px flex-1 bg-rule" />
-        <span className="font-mono text-[0.8125rem] text-ink-mute">
-          Catalog
-        </span>
-      </div>
-
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-        <div>
-          <h1
-            className="font-display text-3xl md:text-5xl leading-none mb-2"
-          >
-            Add-Ons
-          </h1>
-          <p className="font-display italic text-ink-mute text-base">
+    <div>
+      <div className="dk-head">
+        <div className="dk-txt">
+          <span className="dk-k">Catalog</span>
+          <h1>Add-Ons</h1>
+          <p>
             Services and upgrades you offer to clients. Per-client pricing overrides
             live on each client&rsquo;s detail page.
           </p>
@@ -491,14 +478,14 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
           type="button"
           onClick={startNew}
           disabled={busy || editingId !== null}
-          className="btn-dispatch disabled:opacity-50"
+          className="dk-btn dk-primary"
         >
           + New Add-On
         </button>
       </div>
 
       {editingId !== null && (
-        <div className="border border-rule bg-parchment-warm/40 p-5 md:p-6 mb-8 rounded-2xl">
+        <div className="dk-card dk-aform p-5 md:p-6 mb-8">
           <h2 className="font-display text-xl mb-4">
             {editingId === "new" ? "New add-on" : "Edit add-on"}
           </h2>
@@ -696,7 +683,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
               type="button"
               onClick={save}
               disabled={busy}
-              className="btn-dispatch disabled:opacity-50"
+              className="dk-btn dk-primary"
             >
               {editingId === "new" ? "Create" : "Save"}
             </button>
@@ -704,7 +691,7 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
               type="button"
               onClick={cancelEdit}
               disabled={busy}
-              className="font-mono text-[0.875rem] text-ink-mute hover:text-ink transition-colors"
+              className="dk-tbtn"
             >
               Cancel
             </button>
@@ -713,13 +700,13 @@ export function AdminAddOnsClient({ initialAddOns }: { initialAddOns: AddOnRow[]
       )}
 
       {initialAddOns.length === 0 ? (
-        <div className="border border-dashed border-rule px-6 py-12 text-center rounded-2xl">
-          <p className="font-display italic text-ink-mute">
+        <div className="dk-emptyslip">
+          <p>
             No add-ons yet. Click <strong>+ New Add-On</strong> to create your first one.
           </p>
         </div>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="dk-catalog">
           {initialAddOns.map((row) => (
             <AddOnCard
               key={row.id}

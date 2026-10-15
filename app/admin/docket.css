@@ -713,3 +713,19 @@ html:has(.admin-root) .site-scroll-top { display: none; }
 @media (min-width: 860px) {
   .dk-irow { grid-template-columns: 130px minmax(0, 1fr) auto auto; }
 }
+
+/* ---------- add-ons additions ---------- */
+.dk-catalog { list-style: none; margin: 6px 0 0; padding: 0; }
+.dk-addon > button:focus-visible { outline-offset: 6px; }
+.dk-addon .dk-adesc { margin: 10px 0 0; color: var(--dk-ink-2); max-width: 68ch; font-size: 15px; line-height: 1.55; }
+.dk-addon .dk-meta .text-ink-fade { display: none; }
+.dk-addon .dk-acts .ml-auto { margin-left: auto; }
+.dk-aform input, .dk-aform select, .dk-aform textarea {
+  border-radius: 12px !important; background: var(--dk-paper) !important; border-color: var(--dk-rule) !important;
+  font-family: var(--dk-f-body) !important; color: var(--dk-ink);
+}
+.dk-aform input, .dk-aform select { min-height: 46px; }
+.dk-aform input:focus, .dk-aform select:focus, .dk-aform textarea:focus {
+  outline: none; border-color: var(--dk-signal) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--dk-signal) 18%, transparent);
+}
+.dk-aform input[type="number"] { font-family: var(--dk-f-mono) !important; font-stretch: 87.5%; }
