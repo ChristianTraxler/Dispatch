@@ -5,6 +5,7 @@ import type { WeeklyHours } from "@/lib/availability";
 import { todayInTimezone, formatYmd } from "@/lib/vacation-helpers";
 import { PageHead } from "../docket-ui";
 import { SectionIndex } from "./section-index";
+import { hydrateAvatarUrl } from "@/lib/storage";
 import { reconcileVacationFlip, broadcastSettingsChanged } from "@/lib/vacation-reconcile";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +38,10 @@ export default async function AccountPage() {
     orderBy: { startDate: "asc" },
   });
 
+  const avatarUrl = await hydrateAvatarUrl(row?.avatarPath);
+
   const initial = {
+    avatarUrl,
     timezone: tz,
     hours: ((row?.hours as WeeklyHours | undefined) ?? DEFAULT_HOURS),
     oooEnabled: row?.oooEnabled ?? false,

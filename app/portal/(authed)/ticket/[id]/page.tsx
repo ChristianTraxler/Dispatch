@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientAccount } from "@/lib/auth/client-session";
 import { ticketNumber } from "@/lib/ticket";
-import { hydrateAttachments, hydrateAvatarUrl } from "@/lib/storage";
+import { getAdminAvatarUrl, hydrateAttachments, hydrateAvatarUrl } from "@/lib/storage";
 import type { ChatMessage } from "@/components/ChatThread";
 import type { TicketDetail } from "@/components/TicketDetailPage";
 import { TicketDetailClient } from "./ticket-detail-client";
@@ -59,7 +59,10 @@ export default async function ClientTicketDetailPage({ params }: PageProps) {
   );
 
   const ticketAttachments = await hydrateAttachments(ticket.attachments);
-  const clientAvatarUrl = await hydrateAvatarUrl(account.avatarPath);
+  const [clientAvatarUrl, adminAvatarUrl] = await Promise.all([
+    hydrateAvatarUrl(account.avatarPath),
+    getAdminAvatarUrl(),
+  ]);
 
   return (
     <TicketDetailClient
@@ -70,6 +73,7 @@ export default async function ClientTicketDetailPage({ params }: PageProps) {
       otherPartyName="Christian"
       myName={account.name}
       clientAvatarUrl={clientAvatarUrl}
+      adminAvatarUrl={adminAvatarUrl}
     />
   );
 }

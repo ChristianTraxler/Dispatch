@@ -41,9 +41,7 @@ type LauncherState =
   | { kind: "promoted"; ticketId: string; clientName: string }
   | { kind: "error"; message: string };
 
-const ADMIN_AVATAR_URL = "/icon.png";
-
-export function AdminQuickChatLauncher() {
+export function AdminQuickChatLauncher({ adminAvatarUrl = "/icon.png" }: { adminAvatarUrl?: string }) {
   const [state, setState] = useState<LauncherState>({ kind: "collapsed" });
   const [menuOpen, setMenuOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -697,7 +695,7 @@ export function AdminQuickChatLauncher() {
               otherPartyOnline={otherPartyOnline || ticketChannelOnline}
               onSendMessage={state.ended ? undefined : sendMessage}
               clientAvatarUrl={state.clientAvatarUrl}
-              adminAvatarUrl={ADMIN_AVATAR_URL}
+              adminAvatarUrl={adminAvatarUrl}
               clientName={state.clientName}
               className="h-full"
             />

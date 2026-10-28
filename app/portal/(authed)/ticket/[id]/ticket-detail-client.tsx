@@ -27,6 +27,7 @@ export function TicketDetailClient({
   otherPartyName,
   myName,
   clientAvatarUrl,
+  adminAvatarUrl = "/icon.png",
 }: {
   ticket: TicketDetail;
   ticketAttachments: ChatAttachment[];
@@ -35,6 +36,7 @@ export function TicketDetailClient({
   otherPartyName: string;
   myName: string;
   clientAvatarUrl?: string | null;
+  adminAvatarUrl?: string | null;
 }) {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
@@ -188,7 +190,7 @@ export function TicketDetailClient({
       onReopen={onReopen}
       onBack={onBack}
       clientAvatarUrl={clientAvatarUrl ?? null}
-      adminAvatarUrl="/icon.png"
+      adminAvatarUrl={adminAvatarUrl}
       clientName={myName}
       availabilityLine={viewerType === "client" ? <AdminAvailabilityLine /> : null}
     />

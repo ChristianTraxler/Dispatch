@@ -1,15 +1,17 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { computeAvailability, type WeeklyHours } from "@/lib/availability";
 import { VacationCalendar, type Vacation } from "./vacation-calendar";
+import { Avatar } from "@/components/Avatar";
 import PushToggle from "@/components/PushToggle";
 import PasskeyManager from "@/components/PasskeyManager";
 import { XIcon } from "../docket-icons";
 
 interface InitialState {
+  avatarUrl: string | null;
   timezone: string;
   hours: WeeklyHours;
   oooEnabled: boolean;
@@ -65,6 +67,52 @@ function buildLocalIso(date: string, time: string, kind: TimeKind): string | nul
 export function AccountForm({ initial }: { initial: InitialState }) {
   const router = useRouter();
   const { push: pushToast } = useToast();
+
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(initial.avatarUrl);
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function onPickAvatar(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      pushToast({ kind: "error", title: "Profile picture", detail: "PNG, JPG, or WebP only." });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      pushToast({ kind: "error", title: "Profile picture", detail: "Image must be under 2 MB." });
+      return;
+    }
+    setAvatarBusy(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/admin/account/avatar", { method: "POST", body: fd });
+    setAvatarBusy(false);
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      pushToast({ kind: "error", title: "Profile picture", detail: body.error ?? "Upload failed." });
+      return;
+    }
+    const data = (await res.json()) as { avatarUrl: string | null };
+    setAvatarUrl(data.avatarUrl);
+    pushToast({ kind: "info", title: "Profile picture updated." });
+    router.refresh();
+  }
+
+  async function onRemoveAvatar() {
+    if (!avatarUrl || !confirm("Remove your profile picture?")) return;
+    setAvatarBusy(true);
+    const res = await fetch("/api/admin/account/avatar", { method: "DELETE" });
+    setAvatarBusy(false);
+    if (!res.ok) {
+      pushToast({ kind: "error", title: "Profile picture", detail: "Could not remove picture." });
+      return;
+    }
+    setAvatarUrl(null);
+    pushToast({ kind: "info", title: "Profile picture removed." });
+    router.refresh();
+  }
 
   const initialFrom = deriveDateTime(initial.oooFromIso, "start");
   const initialUntil = deriveDateTime(initial.oooUntilIso, "end");
@@ -251,6 +299,39 @@ export function AccountForm({ initial }: { initial: InitialState }) {
 
   return (
     <div className="space-y-12">
+      {/* Profile picture */}
+      <section id="profile-picture" className="dk-asect">
+        <h2 className="dk-h2">Profile picture</h2>
+        <p className="dk-lede">
+          Shown next to your replies in client chats. PNG, JPG, or WebP up to 2&nbsp;MB; square works best.
+        </p>
+        <div className="dk-card dk-pad mt-4 flex flex-wrap items-center gap-5">
+          <Avatar src={avatarUrl} name="Your profile picture" size={72} tone="admin" />
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={avatarBusy}
+              className="dk-btn dk-ghost-signal"
+            >
+              {avatarBusy ? "Uploading…" : avatarUrl ? "Replace" : "Upload"}
+            </button>
+            {avatarUrl && (
+              <button type="button" onClick={onRemoveAvatar} disabled={avatarBusy} className="dk-btn">
+                Remove
+              </button>
+            )}
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            onChange={onPickAvatar}
+            className="hidden"
+          />
+        </div>
+      </section>
+
       {/* Live preview */}
       <section id="live-preview" className="dk-asect dk-card dk-status">
         <small>

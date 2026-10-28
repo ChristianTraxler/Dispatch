@@ -26,6 +26,7 @@ export function AdminTicketDetailClient({
   isInquiry = false,
   inquiryEndedAt = null,
   clientAvatarUrl = null,
+  adminAvatarUrl = "/icon.png",
   outOfFreeWindow = false,
   addOnBanner = null,
 }: {
@@ -36,6 +37,7 @@ export function AdminTicketDetailClient({
   isInquiry?: boolean;
   inquiryEndedAt?: string | null;
   clientAvatarUrl?: string | null;
+  adminAvatarUrl?: string | null;
   outOfFreeWindow?: boolean;
   addOnBanner?: AddOnBannerData | null;
 }) {
@@ -276,7 +278,7 @@ export function AdminTicketDetailClient({
           onSendMessage={inquiryEndedAt ? undefined : (onSendMessage as never)}
           onTypingChange={broadcastTyping}
           clientAvatarUrl={clientAvatarUrl}
-          adminAvatarUrl="/icon.png"
+          adminAvatarUrl={adminAvatarUrl}
           clientName={otherPartyName}
         />
       </div>

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { Archivo, Martian_Mono } from "next/font/google";
 import { getCurrentAuthUser, isAdmin } from "@/lib/auth/client-session";
+import { getAdminAvatarUrl } from "@/lib/storage";
 import { AdminShellClient } from "./admin-shell-client";
 import { AdminQuickChatLauncher } from "./admin-quick-chat-launcher";
 import "./docket.css";
@@ -29,11 +30,13 @@ export default async function AdminLayout({
   if (!user) redirect("/portal");
   if (!isAdmin(user)) redirect("/portal/dashboard");
 
+  const adminAvatarUrl = await getAdminAvatarUrl();
+
   return (
     <div className={`admin-root ${archivo.variable} ${martianMono.variable}`}>
       <AdminShellClient>
         {children}
-        <AdminQuickChatLauncher />
+        <AdminQuickChatLauncher adminAvatarUrl={adminAvatarUrl} />
       </AdminShellClient>
     </div>
   );

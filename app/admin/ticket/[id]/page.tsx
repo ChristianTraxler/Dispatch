@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ticketNumber } from "@/lib/ticket";
-import { hydrateAttachments, hydrateAvatarUrl } from "@/lib/storage";
+import { getAdminAvatarUrl, hydrateAttachments, hydrateAvatarUrl } from "@/lib/storage";
 import { isOutOfFreeWindow } from "@/lib/free-updates";
 import { notifyTicketViewed } from "@/lib/notify";
 import type { ChatMessage } from "@/components/ChatThread";
@@ -164,7 +164,10 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
   );
 
   const ticketAttachments = await hydrateAttachments(ticket.attachments);
-  const clientAvatarUrl = await hydrateAvatarUrl(ticket.clientAccount.avatarPath);
+  const [clientAvatarUrl, adminAvatarUrl] = await Promise.all([
+    hydrateAvatarUrl(ticket.clientAccount.avatarPath),
+    getAdminAvatarUrl(),
+  ]);
   const outOfFreeWindow = isOutOfFreeWindow(
     ticket.createdAt,
     ticket.site.productionStartedAt,
@@ -179,6 +182,7 @@ export default async function AdminTicketDetailPage({ params }: PageProps) {
       isInquiry={isInquiry}
       inquiryEndedAt={inquiryEndedAt}
       clientAvatarUrl={clientAvatarUrl}
+      adminAvatarUrl={adminAvatarUrl}
       outOfFreeWindow={outOfFreeWindow}
       addOnBanner={addOnBanner}
     />

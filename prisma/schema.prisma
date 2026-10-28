@@ -274,6 +274,8 @@ model AdminSettings {
   holidays           String[] @default([])
   emergencyFeeCents  Int      @default(5000) @map("emergency_fee_cents")
   outOfTown          Boolean  @default(false) @map("out_of_town")
+  // Admin profile picture (storage path); shown beside admin chat messages.
+  avatarPath         String?  @map("avatar_path")
   updatedAt   DateTime  @updatedAt              @map("updated_at")
 
   @@map("admin_settings")

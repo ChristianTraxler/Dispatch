@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 // Anchor links to the Account sections, shown on wide screens. The labels
 // are the sections' own titles.
 const SECTIONS = [
+  { id: "profile-picture", label: "Profile picture" },
   { id: "live-preview", label: "Live preview" },
   { id: "business-hours", label: "Business Hours" },
   { id: "out-of-office", label: "Out of Office" },

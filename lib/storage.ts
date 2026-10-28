@@ -197,3 +197,13 @@ export async function hydrateAvatarUrls(
   });
   return out;
 }
+
+/** Signed URL for the admin's profile picture, or the default icon. */
+export async function getAdminAvatarUrl(): Promise<string> {
+  const { prisma } = await import("@/lib/prisma");
+  const row = await prisma.adminSettings.findUnique({
+    where: { id: "global" },
+    select: { avatarPath: true },
+  });
+  return (await hydrateAvatarUrl(row?.avatarPath)) ?? "/icon.png";
+}
