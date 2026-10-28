@@ -19,10 +19,10 @@ const SECTIONS = [
 
 export function SectionIndex() {
   const [current, setCurrent] = useState(SECTIONS[0].id);
-  // After a click, hold the clicked section lit until the jump finishes;
-  // otherwise the scroll listener overrides it with whichever section the
-  // page happens to be passing (or the last one that fits on screen).
-  const lockRef = useRef<{ id: string; timer: number } | null>(null);
+  // After a click, keep the clicked section lit until the reader scrolls on
+  // their own; the last sections can't reach the top of the page, so the
+  // scroll position alone would light an earlier one.
+  const lockRef = useRef<string | null>(null);
 
   useEffect(() => {
     const els = SECTIONS.map((s) => document.getElementById(s.id)).filter(
@@ -40,10 +40,20 @@ export function SectionIndex() {
       setCurrent(active);
     };
     pick();
+    const release = () => {
+      lockRef.current = null;
+    };
+    window.addEventListener("wheel", release, { passive: true });
+    window.addEventListener("touchmove", release, { passive: true });
+    window.addEventListener("keydown", release);
+    window.addEventListener("pointerdown", release);
     window.addEventListener("scroll", pick, { passive: true });
     window.addEventListener("resize", pick);
     return () => {
-      if (lockRef.current) window.clearTimeout(lockRef.current.timer);
+      window.removeEventListener("wheel", release);
+      window.removeEventListener("touchmove", release);
+      window.removeEventListener("keydown", release);
+      window.removeEventListener("pointerdown", release);
       window.removeEventListener("scroll", pick);
       window.removeEventListener("resize", pick);
     };
@@ -53,12 +63,8 @@ export function SectionIndex() {
     const el = document.getElementById(id);
     if (!el) return;
     e.preventDefault();
-    if (lockRef.current) window.clearTimeout(lockRef.current.timer);
     setCurrent(id);
-    const unlock = () => {
-      lockRef.current = null;
-    };
-    lockRef.current = { id, timer: window.setTimeout(unlock, 1200) };
+    lockRef.current = id;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
     history.replaceState(null, "", `#${id}`);
