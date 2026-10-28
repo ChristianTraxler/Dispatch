@@ -771,6 +771,8 @@ html:has(.admin-root) .site-scroll-top { display: none; }
 .dk-calfoot > div:last-child { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
 .dk-upcoming .dk-list { margin-top: 0; }
 .dk-acct > div > .space-y-12 > * + * { margin-top: 46px; }
+/* Room for the last sections to scroll up to the top when picked from the index. */
+@media (min-width: 1080px) { .dk-acct > div > .space-y-12 { padding-bottom: calc(100vh - 420px); } }
 
 /* globals.css sets overflow-x: hidden on html and body, which turns body into
    a scroll container and stops the sticky rail and top bar. clip keeps the
